@@ -98,28 +98,19 @@ void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
 void configure_RT(uint8_t _register, uint8_t _mask);
 void init_RT();
 uint16_t read_RT_ADC();
+void setScopeChannel(uint8_t ch, int16_t val);
+void consoleScope();
+
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
 
-
 volatile uint8_t uart_buf[100];
 volatile int16_t ch_buf[8];
-//volatile char char_buf[300];
 
-void setScopeChannel(uint8_t ch, int16_t val) {
-  ch_buf[ch] = val;
-}
+
 
 TSC_IOConfigTypeDef IoConfig;
-
-void consoleScope() {
-  memset(uart_buf, 0, sizeof(uart_buf));
-  sprintf(uart_buf, "%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);//, ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
-
-  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen(uart_buf));
-  huart1.gState = HAL_UART_STATE_READY;
-}
 
 __IO int32_t uhTSCAcquisitionValue[3];
 __IO int32_t uhTSCOffsetValue[3];
@@ -281,22 +272,22 @@ int main(void)
         uint8_t section = 0;
         if (x < y && x < z && y < z) {
           section = 1;
-          distance = 2 * SCALE - ((z * SCALE) / (y + z));
+          distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
         } else if (x < y && x < z && y > z) {
           section = 2;
-          distance = ((y * SCALE) / (y + z)) + SCALE;
+          distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
         } else if (z < y && z < x && x < y) {
           section = 3;
-          distance = 5 * SCALE - ((y * SCALE) / (y + x));
+          distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
         } else if (z < y && z < x && x > y) {
           section = 4;
-          distance = ((x * SCALE) / (y + x)) + 4 * SCALE;
+          distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
         } else if (y < x && y < z && z < x) {
           section = 5;
-          distance = 8 * SCALE - ((x * SCALE) / (x + z));
+          distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
         } else if (y < x && y < z && z > x) {
           section = 6;
-          distance = ((z * SCALE) / (x + z)) + 7 * SCALE;
+          distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
         }
         if (MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]) > -100) {
           distance = 0;
@@ -878,6 +869,19 @@ uint16_t read_RT_ADC() {
   uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
   return _tmp_data;
 }
+
+void setScopeChannel(uint8_t ch, int16_t val) {
+  ch_buf[ch] = val;
+}
+
+void consoleScope() {
+  memset(uart_buf, 0, sizeof(uart_buf));
+  sprintf(uart_buf, "%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);//, ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
+
+  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen(uart_buf));
+  huart1.gState = HAL_UART_STATE_READY;
+}
+
 //HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 //HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 /* USER CODE END 4 */
