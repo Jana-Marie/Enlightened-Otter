@@ -40,11 +40,7 @@
 #include "stm32f3xx_hal.h"
 
 /* USER CODE BEGIN Includes */
-
-#define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
-#define SCALE(value, high, max) MIN(MAX(((max) - (value)) / ((max) - (high)), 0.0), 1.0)
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#include "defines.h"
 
 /* USER CODE END Includes */
 
@@ -105,39 +101,7 @@ uint16_t read_RT_ADC();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-#define RT_ADDRESS (0x53 << 1)
-#define CHG_CTRL1 0x01
-#define ENABLE_OTG_MASK 0x11
-#define ENABLE_STAT_LED_MASK 0x10
-#define DISABLE_STAT_LED_MASK 0x00
 
-#define CHG_CTRL2 0x02
-#define TURNOFF_MASK 0x83
-#define IINLIM_MASK 0x0B
-
-#define CHG_CTRL3 0x03
-#define SET_ILIM_3A 0xEB 
-
-#define CHG_CTRL16 0x10
-#define DISABLE_JEITA 0x00 
-#define ENABLE_JEITA 0x10 
-
-#define CHG_STAT 0x42
-#define ADC_DATA_H 0x44
-#define ADC_DATA_L 0x45
-
-#define CHG_ADC 0x11
-#define ADC_VBUS5 0x11 //lsb 25mv 
-#define ADC_VBUS2 0x21 //lsb 10mv 
-#define ADC_VSYS  0x31 //lsb 5mv 
-#define ADC_VBAT  0x41 //lsb 5mv 
-#define ADC_NTC   0x61 //lsb 0.25% 
-#define ADC_IBUS  0x81 //lsb 50mA 
-#define ADC_IBAT  0x91 //lsb 50mA 
-#define ADC_REGN  0xB1 //lsb 5mv 
-#define ADC_TEMP_JC  0xC1 //lsb 2C 
-
-#define UART_DMA_CHANNEL DMA1_Channel4
 
 volatile uint8_t uart_buf[100];
 volatile int16_t ch_buf[8];
@@ -241,21 +205,21 @@ int main(void)
 //HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
     switch (IdxBank)
     {
-      case 0:
-        IoConfig.ChannelIOs = TSC_GROUP1_IO1; /* Second channel */
-        IdxBank = 1;
-        break;
-      case 1:
-        IoConfig.ChannelIOs = TSC_GROUP1_IO2; /* Third channel */
-        IdxBank = 2;
-        break;
-      case 2:
-        IoConfig.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
-        IdxBank = 0;/* TSC init function */
+    case 0:
+      IoConfig.ChannelIOs = TSC_GROUP1_IO1; /* Second channel */
+      IdxBank = 1;
+      break;
+    case 1:
+      IoConfig.ChannelIOs = TSC_GROUP1_IO2; /* Third channel */
+      IdxBank = 2;
+      break;
+    case 2:
+      IoConfig.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
+      IdxBank = 0;/* TSC init function */
 
-        break;
-      default:
-        break;
+      break;
+    default:
+      break;
     }
 
     if (HAL_TSC_IOConfig(&htsc, &IoConfig) != HAL_OK)
@@ -305,7 +269,7 @@ int main(void)
           HAL_GPIO_WritePin(GPIOA, LED3_Pin, 1);
           uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] * 2;
         }
-        
+
         uhTSCAcquisitionValue[IdxBank] = CLAMP(uhTSCAcquisitionValue[IdxBank], -2000, 0);
 
         int16_t z = ((uhTSCAcquisitionValue[0] + uhTSCAcquisitionValue[1]) / 2) - uhTSCAcquisitionValue[2];
@@ -313,27 +277,26 @@ int main(void)
         int16_t y = ((uhTSCAcquisitionValue[1] + uhTSCAcquisitionValue[2]) / 2) - uhTSCAcquisitionValue[0];
 
 
-        #define SCALE    16
         uint16_t distance = 0;
         uint8_t section = 0;
-               if (x < y && x < z && y < z) {
+        if (x < y && x < z && y < z) {
           section = 1;
-          distance = 2*SCALE-((z * SCALE) / (y+z));
+          distance = 2 * SCALE - ((z * SCALE) / (y + z));
         } else if (x < y && x < z && y > z) {
           section = 2;
-          distance = ((y * SCALE) / (y+z)) + SCALE;
+          distance = ((y * SCALE) / (y + z)) + SCALE;
         } else if (z < y && z < x && x < y) {
           section = 3;
-          distance = 5*SCALE-((y * SCALE) / (y+x));
+          distance = 5 * SCALE - ((y * SCALE) / (y + x));
         } else if (z < y && z < x && x > y) {
           section = 4;
-          distance = ((x * SCALE) / (y+x)) + 4 * SCALE;
+          distance = ((x * SCALE) / (y + x)) + 4 * SCALE;
         } else if (y < x && y < z && z < x) {
           section = 5;
-          distance = 8*SCALE-((x * SCALE) / (x+z));
+          distance = 8 * SCALE - ((x * SCALE) / (x + z));
         } else if (y < x && y < z && z > x) {
           section = 6;
-          distance = ((z * SCALE) / (x+z)) + 7 * SCALE;
+          distance = ((z * SCALE) / (x + z)) + 7 * SCALE;
         }
         if (MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]) > -100) {
           distance = 0;
@@ -344,18 +307,18 @@ int main(void)
         }
         setScopeChannel(1, (uint16_t)section);
         setScopeChannel(0, (uint16_t)distance / 1.43f);
-        setScopeChannel(2, read_RT_ADC());
-        configure_RT(CHG_ADC,);
+        //setScopeChannel(2, read_RT_ADC());
+        //configure_RT(CHG_ADC,0x11);
         //setScopeChannel(2, y);
         //setScopeChannel(3, MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]));
         consoleScope();
       }
     }
 
-  /* USER CODE END WHILE */
+    /* USER CODE END WHILE */
 
 
-  /* USER CODE BEGIN 3 */
+    /* USER CODE BEGIN 3 */
 
   }
   /* USER CODE END 3 */
@@ -371,9 +334,9 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-    /**Initializes the CPU, AHB and APB busses clocks
-    */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI|RCC_OSCILLATORTYPE_HSE;
+  /**Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
@@ -386,10 +349,10 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Initializes the CPU, AHB and APB busses clocks
-    */
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK|RCC_CLOCKTYPE_SYSCLK
-                              |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
+  /**Initializes the CPU, AHB and APB busses clocks
+  */
+  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+                                | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
@@ -400,8 +363,8 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_HRTIM1|RCC_PERIPHCLK_USART1
-                              |RCC_PERIPHCLK_I2C1|RCC_PERIPHCLK_ADC12;
+  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_HRTIM1 | RCC_PERIPHCLK_USART1
+                                       | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_ADC12;
   PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
   PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
   PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
@@ -411,12 +374,12 @@ void SystemClock_Config(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure the Systick interrupt time
-    */
-  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq()/1000);
+  /**Configure the Systick interrupt time
+  */
+  HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
 
-    /**Configure the Systick
-    */
+  /**Configure the Systick
+  */
   HAL_SYSTICK_CLKSourceConfig(SYSTICK_CLKSOURCE_HCLK);
 
   /* SysTick_IRQn interrupt configuration */
@@ -430,8 +393,8 @@ static void MX_ADC1_Init(void)
   ADC_MultiModeTypeDef multimode;
   ADC_ChannelConfTypeDef sConfig;
 
-    /**Common config
-    */
+  /**Common config
+  */
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
@@ -451,16 +414,16 @@ static void MX_ADC1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure the ADC multi-mode
-    */
+  /**Configure the ADC multi-mode
+  */
   multimode.Mode = ADC_MODE_INDEPENDENT;
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel
-    */
+  /**Configure Regular Channel
+  */
   sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
   sConfig.Rank = 1;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -480,8 +443,8 @@ static void MX_ADC2_Init(void)
 
   ADC_ChannelConfTypeDef sConfig;
 
-    /**Common config
-    */
+  /**Common config
+  */
   hadc2.Instance = ADC2;
   hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
@@ -501,8 +464,8 @@ static void MX_ADC2_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Regular Channel
-    */
+  /**Configure Regular Channel
+  */
   sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = 1;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -576,16 +539,16 @@ static void MX_DAC1_Init(void)
 
   DAC_ChannelConfTypeDef sConfig;
 
-    /**DAC Initialization
-    */
+  /**DAC Initialization
+  */
   hdac1.Instance = DAC1;
   if (HAL_DAC_Init(&hdac1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**DAC channel OUT2 config
-    */
+  /**DAC channel OUT2 config
+  */
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputSwitch = DAC_OUTPUTSWITCH_DISABLE;
   if (HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2) != HAL_OK)
@@ -601,16 +564,16 @@ static void MX_DAC2_Init(void)
 
   DAC_ChannelConfTypeDef sConfig;
 
-    /**DAC Initialization
-    */
+  /**DAC Initialization
+  */
   hdac2.Instance = DAC2;
   if (HAL_DAC_Init(&hdac2) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**DAC channel OUT1 config
-    */
+  /**DAC channel OUT1 config
+  */
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputSwitch = DAC_OUTPUTSWITCH_DISABLE;
   if (HAL_DAC_ConfigChannel(&hdac2, &sConfig, DAC_CHANNEL_1) != HAL_OK)
@@ -767,15 +730,15 @@ static void MX_I2C1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Analogue filter
-    */
+  /**Configure Analogue filter
+  */
   if (HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-    /**Configure Digital filter
-    */
+  /**Configure Digital filter
+  */
   if (HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -787,8 +750,8 @@ static void MX_I2C1_Init(void)
 static void MX_TSC_Init(void)
 {
 
-    /**Configure the TSC peripheral
-    */
+  /**Configure the TSC peripheral
+  */
   htsc.Instance = TSC;
   htsc.Init.CTPulseHighLength = TSC_CTPH_1CYCLE;
   htsc.Init.CTPulseLowLength = TSC_CTPL_1CYCLE;
@@ -802,7 +765,7 @@ static void MX_TSC_Init(void)
   htsc.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
   htsc.Init.MaxCountInterrupt = DISABLE;
   htsc.Init.ChannelIOs = 0;//TSC_GROUP1_IO2|TSC_GROUP1_IO3|TSC_GROUP1_IO4|TSC_GROUP5_IO2
-                  //  |TSC_GROUP5_IO3|TSC_GROUP5_IO4;
+  //  |TSC_GROUP5_IO3|TSC_GROUP5_IO4;
   htsc.Init.SamplingIOs = 0;//TSC_GROUP1_IO1|TSC_GROUP5_IO1;
   if (HAL_TSC_Init(&htsc) != HAL_OK)
   {
@@ -880,10 +843,10 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOA, LED1_Pin|LED2_Pin|LED3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED1_Pin | LED2_Pin | LED3_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pins : LED1_Pin LED2_Pin LED3_Pin */
-  GPIO_InitStruct.Pin = LED1_Pin|LED2_Pin|LED3_Pin;
+  GPIO_InitStruct.Pin = LED1_Pin | LED2_Pin | LED3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -892,26 +855,26 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void init_RT(){
-  configure_RT(CHG_CTRL2,IINLIM_MASK);
-  configure_RT(CHG_CTRL3,SET_ILIM_3A);
+void init_RT() {
+  configure_RT(CHG_CTRL2, IINLIM_MASK);
+  configure_RT(CHG_CTRL3, SET_ILIM_3A);
 }
 
-void configure_RT(uint8_t _register, uint8_t _mask){
-  uint8_t _tmp_data[2] = {_register,_mask};        
+void configure_RT(uint8_t _register, uint8_t _mask) {
+  uint8_t _tmp_data[2] = {_register, _mask};
   HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, _tmp_data, sizeof(_tmp_data), 500);
 }
 
-uint16_t read_RT_ADC(){
-  uint8_t _ADC_H,_ADC_L;
-  uint8_t _tmp_data_H = ADC_DATA_H;        
-  uint8_t _tmp_data_L = ADC_DATA_L;        
+uint16_t read_RT_ADC() {
+  uint8_t _ADC_H, _ADC_L;
+  uint8_t _tmp_data_H = ADC_DATA_H;
+  uint8_t _tmp_data_L = ADC_DATA_L;
 
   HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_H, sizeof(_tmp_data_H), 500);
-  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_H,1, 500);
-  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS,&_tmp_data_L, sizeof(_tmp_data_L), 500);
-  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_L,1, 500);
-  
+  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_H, 1, 500);
+  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_L, sizeof(_tmp_data_L), 500);
+  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_L, 1, 500);
+
   uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
   return _tmp_data;
 }
@@ -928,7 +891,7 @@ void _Error_Handler(char * file, int line)
 {
   /* USER CODE BEGIN Error_Handler_Debug */
   /* User can add his own implementation to report the HAL error return state */
-  while(1)
+  while (1)
   {
   }
   /* USER CODE END Error_Handler_Debug */
