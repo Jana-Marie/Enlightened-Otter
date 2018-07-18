@@ -98,15 +98,17 @@ void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
 void configure_RT(uint8_t _register, uint8_t _mask);
 void init_RT();
 uint16_t read_RT_ADC();
-void setScopeChannel(uint8_t ch, int16_t val);
-void consoleScope();
-
+#if defined(SCOPE_CHANNELS)
+void set_scope_channel(uint8_t ch, int16_t val);
+void console_scope();
+#endif
+void init_TSC();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
 
-volatile uint8_t uart_buf[100];
-volatile int16_t ch_buf[8];
+volatile uint8_t uart_buf[6 * SCOPE_CHANNELS];
+volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 
 
 
@@ -145,45 +147,21 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_DMA_Init();
-  /*MX_ADC1_Init();
+  MX_ADC1_Init();
   MX_ADC2_Init();
   MX_COMP2_Init();
   MX_COMP4_Init();
   MX_COMP6_Init();
-  MX_HRTIM1_Init();*/
+  MX_HRTIM1_Init();
   MX_TSC_Init();
   MX_I2C1_Init();
   MX_USART1_UART_Init();
-  //MX_DAC1_Init();
-  //MX_DAC2_Init();
+  MX_DAC1_Init();
+  MX_DAC2_Init();
 
   /* USER CODE BEGIN 2 */
-
-  HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);
-  HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);
-
-  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
-  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
-  IoConfig.ShieldIOs   = 0;
-
-  if (HAL_TSC_IOConfig(&htsc, &IoConfig) != HAL_OK)
-  {
-    /* Initialization Error */
-    Error_Handler();
-  }
-
-  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
-  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
-  IoConfig.ShieldIOs   = 0;
-
-  if (HAL_TSC_IOConfig(&htsc, &IoConfig) != HAL_OK)
-  {
-    /* Initialization Error */
-    Error_Handler();
-  }
-
   init_RT();
-
+  init_TSC();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -191,121 +169,8 @@ int main(void)
   while (1)
   {
     HAL_Delay(5);
-
-//HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
-//HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
-    switch (IdxBank)
-    {
-    case 0:
-      IoConfig.ChannelIOs = TSC_GROUP1_IO1; /* Second channel */
-      IdxBank = 1;
-      break;
-    case 1:
-      IoConfig.ChannelIOs = TSC_GROUP1_IO2; /* Third channel */
-      IdxBank = 2;
-      break;
-    case 2:
-      IoConfig.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
-      IdxBank = 0;/* TSC init function */
-
-      break;
-    default:
-      break;
-    }
-
-    if (HAL_TSC_IOConfig(&htsc, &IoConfig) != HAL_OK)
-    {
-      /* Initialization Error */
-      Error_Handler();
-    }
-
-    /*##-2- Discharge the touch-sensing IOs ##################################*/
-    /* Must be done before each acquisition */
-    HAL_TSC_IODischarge(&htsc, ENABLE);
-    HAL_Delay(1); /* 1 ms is more than enough to discharge all capacitors */
-
-    /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
-    if (HAL_TSC_Start(&htsc) != HAL_OK)
-    {
-      /* Acquisition Error */
-      Error_Handler();
-    }
-
-    /*##-4- Wait for the end of acquisition ##################################*/
-    /*  Before starting a new acquisition, you need to check the current state of
-         the peripheral; if its busy you need to wait for the end of current
-         acquisition before starting a new one. */
-    while (HAL_TSC_GetState(&htsc) == HAL_TSC_STATE_BUSY)
-    {
-      /* For simplicity reasons, this example is just waiting till the end of the
-         acquisition, but application may perform other tasks while acquisition
-         operation is ongoing. */
-    }
-
-    /*##-5- Clear flags ######################################################*/
-    __HAL_TSC_CLEAR_FLAG(&htsc, (TSC_FLAG_EOA | TSC_FLAG_MCE));
-
-    /*##-6- Check if the acquisition is correct (no max count) ###############*/
-    if (HAL_TSC_GroupGetStatus(&htsc, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
-    {
-      /*##-7- Store the acquisition value ####################################*/
-      uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htsc, TSC_GROUP1_IDX);
-
-      if (ready < 300) {
-        uhTSCOffsetValue[IdxBank] =  uhTSCOffsetValue[IdxBank] * 0.9f + uhTSCAcquisitionValue[IdxBank] * 0.1f;
-        ready++;
-      } else {
-        uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] - uhTSCOffsetValue[IdxBank]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
-        if (IdxBank == 2) {
-          HAL_GPIO_WritePin(GPIOA, LED3_Pin, 1);
-          uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] * 2;
-        }
-
-        uhTSCAcquisitionValue[IdxBank] = CLAMP(uhTSCAcquisitionValue[IdxBank], -2000, 0);
-
-        int16_t z = ((uhTSCAcquisitionValue[0] + uhTSCAcquisitionValue[1]) / 2) - uhTSCAcquisitionValue[2];
-        int16_t x = ((uhTSCAcquisitionValue[0] + uhTSCAcquisitionValue[2]) / 2) - uhTSCAcquisitionValue[1];
-        int16_t y = ((uhTSCAcquisitionValue[1] + uhTSCAcquisitionValue[2]) / 2) - uhTSCAcquisitionValue[0];
-
-
-        uint16_t distance = 0;
-        uint8_t section = 0;
-        if (x < y && x < z && y < z) {
-          section = 1;
-          distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-        } else if (x < y && x < z && y > z) {
-          section = 2;
-          distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-        } else if (z < y && z < x && x < y) {
-          section = 3;
-          distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-        } else if (z < y && z < x && x > y) {
-          section = 4;
-          distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-        } else if (y < x && y < z && z < x) {
-          section = 5;
-          distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-        } else if (y < x && y < z && z > x) {
-          section = 6;
-          distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
-        }
-        if (MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]) > -100) {
-          distance = 0;
-          section = 0;
-          HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);
-        } else {
-          HAL_GPIO_WritePin(GPIOA, LED1_Pin, 1);
-        }
-        setScopeChannel(1, (uint16_t)section);
-        setScopeChannel(0, (uint16_t)distance / 1.43f);
-        //setScopeChannel(2, read_RT_ADC());
-        //configure_RT(CHG_ADC,0x11);
-        //setScopeChannel(2, y);
-        //setScopeChannel(3, MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]));
-        consoleScope();
-      }
-    }
-
+    set_scope_channel(0, 1);
+    console_scope();
     /* USER CODE END WHILE */
 
 
@@ -870,20 +735,177 @@ uint16_t read_RT_ADC() {
   return _tmp_data;
 }
 
-void setScopeChannel(uint8_t ch, int16_t val) {
+#if defined(SCOPE_CHANNELS)
+void set_scope_channel(uint8_t ch, int16_t val) {
   ch_buf[ch] = val;
 }
 
-void consoleScope() {
+void console_scope() {
   memset(uart_buf, 0, sizeof(uart_buf));
-  sprintf(uart_buf, "%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);//, ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
+
+#if (SCOPE_CHANNELS == 1)
+  sprintf(uart_buf, "%i\n\r", ch_buf[0]);
+#elif (SCOPE_CHANNELS == 2)
+  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1]);
+#elif (SCOPE_CHANNELS == 3)
+  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
+#elif (SCOPE_CHANNELS == 4)
+  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
+#elif (SCOPE_CHANNELS == 5)
+  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
+#elif (SCOPE_CHANNELS == 6)
+  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
+#elif (SCOPE_CHANNELS == 7)
+  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
+#elif (SCOPE_CHANNELS == 8)
+  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
+#endif
 
   HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen(uart_buf));
   huart1.gState = HAL_UART_STATE_READY;
 }
+#endif
 
-//HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
-//HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+void primitive_TSC_task() {
+
+  switch (IdxBank)
+  {
+  case 0:
+    IoConfig.ChannelIOs = TSC_GROUP1_IO1; /* Second channel */
+    IdxBank = 1;
+    break;
+  case 1:
+    IoConfig.ChannelIOs = TSC_GROUP1_IO2; /* Third channel */
+    IdxBank = 2;
+    break;
+  case 2:
+    IoConfig.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
+    IdxBank = 0;/* TSC init function */
+
+    break;
+  default:
+    break;
+  }
+
+  if (HAL_TSC_IOConfig(&htsc, &IoConfig) != HAL_OK)
+  {
+    /* Initialization Error */
+    Error_Handler();
+  }
+
+  /*##-2- Discharge the touch-sensing IOs ##################################*/
+  /* Must be done before each acquisition */
+  HAL_TSC_IODischarge(&htsc, ENABLE);
+  HAL_Delay(1); /* 1 ms is more than enough to discharge all capacitors */
+
+  /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
+  if (HAL_TSC_Start(&htsc) != HAL_OK)
+  {
+    /* Acquisition Error */
+    Error_Handler();
+  }
+
+  /*##-4- Wait for the end of acquisition ##################################*/
+  /*  Before starting a new acquisition, you need to check the current state of
+       the peripheral; if its busy you need to wait for the end of current
+       acquisition before starting a new one. */
+  while (HAL_TSC_GetState(&htsc) == HAL_TSC_STATE_BUSY)
+  {
+    /* For simplicity reasons, this example is just waiting till the end of the
+       acquisition, but application may perform other tasks while acquisition
+       operation is ongoing. */
+  }
+
+  /*##-5- Clear flags ######################################################*/
+  __HAL_TSC_CLEAR_FLAG(&htsc, (TSC_FLAG_EOA | TSC_FLAG_MCE));
+
+  /*##-6- Check if the acquisition is correct (no max count) ###############*/
+  if (HAL_TSC_GroupGetStatus(&htsc, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
+  {
+    /*##-7- Store the acquisition value ####################################*/
+    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htsc, TSC_GROUP1_IDX);
+
+    if (ready < 300) {
+      uhTSCOffsetValue[IdxBank] =  uhTSCOffsetValue[IdxBank] * 0.9f + uhTSCAcquisitionValue[IdxBank] * 0.1f;
+      ready++;
+    } else {
+      uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] - uhTSCOffsetValue[IdxBank]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
+      if (IdxBank == 2) {
+        HAL_GPIO_WritePin(GPIOA, LED3_Pin, 1);
+        uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] * 2;
+      }
+
+      uhTSCAcquisitionValue[IdxBank] = CLAMP(uhTSCAcquisitionValue[IdxBank], -2000, 0);
+
+      int16_t z = ((uhTSCAcquisitionValue[0] + uhTSCAcquisitionValue[1]) / 2) - uhTSCAcquisitionValue[2];
+      int16_t x = ((uhTSCAcquisitionValue[0] + uhTSCAcquisitionValue[2]) / 2) - uhTSCAcquisitionValue[1];
+      int16_t y = ((uhTSCAcquisitionValue[1] + uhTSCAcquisitionValue[2]) / 2) - uhTSCAcquisitionValue[0];
+
+
+      uint16_t distance = 0;
+      uint8_t section = 0;
+      if (x < y && x < z && y < z) {
+        section = 1;
+        distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+      } else if (x < y && x < z && y > z) {
+        section = 2;
+        distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+      } else if (z < y && z < x && x < y) {
+        section = 3;
+        distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+      } else if (z < y && z < x && x > y) {
+        section = 4;
+        distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+      } else if (y < x && y < z && z < x) {
+        section = 5;
+        distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+      } else if (y < x && y < z && z > x) {
+        section = 6;
+        distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
+      }
+      if (MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]) > -100) {
+        distance = 0;
+        section = 0;
+        HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);
+      } else {
+        HAL_GPIO_WritePin(GPIOA, LED1_Pin, 1);
+      }
+      //setScopeChannel(1, (uint16_t)section);
+      //setScopeChannel(0, (uint16_t)distance / 1.43f);
+      //setScopeChannel(2, read_RT_ADC());
+      //configure_RT(CHG_ADC,0x11);
+      //setScopeChannel(2, y);
+      //setScopeChannel(3, MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]));
+      consoleScope();
+    }
+  }
+}
+
+void init_TSC() {
+  HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);
+  HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);
+
+  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
+  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
+  IoConfig.ShieldIOs   = 0;
+
+  if (HAL_TSC_IOConfig(&htsc, &IoConfig) != HAL_OK)
+  {
+    /* Initialization Error */
+    Error_Handler();
+  }
+
+  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
+  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
+  IoConfig.ShieldIOs   = 0;
+
+  if (HAL_TSC_IOConfig(&htsc, &IoConfig) != HAL_OK)
+  {
+    /* Initialization Error */
+    Error_Handler();
+  }
+}
+
 /* USER CODE END 4 */
 
 /**
