@@ -1,3 +1,5 @@
+#define SCOPE_CHANNELS 2
+
 #define RT_ADDRESS (0x53 << 1)		// std i2c address for the rt9466
 
 #define CHG_CTRL1 0x01				// 
