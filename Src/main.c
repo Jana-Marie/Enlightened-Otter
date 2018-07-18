@@ -188,6 +188,7 @@ int main(void)
     set_pwm(HRTIM_TIMERINDEX_TIMER_D, cnt/10.0);
     set_pwm(HRTIM_TIMERINDEX_TIMER_C, cnt/10.0);
     set_scope_channel(0, cnt);
+    set_scope_channel(1, HRTIM_PERIOD);
     if(cnt > 1000) cnt = 0;
     console_scope();
     /* USER CODE END WHILE */
