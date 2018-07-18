@@ -95,6 +95,7 @@ void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
 /* Private function prototypes -----------------------------------------------*/
 void configure_RT(uint8_t _register, uint8_t _mask);
 void init_RT();
+void init_HRTIM1();
 uint16_t read_RT_ADC();
 void init_TSC();
 void set_pwm(uint8_t timer, float duty);
@@ -158,24 +159,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
   init_RT();
   init_TSC();
+  init_HRTIM1();
 
-  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
-  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);
-  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_D);
-
-  //__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_COMPAREUNIT_1,  1500);
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
-  /*
-  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].CMP1xR = HRTIM_PERIOD / 1000 * (duty * 10);
-  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD / 1000 * (duty * 10));
-  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].SETx1R = HRTIM_SET1R_PER;
-  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].RSTx1R = HRTIM_RST1R_CMP1;
-  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].SETx2R = HRTIM_SET2R_CMP2;
-  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].RSTx2R = HRTIM_RST2R_PER;
-  */
   /* USER CODE END 2 */
   int cnt  = 0;
   /* Infinite loop */
@@ -185,11 +170,11 @@ int main(void)
     cnt++;
 
     HAL_Delay(5);
-    set_pwm(HRTIM_TIMERINDEX_TIMER_D, cnt/10.0);
-    set_pwm(HRTIM_TIMERINDEX_TIMER_C, cnt/10.0);
+    set_pwm(HRTIM_TIMERINDEX_TIMER_D, cnt / 10.0);
+    set_pwm(HRTIM_TIMERINDEX_TIMER_C, cnt / 10.0);
     set_scope_channel(0, cnt);
     set_scope_channel(1, HRTIM_PERIOD);
-    if(cnt > 1000) cnt = 0;
+    if (cnt > 1000) cnt = 0;
     console_scope();
     /* USER CODE END WHILE */
 
@@ -938,6 +923,17 @@ void set_pwm(uint8_t timer, float duty) {
   HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
   HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
 
+}
+
+void init_HRTIM1() {
+  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
+  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);
+  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_D);
+
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
 }
 
 /* USER CODE END 4 */
