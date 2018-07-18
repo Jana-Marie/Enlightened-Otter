@@ -89,28 +89,24 @@ static void MX_I2C1_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_DAC1_Init(void);
 static void MX_DAC2_Init(void);
-
 void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
-
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
 void configure_RT(uint8_t _register, uint8_t _mask);
 void init_RT();
 uint16_t read_RT_ADC();
+void init_TSC();
+void set_pwm(uint8_t timer, float duty);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
 #endif
-void init_TSC();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-
 volatile uint8_t uart_buf[6 * SCOPE_CHANNELS];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
-
-
 
 TSC_IOConfigTypeDef IoConfig;
 
@@ -162,14 +158,37 @@ int main(void)
   /* USER CODE BEGIN 2 */
   init_RT();
   init_TSC();
-  /* USER CODE END 2 */
 
+  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
+  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);
+  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_D);
+
+  //__HAL_HRTIM_SETCOMPARE(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_COMPAREUNIT_1,  1500);
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
+  /*
+  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].CMP1xR = HRTIM_PERIOD / 1000 * (duty * 10);
+  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD / 1000 * (duty * 10));
+  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].SETx1R = HRTIM_SET1R_PER;
+  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].RSTx1R = HRTIM_RST1R_CMP1;
+  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].SETx2R = HRTIM_SET2R_CMP2;
+  HRTIM1->sTimerxRegs[HRTIM_TIMERINDEX_TIMER_D].RSTx2R = HRTIM_RST2R_PER;
+  */
+  /* USER CODE END 2 */
+  int cnt  = 0;
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    cnt++;
+
     HAL_Delay(5);
-    set_scope_channel(0, 1);
+    set_pwm(HRTIM_TIMERINDEX_TIMER_D, cnt/10.0);
+    set_pwm(HRTIM_TIMERINDEX_TIMER_C, cnt/10.0);
+    set_scope_channel(0, cnt);
+    if(cnt > 1000) cnt = 0;
     console_scope();
     /* USER CODE END WHILE */
 
@@ -472,9 +491,9 @@ static void MX_HRTIM1_Init(void)
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
 
-  pTimeBaseCfg.Period = 0xFFFD;
+  pTimeBaseCfg.Period = HRTIM_PERIOD;
   pTimeBaseCfg.RepetitionCounter = 0x00;
-  pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_DIV1;
+  pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg) != HAL_OK)
   {
@@ -870,13 +889,13 @@ void primitive_TSC_task() {
       } else {
         HAL_GPIO_WritePin(GPIOA, LED1_Pin, 1);
       }
-      //setScopeChannel(1, (uint16_t)section);
-      //setScopeChannel(0, (uint16_t)distance / 1.43f);
+      set_scope_channel(1, (uint16_t)section);
+      set_scope_channel(0, (uint16_t)distance / 1.43f);
       //setScopeChannel(2, read_RT_ADC());
       //configure_RT(CHG_ADC,0x11);
       //setScopeChannel(2, y);
       //setScopeChannel(3, MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]));
-      consoleScope();
+      console_scope();
     }
   }
 }
@@ -904,6 +923,20 @@ void init_TSC() {
     /* Initialization Error */
     Error_Handler();
   }
+}
+
+void set_pwm(uint8_t timer, float duty) {
+  if (duty < MIN_DUTY) duty = MIN_DUTY;
+  if (duty > MAX_DUTY) duty = MAX_DUTY;
+  //HRTIM_TIMERINDEX_TIMER_D
+  //HRTIM_TIMERINDEX_TIMER_C
+  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD / 1000 * (duty * 10);
+  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD / 1000 * (duty * 10));
+  HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
+  HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
+  HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
+  HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
+
 }
 
 /* USER CODE END 4 */

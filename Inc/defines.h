@@ -1,5 +1,9 @@
 #define SCOPE_CHANNELS 2
 
+#define HRTIM_PERIOD 0xFFFD
+#define MIN_DUTY 0
+#define MAX_DUTY 100
+
 #define RT_ADDRESS (0x53 << 1)		// std i2c address for the rt9466
 
 #define CHG_CTRL1 0x01				// 
