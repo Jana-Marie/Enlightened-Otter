@@ -1,10 +1,10 @@
-#define SCOPE_CHANNELS 2
+#define SCOPE_CHANNELS 5
 
 #define HRTIM_FREQUENCY_KHZ 350.0
 #define HRTIM_PERIOD (1.0/(HRTIM_FREQUENCY_KHZ*1000)/0.000000000217) 
 
 #define MIN_DUTY 0
-#define MAX_DUTY 80
+#define MAX_DUTY 100
 
 #define RT_ADDRESS (0x53 << 1)		// std i2c address for the rt9466
 

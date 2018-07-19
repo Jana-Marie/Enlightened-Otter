@@ -157,9 +157,15 @@ int main(void)
   MX_DAC2_Init();
 
   /* USER CODE BEGIN 2 */
+
+  HAL_COMP_Start(&hcomp2);
+  HAL_COMP_Start(&hcomp4);
+  HAL_COMP_Start(&hcomp6);
+
   init_RT();
   init_TSC();
   init_HRTIM1();
+
 
   /* USER CODE END 2 */
   int cnt  = 0;
@@ -172,8 +178,12 @@ int main(void)
     HAL_Delay(5);
     set_pwm(HRTIM_TIMERINDEX_TIMER_D, cnt / 10.0);
     set_pwm(HRTIM_TIMERINDEX_TIMER_C, cnt / 10.0);
+
     set_scope_channel(0, cnt);
     set_scope_channel(1, HRTIM_PERIOD);
+    set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2)>>30);
+    set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4)>>30);
+    set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6)>>30);
     if (cnt > 1000) cnt = 0;
     console_scope();
     /* USER CODE END WHILE */
@@ -345,7 +355,7 @@ static void MX_COMP2_Init(void)
 {
 
   hcomp2.Instance = COMP2;
-  hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
+  hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC1_CH2
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output = COMP_OUTPUT_TIM1BKIN;
   hcomp2.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
@@ -363,7 +373,7 @@ static void MX_COMP4_Init(void)
 {
 
   hcomp4.Instance = COMP4;
-  hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
+  hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC1_CH2
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output = COMP_OUTPUT_TIM1BKIN;
   hcomp4.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
@@ -381,7 +391,7 @@ static void MX_COMP6_Init(void)
 {
 
   hcomp6.Instance = COMP6;
-  hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;
+  hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC2_CH1
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output = COMP_OUTPUT_TIM1BKIN;
   hcomp6.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
