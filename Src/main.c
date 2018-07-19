@@ -753,17 +753,17 @@ void console_scope() {
 #elif (SCOPE_CHANNELS == 2)
   sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1]);
 #elif (SCOPE_CHANNELS == 3)
-  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
+  sprintf(uart_buf, "%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
 #elif (SCOPE_CHANNELS == 4)
-  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
+  sprintf(uart_buf, "%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
 #elif (SCOPE_CHANNELS == 5)
-  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
+  sprintf(uart_buf, "%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
 #elif (SCOPE_CHANNELS == 6)
-  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
+  sprintf(uart_buf, "%i;%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
 #elif (SCOPE_CHANNELS == 7)
-  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
+  sprintf(uart_buf, "%i;%i;%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
 #elif (SCOPE_CHANNELS == 8)
-  sprintf(uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
+  sprintf(uart_buf, "%i;%i;%i;%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
 #endif
 
   HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen(uart_buf));
