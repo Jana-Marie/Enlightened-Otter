@@ -181,9 +181,9 @@ int main(void)
 
     set_scope_channel(0, cnt);
     set_scope_channel(1, HRTIM_PERIOD);
-    set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2)>>30);
-    set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4)>>30);
-    set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6)>>30);
+    set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
+    set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
+    set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
     if (cnt > 1000) cnt = 0;
     console_scope();
     /* USER CODE END WHILE */
@@ -357,7 +357,7 @@ static void MX_COMP2_Init(void)
   hcomp2.Instance = COMP2;
   hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC1_CH2
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp2.Init.Output = COMP_OUTPUT_TIM1BKIN;
+  hcomp2.Init.Output = HRTIM_FAULT_1;
   hcomp2.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
   hcomp2.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
   hcomp2.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
@@ -375,7 +375,7 @@ static void MX_COMP4_Init(void)
   hcomp4.Instance = COMP4;
   hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC1_CH2
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp4.Init.Output = COMP_OUTPUT_TIM1BKIN;
+  hcomp4.Init.Output = HRTIM_FAULT_1;
   hcomp4.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
   hcomp4.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
   hcomp4.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
@@ -393,7 +393,7 @@ static void MX_COMP6_Init(void)
   hcomp6.Instance = COMP6;
   hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC2_CH1
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp6.Init.Output = COMP_OUTPUT_TIM1BKIN;
+  hcomp6.Init.Output = HRTIM_FAULT_1;
   hcomp6.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
   hcomp6.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
   hcomp6.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
@@ -477,7 +477,7 @@ static void MX_HRTIM1_Init(void)
   }
 
   pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
-  pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_HIGH;
+  pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_LOW;
   pFaultCfg.Filter = HRTIM_FAULTFILTER_NONE;
   pFaultCfg.Lock = HRTIM_FAULTLOCK_READWRITE;
   if (HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg) != HAL_OK)
@@ -496,7 +496,6 @@ static void MX_HRTIM1_Init(void)
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  pTimerCfg.InterruptRequests = HRTIM_MASTER_IT_NONE;
   pTimerCfg.DMARequests = HRTIM_MASTER_DMA_NONE;
   pTimerCfg.DMASrcAddress = 0x0000;
   pTimerCfg.DMADstAddress = 0x0000;
@@ -505,53 +504,38 @@ static void MX_HRTIM1_Init(void)
   pTimerCfg.StartOnSync = HRTIM_SYNCSTART_DISABLED;
   pTimerCfg.ResetOnSync = HRTIM_SYNCRESET_DISABLED;
   pTimerCfg.DACSynchro = HRTIM_DACSYNC_NONE;
-  pTimerCfg.PreloadEnable = HRTIM_PRELOAD_DISABLED;
+  pTimerCfg.PreloadEnable = HRTIM_PRELOAD_ENABLED;
   pTimerCfg.UpdateGating = HRTIM_UPDATEGATING_INDEPENDENT;
   pTimerCfg.BurstMode = HRTIM_TIMERBURSTMODE_MAINTAINCLOCK;
-  pTimerCfg.RepetitionUpdate = HRTIM_UPDATEONREPETITION_DISABLED;
-  if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimerCfg) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg) != HAL_OK)
-  {
-    _Error_Handler(__FILE__, __LINE__);
-  }
-
-  pTimerCfg.InterruptRequests = HRTIM_TIM_IT_NONE;
-  pTimerCfg.DMARequests = HRTIM_TIM_DMA_NONE;
-  pTimerCfg.DMASrcAddress = 0x0000;
-  pTimerCfg.DMADstAddress = 0x0000;
-  pTimerCfg.DMASize = 0x1;
+  pTimerCfg.RepetitionUpdate = HRTIM_UPDATEONREPETITION_ENABLED;
+  pTimerCfg.ResetUpdate = HRTIM_TIMUPDATEONRESET_DISABLED;
+  pTimerCfg.InterruptRequests = HRTIM_TIM_IT_REP;
   pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_NONE;
+  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_DISABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
   pTimerCfg.UpdateTrigger = HRTIM_TIMUPDATETRIGGER_NONE;
   pTimerCfg.ResetTrigger = HRTIM_TIMRESETTRIGGER_NONE;
-  pTimerCfg.ResetUpdate = HRTIM_TIMUPDATEONRESET_DISABLED;
+
   if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimerCfg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
-  pTimerCfg.DMASrcAddress = 0x0000;
-  pTimerCfg.DMADstAddress = 0x0000;
-  pTimerCfg.DMASize = 0x1;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
+  
   if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimerCfg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
 
   pOutputCfg.Polarity = HRTIM_OUTPUTPOLARITY_HIGH;
-  pOutputCfg.SetSource = HRTIM_OUTPUTSET_NONE;
-  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_NONE;
+  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMPER;
+  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
   pOutputCfg.IdleMode = HRTIM_OUTPUTIDLEMODE_NONE;
   pOutputCfg.IdleLevel = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
-  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_NONE;
+  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_INACTIVE;
   pOutputCfg.ChopperModeEnable = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
   pOutputCfg.BurstModeEntryDelayed = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
   if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC1, &pOutputCfg) != HAL_OK)
