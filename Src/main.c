@@ -165,8 +165,8 @@ int main(void)
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
   HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
 
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 2048);
-  HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2048);
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);
+  HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);
 
   init_RT();
   init_TSC();
