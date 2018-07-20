@@ -162,6 +162,12 @@ int main(void)
   HAL_COMP_Start(&hcomp4);
   HAL_COMP_Start(&hcomp6);
 
+  HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
+  HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
+
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 2048);
+  HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 2048);
+
   init_RT();
   init_TSC();
   init_HRTIM1();
@@ -355,7 +361,7 @@ static void MX_COMP2_Init(void)
 {
 
   hcomp2.Instance = COMP2;
-  hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC1_CH2
+  hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;//COMP_INVERTINGINPUT_1_2VREFINT
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output = HRTIM_FAULT_1;
   hcomp2.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
@@ -373,7 +379,7 @@ static void MX_COMP4_Init(void)
 {
 
   hcomp4.Instance = COMP4;
-  hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC1_CH2
+  hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;//COMP_INVERTINGINPUT_DAC1_CH2
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output = HRTIM_FAULT_1;
   hcomp4.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
@@ -391,7 +397,7 @@ static void MX_COMP6_Init(void)
 {
 
   hcomp6.Instance = COMP6;
-  hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_1_2VREFINT;//COMP_INVERTINGINPUT_DAC2_CH1
+  hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;//COMP_INVERTINGINPUT_DAC2_CH1
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output = HRTIM_FAULT_1;
   hcomp6.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
@@ -524,7 +530,7 @@ static void MX_HRTIM1_Init(void)
   }
 
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
-  
+
   if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimerCfg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
