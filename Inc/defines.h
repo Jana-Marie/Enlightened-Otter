@@ -6,7 +6,7 @@
 #define MAX_DUTY 100 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
-#define OVERCURRENT 600		// mA  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
+#define OVERCURRENT 0.600		// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
 // Automatic calculated Values, please use the variables above
 
