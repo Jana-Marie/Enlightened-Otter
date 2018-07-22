@@ -106,7 +106,7 @@ void console_scope();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
-volatile uint8_t uart_buf[6 * SCOPE_CHANNELS];
+volatile uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 
 TSC_IOConfigTypeDef IoConfig;
@@ -158,13 +158,14 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
+  
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
   HAL_COMP_Start(&hcomp6);
 
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
   HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
-
+  
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);
 
@@ -174,24 +175,26 @@ int main(void)
 
 
   /* USER CODE END 2 */
-  int cnt  = 0;
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    cnt++;
+    for(float i = MIN_DUTY; i <MAX_DUTY; i+=0.01){
+      
+      HAL_Delay(5);
 
-    HAL_Delay(5);
-    set_pwm(HRTIM_TIMERINDEX_TIMER_D, cnt / 10.0);
-    set_pwm(HRTIM_TIMERINDEX_TIMER_C, cnt / 10.0);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_D, i / 10.0);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_C, i / 10.0);
 
-    set_scope_channel(0, cnt);
-    set_scope_channel(1, HRTIM_PERIOD);
-    set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
-    set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
-    set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
-    if (cnt > 1000) cnt = 0;
-    console_scope();
+      set_scope_channel(0, i);
+      set_scope_channel(1, HRTIM_PERIOD);
+      set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
+      set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
+      set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
+      console_scope();
+      
+      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+    }
     /* USER CODE END WHILE */
 
 
@@ -364,7 +367,7 @@ static void MX_COMP2_Init(void)
   hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;//COMP_INVERTINGINPUT_1_2VREFINT
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output = HRTIM_FAULT_1;
-  hcomp2.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
+  hcomp2.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
   hcomp2.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
   hcomp2.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
   if (HAL_COMP_Init(&hcomp2) != HAL_OK)
@@ -382,7 +385,7 @@ static void MX_COMP4_Init(void)
   hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;//COMP_INVERTINGINPUT_DAC1_CH2
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output = HRTIM_FAULT_1;
-  hcomp4.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
+  hcomp4.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
   hcomp4.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
   hcomp4.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
   if (HAL_COMP_Init(&hcomp4) != HAL_OK)
@@ -400,7 +403,7 @@ static void MX_COMP6_Init(void)
   hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;//COMP_INVERTINGINPUT_DAC2_CH1
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output = HRTIM_FAULT_1;
-  hcomp6.Init.OutputPol = COMP_OUTPUTPOL_NONINVERTED;
+  hcomp6.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
   hcomp6.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
   hcomp6.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
   if (HAL_COMP_Init(&hcomp6) != HAL_OK)
@@ -520,7 +523,8 @@ static void MX_HRTIM1_Init(void)
   pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_DISABLED;
-  pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
+  //pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
+  //  pTimerCfg.DelayedProtectionMode |= HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
   pTimerCfg.UpdateTrigger = HRTIM_TIMUPDATETRIGGER_NONE;
   pTimerCfg.ResetTrigger = HRTIM_TIMRESETTRIGGER_NONE;
 
@@ -528,9 +532,6 @@ static void MX_HRTIM1_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
-  pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
-
   if (HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimerCfg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -541,7 +542,7 @@ static void MX_HRTIM1_Init(void)
   pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
   pOutputCfg.IdleMode = HRTIM_OUTPUTIDLEMODE_NONE;
   pOutputCfg.IdleLevel = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
-  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_INACTIVE;
+  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_NONE;//HRTIM_OUTPUTFAULTLEVEL_INACTIVE
   pOutputCfg.ChopperModeEnable = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
   pOutputCfg.BurstModeEntryDelayed = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
   if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC1, &pOutputCfg) != HAL_OK)
@@ -914,8 +915,7 @@ void init_TSC() {
 void set_pwm(uint8_t timer, float duty) {
   if (duty < MIN_DUTY) duty = MIN_DUTY;
   if (duty > MAX_DUTY) duty = MAX_DUTY;
-  //HRTIM_TIMERINDEX_TIMER_D
-  //HRTIM_TIMERINDEX_TIMER_C
+
   HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD / 1000 * (duty * 10);
   HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD / 1000 * (duty * 10));
   HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
