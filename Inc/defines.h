@@ -2,19 +2,19 @@
 
 #define HRTIM_FREQUENCY_KHZ 350.0 // sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0)  
 
-#define MIN_DUTY 0 		// sets the minimum duty cycle that the regulation can reach, can be left at 0
-#define MAX_DUTY 100 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
+#define MIN_DUTY 65 		// sets the minimum duty cycle that the regulation can reach, can be left at 0
+#define MAX_DUTY 72 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
-#define OVERCURRENT 0.600		// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
+#define OVERCURRENT 0.300		// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
 // Automatic calculated Values, please use the variables above
 
-#define VDDA 				3.0 // Vref = VDDA = Analog power supply
-#define CURRENT_PRESCALER	1 	// set the divisor for the current input - To be calculated
-#define VOLTAGE_PRESCALER	2 	//set the divisor for the voltage input - To be calculated
-#define FAULT_CURRENT		4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
-#define FAULT_VOLTAGE		4096*((OVERVOLTAGE/VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
+#define VDDA 				3.0 	// Vref = VDDA = Analog power supply
+#define CURRENT_PRESCALER	1.22 	// set the divisor for the current input - To be calculated
+#define VOLTAGE_PRESCALER	5.77	//set the divisor for the voltage input - To be calculated
+#define FAULT_CURRENT		4096*((OVERCURRENT*CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
+#define FAULT_VOLTAGE		4096*((OVERVOLTAGE*VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
 #define HRTIM_PERIOD 		(1.0/(HRTIM_FREQUENCY_KHZ*1000)/0.000000000217) // calculates the timer period value, therefore sets the frequency
 
 #define RT_ADDRESS 			(0x53 << 1)	// std i2c address for the rt9466
