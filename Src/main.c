@@ -106,8 +106,10 @@ void console_scope();
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+#if defined(SCOPE_CHANNELS)
 volatile uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
+#endif
 
 TSC_IOConfigTypeDef IoConfig;
 
@@ -158,14 +160,14 @@ int main(void)
 
   /* USER CODE BEGIN 2 */
 
-  
+
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
   HAL_COMP_Start(&hcomp6);
 
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
   HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
-  
+
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);
 
@@ -179,8 +181,8 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    for(float i = MIN_DUTY; i <MAX_DUTY; i+=0.01){
-      
+    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.01) {
+
       HAL_Delay(5);
 
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, i / 10.0);
@@ -192,7 +194,7 @@ int main(void)
       set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
       set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
       console_scope();
-      
+
       HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
     }
     /* USER CODE END WHILE */
@@ -364,7 +366,7 @@ static void MX_COMP2_Init(void)
 {
 
   hcomp2.Instance = COMP2;
-  hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;//COMP_INVERTINGINPUT_1_2VREFINT
+  hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output = HRTIM_FAULT_1;
   hcomp2.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
@@ -382,7 +384,7 @@ static void MX_COMP4_Init(void)
 {
 
   hcomp4.Instance = COMP4;
-  hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;//COMP_INVERTINGINPUT_DAC1_CH2
+  hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output = HRTIM_FAULT_1;
   hcomp4.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
@@ -400,7 +402,7 @@ static void MX_COMP6_Init(void)
 {
 
   hcomp6.Instance = COMP6;
-  hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;//COMP_INVERTINGINPUT_DAC2_CH1
+  hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output = HRTIM_FAULT_1;
   hcomp6.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
@@ -508,7 +510,7 @@ static void MX_HRTIM1_Init(void)
   pTimerCfg.DMARequests = HRTIM_MASTER_DMA_NONE;
   pTimerCfg.DMASrcAddress = 0x0000;
   pTimerCfg.DMADstAddress = 0x0000;
-  pTimerCfg.DMASize = 0x1;
+  pTimerCfg.DMASize = 0x0;
   pTimerCfg.HalfModeEnable = HRTIM_HALFMODE_DISABLED;
   pTimerCfg.StartOnSync = HRTIM_SYNCSTART_DISABLED;
   pTimerCfg.ResetOnSync = HRTIM_SYNCRESET_DISABLED;
@@ -523,8 +525,8 @@ static void MX_HRTIM1_Init(void)
   pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_DISABLED;
-  //pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
-  //  pTimerCfg.DelayedProtectionMode |= HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
+  pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
+  pTimerCfg.DelayedProtectionMode |= HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
   pTimerCfg.UpdateTrigger = HRTIM_TIMUPDATETRIGGER_NONE;
   pTimerCfg.ResetTrigger = HRTIM_TIMRESETTRIGGER_NONE;
 
@@ -542,9 +544,10 @@ static void MX_HRTIM1_Init(void)
   pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
   pOutputCfg.IdleMode = HRTIM_OUTPUTIDLEMODE_NONE;
   pOutputCfg.IdleLevel = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
-  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_NONE;//HRTIM_OUTPUTFAULTLEVEL_INACTIVE
+  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_INACTIVE;
   pOutputCfg.ChopperModeEnable = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
   pOutputCfg.BurstModeEntryDelayed = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
+
   if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC1, &pOutputCfg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -561,6 +564,11 @@ static void MX_HRTIM1_Init(void)
   }
 
   if (HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  if (HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
@@ -647,9 +655,6 @@ static void MX_USART1_UART_Init(void)
   huart1.Init.Parity = UART_PARITY_NONE;
   huart1.Init.Mode = UART_MODE_TX_RX;
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-  //huart1.Init.OverSampling = UART_OVERSAMPLING_16;
-  //huart1.Init.OneBitSampling = UART_ONE_BIT_SAMPLE_DISABLE;
-  //huart1.AdvancedInit.AdvFeatureInit = UART_ADVFEATURE_NO_INIT;
   if (HAL_UART_Init(&huart1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
