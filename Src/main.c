@@ -185,11 +185,11 @@ int main(void)
 
       HAL_Delay(5);
 
-      set_pwm(HRTIM_TIMERINDEX_TIMER_D, i / 10.0);
-      set_pwm(HRTIM_TIMERINDEX_TIMER_C, i / 10.0);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      set_scope_channel(1, HRTIM_PERIOD);
+      set_scope_channel(1, FAULT_VOLTAGE);
       set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
       set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
       set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
