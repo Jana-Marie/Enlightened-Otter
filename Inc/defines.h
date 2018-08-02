@@ -11,10 +11,10 @@
 // Automatic calculated Values, please use the variables above
 
 #define VDDA 				3.0 	// Vref = VDDA = Analog power supply
-#define CURRENT_PRESCALER	1.22 	// set the divisor for the current input - To be calculated
-#define VOLTAGE_PRESCALER	5.77	//set the divisor for the voltage input - To be calculated
-#define FAULT_CURRENT		4096*((OVERCURRENT*CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
-#define FAULT_VOLTAGE		4096*((OVERVOLTAGE*VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
+#define CURRENT_PRESCALER	1.22 	// set the divisor for the current input
+#define VOLTAGE_PRESCALER	7.47	//set the divisor for the voltage input
+#define FAULT_CURRENT		4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
+#define FAULT_VOLTAGE		4096*(((OVERVOLTAGE-0.7)/VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
 #define HRTIM_PERIOD 		(1.0/(HRTIM_FREQUENCY_KHZ*1000)/0.000000000217) // calculates the timer period value, therefore sets the frequency
 
 #define RT_ADDRESS 			(0x53 << 1)	// std i2c address for the rt9466
