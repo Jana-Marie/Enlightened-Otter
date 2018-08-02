@@ -140,7 +140,8 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, 0);
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, 0);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -159,8 +160,6 @@ int main(void)
   MX_DAC2_Init();
 
   /* USER CODE BEGIN 2 */
-
-
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
   HAL_COMP_Start(&hcomp6);
@@ -189,7 +188,7 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      set_scope_channel(1, FAULT_VOLTAGE);
+      set_scope_channel(1, FAULT_CURRENT);
       set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
       set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
       set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
