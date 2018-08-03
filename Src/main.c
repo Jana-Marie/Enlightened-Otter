@@ -180,10 +180,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.01) {
-
-      HAL_Delay(5);
-
+    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.05) {
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
@@ -195,6 +192,24 @@ int main(void)
       console_scope();
 
       HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+      HAL_Delay(5);
+
+    }
+
+    for (float i = MAX_DUTY; i > MIN_DUTY; i -= 0.05) {
+      set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
+
+      set_scope_channel(0, i);
+      set_scope_channel(1, FAULT_CURRENT);
+      set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
+      set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
+      set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
+      console_scope();
+
+      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+      HAL_Delay(5);
+
     }
     /* USER CODE END WHILE */
 
@@ -543,7 +558,7 @@ static void MX_HRTIM1_Init(void)
   pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
   pOutputCfg.IdleMode = HRTIM_OUTPUTIDLEMODE_NONE;
   pOutputCfg.IdleLevel = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
-  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_INACTIVE;
+  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_NONE;
   pOutputCfg.ChopperModeEnable = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
   pOutputCfg.BurstModeEntryDelayed = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
 
