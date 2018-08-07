@@ -180,7 +180,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.05) {
+    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.1) {
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
@@ -196,12 +196,12 @@ int main(void)
 
     }
 
-    for (float i = MAX_DUTY; i > MIN_DUTY; i -= 0.05) {
+    for (float i = MAX_DUTY; i > MIN_DUTY; i -= 0.1) {
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      set_scope_channel(1, FAULT_CURRENT);
+      set_scope_channel(1, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_OUTPUTSTATE_FAULT));
       set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
       set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
       set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
@@ -288,23 +288,26 @@ static void MX_ADC1_Init(void)
 
   ADC_MultiModeTypeDef multimode;
   ADC_ChannelConfTypeDef sConfig;
+    ADC_InjectionConfTypeDef InjectionConfig;
 
-  /**Common config
-  */
+
   hadc1.Instance = ADC1;
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.ScanConvMode = ENABLE;
   hadc1.Init.ContinuousConvMode = DISABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.NbrOfDiscConversion = 1;
   hadc1.Init.DMAContinuousRequests = DISABLE;
   hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc1.Init.LowPowerAutoWait = DISABLE;
   hadc1.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
@@ -312,14 +315,50 @@ static void MX_ADC1_Init(void)
 
   /**Configure the ADC multi-mode
   */
+  
+  multimode.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
   multimode.Mode = ADC_MODE_INDEPENDENT;
+  multimode.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
+  
   if (HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode) != HAL_OK)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+  /* Discontinuous injected mode: 1st injected conversion for Vout on Ch11 */
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_11;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
+  InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
+  InjectionConfig.InjectedOffset = 0;
+  InjectionConfig.InjectedNbrOfConversion = 3;
+  InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
+  InjectionConfig.AutoInjectedConv = DISABLE;
+  InjectionConfig.QueueInjectedContext = DISABLE;
+  InjectionConfig.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
+  InjectionConfig.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
+  HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
+
+  /* Configure the 2nd injected conversion for Vin on Ch12 */
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
+
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
+
+  /* Run the ADC calibration in single-ended mode */
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+
+  /* Start ADC2 Injected Conversions */
+  HAL_ADCEx_InjectedStart(&hadc1);
 
   /**Configure Regular Channel
   */
+  /*
   sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
   sConfig.Rank = 1;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -330,27 +369,35 @@ static void MX_ADC1_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
+  */
 }
 
 /* ADC2 init function */
 static void MX_ADC2_Init(void)
 {
-
+  ADC_MultiModeTypeDef MultiModeConfig;
   ADC_ChannelConfTypeDef sConfig;
+  ADC_InjectionConfTypeDef InjectionConfig;
+
+  MultiModeConfig.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
+  MultiModeConfig.Mode = ADC_MODE_INDEPENDENT;
+  MultiModeConfig.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
+  HAL_ADCEx_MultiModeConfigChannel(&hadc2, &MultiModeConfig);
 
   /**Common config
   */
   hadc2.Instance = ADC2;
   hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc2.Init.ScanConvMode = ADC_SCAN_DISABLE;
+  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc2.Init.ScanConvMode = ENABLE;
   hadc2.Init.ContinuousConvMode = DISABLE;
   hadc2.Init.DiscontinuousConvMode = DISABLE;
   hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
   hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
   hadc2.Init.NbrOfConversion = 1;
+  hadc2.Init.NbrOfDiscConversion = 1;
   hadc2.Init.DMAContinuousRequests = DISABLE;
   hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
   hadc2.Init.LowPowerAutoWait = DISABLE;
@@ -359,9 +406,40 @@ static void MX_ADC2_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
+  /* Discontinuous injected mode: 1st injected conversion for Iout on Ch13 */
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
+  InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
+  InjectionConfig.InjectedOffset = 0;
+  InjectionConfig.InjectedNbrOfConversion = 3;
+  InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
+  InjectionConfig.AutoInjectedConv = DISABLE;
+  InjectionConfig.QueueInjectedContext = DISABLE;
+  InjectionConfig.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
+  InjectionConfig.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
+  HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
+  /* Configure the 2nd injected conversion for NTC1 on Ch14 */
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_14;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
+
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_15;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
+
+  /* Run the ADC calibration in single-ended mode */
+  HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
+
+  /* Start ADC2 Injected Conversions */
+  HAL_ADCEx_InjectedStart(&hadc2);
   /**Configure Regular Channel
   */
+  /*
   sConfig.Channel = ADC_CHANNEL_12;
   sConfig.Rank = 1;
   sConfig.SingleDiff = ADC_SINGLE_ENDED;
@@ -372,7 +450,7 @@ static void MX_ADC2_Init(void)
   {
     _Error_Handler(__FILE__, __LINE__);
   }
-
+  */
 }
 
 /* COMP2 init function */
