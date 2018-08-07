@@ -5,8 +5,8 @@ dual boost converter. The main goal is to provide cableless, high CRI, high brig
 
 Images:
 
-![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted_Otter/master/Images/Enlighted_Otter_1.jpeg) 
-![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted_Otter/master/Images/Enlighted_Otter_2.jpeg) 
+![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_1.jpeg) 
+![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_2.jpeg) 
 
 To do:
 
