@@ -9,10 +9,11 @@ Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), theref
 
 ![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_1.jpeg)
 ![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_2.jpeg)
+![Bottom View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_3.jpeg)
 
 ## Videos
 
-
+![Boost](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Boost_Operation_1.mp4)
 
 ## Planning
 
