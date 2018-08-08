@@ -105,32 +105,35 @@ int main(void)
 
   while (1)
   {
-    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.1) {
+    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.01) {
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
-      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      //set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
       set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
+      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
       console_scope();
 
-      //HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
       HAL_Delay(5);
 
     }
 
-    for (float i = MAX_DUTY; i > MIN_DUTY; i -= 0.1) {
+    for (float i = MAX_DUTY; i > MIN_DUTY; i -= 0.01) {
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
-      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      //set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
       set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));     
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
+      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));   
       console_scope();
+      
       HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
       HAL_Delay(5);
 
@@ -210,7 +213,7 @@ static void ADC1_Init(void)
   /* Discontinuous injected mode: 1st injected conversion for Vout on Ch11 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset = 0;
@@ -225,12 +228,12 @@ static void ADC1_Init(void)
   /* Configure the 2nd injected conversion for Vin on Ch12 */
   //InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
-  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
   //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
   //InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
   //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
   //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
   /* Run the ADC calibration in single-ended mode */
@@ -283,7 +286,7 @@ static void ADC2_Init(void)
   /* Discontinuous injected mode: 1st injected conversion for Iout on Ch13 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset = 0;
@@ -298,17 +301,17 @@ static void ADC2_Init(void)
   /* Configure the 2nd injected conversion for NTC1 on Ch14 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_1;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   InjectionConfig.InjectedChannel = ADC_CHANNEL_2;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   InjectionConfig.InjectedChannel = ADC_CHANNEL_3;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_4;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   /* Run the ADC calibration in single-ended mode */
@@ -642,19 +645,19 @@ void console_scope(void) {
 #if (SCOPE_CHANNELS == 1)
   sprintf((char*)uart_buf, "%i\n\r", ch_buf[0]);
 #elif (SCOPE_CHANNELS == 2)
-  sprintf((char*)uart_buf, "%i;%i\n\r", ch_buf[0], ch_buf[1]);
+  sprintf((char*)uart_buf, "%i\t%i\n\r", ch_buf[0], ch_buf[1]);
 #elif (SCOPE_CHANNELS == 3)
-  sprintf((char*)uart_buf, "%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
+  sprintf((char*)uart_buf, "%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
 #elif (SCOPE_CHANNELS == 4)
-  sprintf((char*)uart_buf, "%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
 #elif (SCOPE_CHANNELS == 5)
-  sprintf((char*)uart_buf, "%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
 #elif (SCOPE_CHANNELS == 6)
-  sprintf((char*)uart_buf, "%i;%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
 #elif (SCOPE_CHANNELS == 7)
-  sprintf((char*)uart_buf, "%i;%i;%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
 #elif (SCOPE_CHANNELS == 8)
-  sprintf((char*)uart_buf, "%i;%i;%i;%i;%i;%i;%i;%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
 #endif
 
   HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen((char*)uart_buf));
