@@ -63,6 +63,10 @@ __IO int32_t uhTSCOffsetValue[3];
 uint8_t IdxBank = 0;
 uint32_t ready = 0;
 
+void boost_reg(){
+  HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+}
+
 int main(void)
 {
   HAL_Init();
@@ -106,13 +110,13 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      set_scope_channel(1, FAULT_CURRENT);
-      set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
-      set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
-      set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
+      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
+      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
       console_scope();
 
-      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+      //HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
       HAL_Delay(5);
 
     }
@@ -122,12 +126,11 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      set_scope_channel(1, __HAL_HRTIM_GET_FLAG(&hhrtim1, HRTIM_OUTPUTSTATE_FAULT));
-      set_scope_channel(2, HAL_COMP_GetOutputLevel(&hcomp2) >> 30);
-      set_scope_channel(3, HAL_COMP_GetOutputLevel(&hcomp4) >> 30);
-      set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp6) >> 30);
+      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
+      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));     
       console_scope();
-
       HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
       HAL_Delay(5);
 
@@ -205,7 +208,7 @@ static void ADC1_Init(void)
   HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
 
   /* Discontinuous injected mode: 1st injected conversion for Vout on Ch11 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_11;
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
@@ -220,15 +223,15 @@ static void ADC1_Init(void)
   HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
   /* Configure the 2nd injected conversion for Vin on Ch12 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
-  HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
+  //InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
+  //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
+  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
-  HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
+  //InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
+  //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
+  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
   /* Run the ADC calibration in single-ended mode */
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
@@ -278,7 +281,7 @@ static void ADC2_Init(void)
   HAL_ADC_Init(&hadc2);
 
   /* Discontinuous injected mode: 1st injected conversion for Iout on Ch13 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
@@ -293,12 +296,17 @@ static void ADC2_Init(void)
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   /* Configure the 2nd injected conversion for NTC1 on Ch14 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_14;
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_1;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_15;
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_2;
+  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
+  HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
+
+  InjectionConfig.InjectedChannel = ADC_CHANNEL_3;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
@@ -393,6 +401,8 @@ static void HRTIM1_Init(void)
   HRTIM_TimeBaseCfgTypeDef pTimeBaseCfg;
   HRTIM_TimerCfgTypeDef pTimerCfg;
   HRTIM_OutputCfgTypeDef pOutputCfg;
+  HRTIM_ADCTriggerCfgTypeDef adc_trigger_config;
+  HRTIM_CompareCfgTypeDef compare_config;
 
   hhrtim1.Instance = HRTIM1;
   hhrtim1.Init.HRTIMInterruptResquests = HRTIM_IT_NONE;
@@ -410,7 +420,7 @@ static void HRTIM1_Init(void)
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
 
   pTimeBaseCfg.Period = HRTIM_PERIOD;
-  pTimeBaseCfg.RepetitionCounter = 0x00;
+  pTimeBaseCfg.RepetitionCounter = 63;
   pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg);
@@ -432,7 +442,7 @@ static void HRTIM1_Init(void)
   pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
   pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
   pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
-  pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_DISABLED;
+  pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
   pTimerCfg.DelayedProtectionMode |= HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
   pTimerCfg.UpdateTrigger = HRTIM_TIMUPDATETRIGGER_NONE;
@@ -457,6 +467,16 @@ static void HRTIM1_Init(void)
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC2, &pOutputCfg);
 
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg);
+
+  compare_config.AutoDelayedMode = HRTIM_AUTODELAYEDMODE_REGULAR;
+  compare_config.AutoDelayedTimeout = 0;
+  compare_config.CompareValue = HRTIM_PERIOD/10; /* Samples in middle of ON time */
+  HAL_HRTIM_WaveformCompareConfig(&hhrtim1,HRTIM_TIMERINDEX_TIMER_C,HRTIM_COMPAREUNIT_2,&compare_config);
+
+  adc_trigger_config.Trigger = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
+  adc_trigger_config.UpdateSource = HRTIM_ADCTRIGGERUPDATE_TIMER_C;
+  HAL_HRTIM_ADCTriggerConfig(&hhrtim1,HRTIM_ADCTRIGGER_2,&adc_trigger_config);
+
 
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg);
 
