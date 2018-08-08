@@ -13,7 +13,7 @@ Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), theref
 
 ## Videos
 
-![Boost](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Boost_Operation_1.mp4)
+[![Alt text for your video](http://i3.ytimg.com/vi/A-QjU9mWTO4/maxresdefault.jpg)](https://youtu.be/A-QjU9mWTO4)
 
 ## Planning
 
