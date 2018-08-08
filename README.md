@@ -5,7 +5,17 @@ converter. The main goal is to provide cableless, high CRI, high brightness, fli
 
 Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), therefore serving with a very small footprint.
 
-## Images:
+## Building and flashing
+
+Change *Inc/defines.h* to fit your desires, then build with
+
+`make clean all`
+
+and flash it via Ozone or st-utils
+
+`st-flash --reset write build/*.bin 0x8000000`
+
+## Images
 
 ![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_1.jpeg)
 ![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_2.jpeg)
