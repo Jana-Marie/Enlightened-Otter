@@ -12,9 +12,11 @@ Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), theref
 ![Bottom View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_3.jpeg)
 
 ## Videos
-
+Boost converter operation
 [![Boost 1](https://img.youtube.com/vi/A-QjU9mWTO4/0.jpg)](https://youtu.be/A-QjU9mWTO4)
+TSC operation
 [![TSC 1](https://img.youtube.com/vi/ADD4yiM9S0Q/0.jpg)](https://youtu.be/ADD4yiM9S0Q)
+LED brightness test
 [![LED 1](https://img.youtube.com/vi/DC_eAY72nbw/0.jpg)](https://youtu.be/DC_eAY72nbw)
 
 ## Planning
