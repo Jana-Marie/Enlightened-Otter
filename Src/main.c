@@ -110,7 +110,7 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      //set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
       set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
       set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
       set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
@@ -127,7 +127,7 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
 
       set_scope_channel(0, i);
-      //set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
       set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
       set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
       set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
@@ -479,7 +479,7 @@ static void HRTIM1_Init(void)
   adc_trigger_config.Trigger = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
   adc_trigger_config.UpdateSource = HRTIM_ADCTRIGGERUPDATE_TIMER_C;
   HAL_HRTIM_ADCTriggerConfig(&hhrtim1,HRTIM_ADCTRIGGER_2,&adc_trigger_config);
-
+  HAL_HRTIM_ADCTriggerConfig(&hhrtim1,HRTIM_ADCTRIGGER_1,&adc_trigger_config);
 
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg);
 
