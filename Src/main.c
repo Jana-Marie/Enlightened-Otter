@@ -102,6 +102,7 @@ int main(void)
 
   while (1)
   {
+    /*
     for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.01) {
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
@@ -109,8 +110,8 @@ int main(void)
       set_scope_channel(0, i);
       set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
       set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
-      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
+      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
       set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
       console_scope();
 
@@ -126,8 +127,8 @@ int main(void)
       set_scope_channel(0, i);
       set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
       set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
-      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
+      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
       set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
       console_scope();
 
@@ -135,6 +136,20 @@ int main(void)
       HAL_Delay(5);
 
     }
+    */
+      set_pwm(HRTIM_TIMERINDEX_TIMER_D, 72);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_C, 70);
+
+      //set_scope_channel(0, i);
+      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
+      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
+      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*3.0*1000.0);
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0);
+      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
+      console_scope();
+
+      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+      HAL_Delay(5);
   }
 }
 
