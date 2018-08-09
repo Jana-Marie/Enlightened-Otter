@@ -62,7 +62,7 @@ __IO int32_t uhTSCOffsetValue[3];
 uint8_t IdxBank = 0;
 uint32_t ready = 0;
 
-void boost_reg(){
+void boost_reg() {
   HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
 }
 
@@ -132,9 +132,9 @@ int main(void)
       set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
       set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2));
       set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3));
-      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));   
+      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
       console_scope();
-      
+
       HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
       HAL_Delay(5);
 
@@ -189,6 +189,7 @@ static void ADC1_Init(void)
   ADC_InjectionConfTypeDef InjectionConfig;
 
   hadc1.Instance = ADC1;
+
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -261,12 +262,8 @@ static void ADC2_Init(void)
   ADC_MultiModeTypeDef MultiModeConfig;
   ADC_InjectionConfTypeDef InjectionConfig;
 
-  MultiModeConfig.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
-  MultiModeConfig.Mode = ADC_MODE_INDEPENDENT;
-  MultiModeConfig.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
-  HAL_ADCEx_MultiModeConfigChannel(&hadc2, &MultiModeConfig);
-
   hadc2.Instance = ADC2;
+
   hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -283,6 +280,11 @@ static void ADC2_Init(void)
   hadc2.Init.LowPowerAutoWait = DISABLE;
   hadc2.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   HAL_ADC_Init(&hadc2);
+
+  MultiModeConfig.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
+  MultiModeConfig.Mode = ADC_MODE_INDEPENDENT;
+  MultiModeConfig.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
+  HAL_ADCEx_MultiModeConfigChannel(&hadc2, &MultiModeConfig);
 
   /* Discontinuous injected mode: 1st injected conversion for Iout on Ch13 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
@@ -337,6 +339,7 @@ static void COMP2_Init(void)
 {
 
   hcomp2.Instance = COMP2;
+
   hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output = HRTIM_FAULT_1;
@@ -350,6 +353,7 @@ static void COMP4_Init(void)
 {
 
   hcomp4.Instance = COMP4;
+
   hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output = HRTIM_FAULT_1;
@@ -363,6 +367,7 @@ static void COMP6_Init(void)
 {
 
   hcomp6.Instance = COMP6;
+
   hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output = HRTIM_FAULT_1;
@@ -409,6 +414,7 @@ static void HRTIM1_Init(void)
   HRTIM_CompareCfgTypeDef compare_config;
 
   hhrtim1.Instance = HRTIM1;
+
   hhrtim1.Init.HRTIMInterruptResquests = HRTIM_IT_NONE;
   hhrtim1.Init.SyncOptions = HRTIM_SYNCOPTION_NONE;
   HAL_HRTIM_Init(&hhrtim1);
@@ -453,6 +459,7 @@ static void HRTIM1_Init(void)
   pTimerCfg.ResetTrigger = HRTIM_TIMRESETTRIGGER_NONE;
 
   HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimerCfg);
+
   HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimerCfg);
 
   pOutputCfg.Polarity = HRTIM_OUTPUTPOLARITY_HIGH;
@@ -474,13 +481,14 @@ static void HRTIM1_Init(void)
 
   compare_config.AutoDelayedMode = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
-  compare_config.CompareValue = HRTIM_PERIOD/10*9; /* Samples in middle of ON time */
-  HAL_HRTIM_WaveformCompareConfig(&hhrtim1,HRTIM_TIMERINDEX_TIMER_C,HRTIM_COMPAREUNIT_2,&compare_config);
+  compare_config.CompareValue = HRTIM_PERIOD / 10 * 9; /* Samples in middle of ON time */
+  HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_2, &compare_config);
 
   adc_trigger_config.Trigger = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
   adc_trigger_config.UpdateSource = HRTIM_ADCTRIGGERUPDATE_TIMER_C;
-  HAL_HRTIM_ADCTriggerConfig(&hhrtim1,HRTIM_ADCTRIGGER_2,&adc_trigger_config);
-  HAL_HRTIM_ADCTriggerConfig(&hhrtim1,HRTIM_ADCTRIGGER_1,&adc_trigger_config);
+  HAL_HRTIM_ADCTriggerConfig(&hhrtim1, HRTIM_ADCTRIGGER_2, &adc_trigger_config);
+
+  HAL_HRTIM_ADCTriggerConfig(&hhrtim1, HRTIM_ADCTRIGGER_1, &adc_trigger_config);
 
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg);
 
@@ -494,6 +502,7 @@ static void I2C1_Init(void)
 {
 
   hi2c1.Instance = I2C1;
+
   hi2c1.Init.Timing = 0x2000090E;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -514,6 +523,7 @@ static void TSC_Init(void)
 {
 
   htsc.Instance = TSC;
+
   htsc.Init.CTPulseHighLength = TSC_CTPH_1CYCLE;
   htsc.Init.CTPulseLowLength = TSC_CTPL_1CYCLE;
   htsc.Init.SpreadSpectrum = DISABLE;
@@ -533,13 +543,11 @@ static void TSC_Init(void)
   IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
   IoConfig.SamplingIOs = TSC_GROUP1_IO4;
   IoConfig.ShieldIOs   = 0;
-
   HAL_TSC_IOConfig(&htsc, &IoConfig);
 
   IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
   IoConfig.SamplingIOs = TSC_GROUP1_IO4;
   IoConfig.ShieldIOs   = 0;
-
   HAL_TSC_IOConfig(&htsc, &IoConfig);
 }
 
@@ -547,6 +555,7 @@ static void USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
+
   huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
@@ -554,7 +563,6 @@ static void USART1_UART_Init(void)
   huart1.Init.Mode = UART_MODE_TX_RX;
   huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
   HAL_UART_Init(&huart1);
-
 }
 
 static void DMA_Init(void)
@@ -768,6 +776,7 @@ void primitive_TSC_task(void) {
 
 
 void set_pwm(uint8_t timer, float duty) {
+
   if (duty < MIN_DUTY) duty = MIN_DUTY;
   if (duty > MAX_DUTY) duty = MAX_DUTY;
 
@@ -777,7 +786,6 @@ void set_pwm(uint8_t timer, float duty) {
   HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
   HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
   HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
-
 }
 
 void _Error_Handler(char * file, int line)
