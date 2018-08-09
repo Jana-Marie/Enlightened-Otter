@@ -46,7 +46,6 @@ void configure_RT(uint8_t _register, uint8_t _mask);
 static void init_RT(void);
 static void start_HRTIM1(void);
 uint16_t read_RT_ADC(void);
-static void init_TSC(void);
 void set_pwm(uint8_t timer, float duty);
 
 #if defined(SCOPE_CHANNELS)
@@ -100,8 +99,10 @@ int main(void)
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);
 
   init_RT();
-  init_TSC();
   start_HRTIM1();
+
+  HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);
+  HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);
 
   while (1)
   {
@@ -529,6 +530,17 @@ static void TSC_Init(void)
   htsc.Init.SamplingIOs = 0;//TSC_GROUP1_IO1|TSC_GROUP5_IO1;
   HAL_TSC_Init(&htsc);
 
+  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
+  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
+  IoConfig.ShieldIOs   = 0;
+
+  HAL_TSC_IOConfig(&htsc, &IoConfig);
+
+  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
+  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
+  IoConfig.ShieldIOs   = 0;
+
+  HAL_TSC_IOConfig(&htsc, &IoConfig);
 }
 
 static void USART1_UART_Init(void)
@@ -579,24 +591,6 @@ static void GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-}
-
-
-static void init_TSC(void) {
-  HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);
-  HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);
-
-  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
-  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
-  IoConfig.ShieldIOs   = 0;
-
-  HAL_TSC_IOConfig(&htsc, &IoConfig);
-
-  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
-  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
-  IoConfig.ShieldIOs   = 0;
-
-  HAL_TSC_IOConfig(&htsc, &IoConfig);
 }
 
 static void start_HRTIM1(void) {
