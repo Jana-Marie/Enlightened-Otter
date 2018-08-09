@@ -1,18 +1,18 @@
 #define SCOPE_CHANNELS 	6 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
 
-#define HRTIM_FREQUENCY_KHZ 350.0 // sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0)  
+#define HRTIM_FREQUENCY_KHZ 450.0 // sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0)  
 
-#define MIN_DUTY 60 	// sets the minimum duty cycle that the regulation can reach, can be left at 0
-#define MAX_DUTY 75 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
+#define MIN_DUTY 0.2 	// sets the minimum duty cycle that the regulation can reach, can be left at 0
+#define MAX_DUTY 83 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.300		// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
 // Automatic calculated Values, please use the variables above
 
-#define VDDA 				3.0 	// Vref = VDDA = Analog power supply
-#define CURRENT_PRESCALER	1.22 	// set the divisor for the current input
-#define VOLTAGE_PRESCALER	7.47	//set the divisor for the voltage input
+#define VDDA 				3.0f 	// Vref = VDDA = Analog power supply
+#define CURRENT_PRESCALER	1.0f 	// set the divisor for the current input
+#define VOLTAGE_PRESCALER	7.47f	//set the divisor for the voltage input
 #define FAULT_CURRENT		4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
 #define FAULT_VOLTAGE		4096*(((OVERVOLTAGE-0.7)/VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
 #define HRTIM_PERIOD 		(1.0/(HRTIM_FREQUENCY_KHZ*1000)/0.000000000217) // calculates the timer period value, therefore sets the frequency
