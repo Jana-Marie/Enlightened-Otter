@@ -217,7 +217,7 @@ static void ADC1_Init(void)
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset = 0;
-  InjectionConfig.InjectedNbrOfConversion = 3;
+  InjectionConfig.InjectedNbrOfConversion = 1;
   InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
   InjectionConfig.AutoInjectedConv = DISABLE;
   InjectionConfig.QueueInjectedContext = DISABLE;
@@ -290,7 +290,7 @@ static void ADC2_Init(void)
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset = 0;
-  InjectionConfig.InjectedNbrOfConversion = 3;
+  InjectionConfig.InjectedNbrOfConversion = 4;
   InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
   InjectionConfig.AutoInjectedConv = DISABLE;
   InjectionConfig.QueueInjectedContext = DISABLE;
@@ -423,7 +423,7 @@ static void HRTIM1_Init(void)
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
 
   pTimeBaseCfg.Period = HRTIM_PERIOD;
-  pTimeBaseCfg.RepetitionCounter = 63;
+  pTimeBaseCfg.RepetitionCounter = 127;
   pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg);
@@ -473,7 +473,7 @@ static void HRTIM1_Init(void)
 
   compare_config.AutoDelayedMode = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
-  compare_config.CompareValue = HRTIM_PERIOD/10; /* Samples in middle of ON time */
+  compare_config.CompareValue = HRTIM_PERIOD/10*9; /* Samples in middle of ON time */
   HAL_HRTIM_WaveformCompareConfig(&hhrtim1,HRTIM_TIMERINDEX_TIMER_C,HRTIM_COMPAREUNIT_2,&compare_config);
 
   adc_trigger_config.Trigger = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
