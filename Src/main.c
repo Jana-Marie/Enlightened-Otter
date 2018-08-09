@@ -22,6 +22,7 @@ DMA_HandleTypeDef hdma_i2c1_rx;
 DMA_HandleTypeDef hdma_i2c1_tx;
 
 TSC_HandleTypeDef htsc;
+TSC_IOConfigTypeDef IoConfig;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -47,6 +48,7 @@ static void init_RT(void);
 static void start_HRTIM1(void);
 uint16_t read_RT_ADC(void);
 void set_pwm(uint8_t timer, float duty);
+void boost_reg();
 
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
@@ -55,16 +57,10 @@ uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
-TSC_IOConfigTypeDef IoConfig;
-
 __IO int32_t uhTSCAcquisitionValue[3];
 __IO int32_t uhTSCOffsetValue[3];
 uint8_t IdxBank = 0;
 uint32_t ready = 0;
-
-void boost_reg() {
-  HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
-}
 
 int main(void)
 {
@@ -545,8 +541,8 @@ static void TSC_Init(void)
   IoConfig.ShieldIOs   = 0;
   HAL_TSC_IOConfig(&htsc, &IoConfig);
 
-  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
-  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
+  IoConfig.ChannelIOs  = TSC_GROUP5_IO1; /* Start with the first channel */
+  IoConfig.SamplingIOs = TSC_GROUP5_IO4;
   IoConfig.ShieldIOs   = 0;
   HAL_TSC_IOConfig(&htsc, &IoConfig);
 }
@@ -615,6 +611,10 @@ static void start_HRTIM1(void) {
 static void init_RT(void) {
   configure_RT(CHG_CTRL2, IINLIM_MASK);
   configure_RT(CHG_CTRL3, SET_ILIM_3A);
+}
+
+void boost_reg() {
+  HAL_GPIO_TogglePin(GPIOA, LED2_Pin);
 }
 
 void configure_RT(uint8_t _register, uint8_t _mask) {
