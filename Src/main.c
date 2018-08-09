@@ -62,6 +62,19 @@ __IO int32_t uhTSCOffsetValue[3];
 uint8_t IdxBank = 0;
 uint32_t ready = 0;
 
+float targetCW = 0.0f;
+float targetWW = 90.0f;
+float Magiekonstante = 0.0005f;
+float avgConst = 0.99;
+
+float Vin,Vout;
+float Temp1,Temp2;
+float IoutCW,IoutWW;
+float IavgCW,IavgWW;
+float dutyCW = MIN_DUTY;
+float dutyWW = MIN_DUTY;
+float errorCW,errorWW;
+
 int main(void)
 {
   HAL_Init();
@@ -97,59 +110,54 @@ int main(void)
   init_RT();
   start_HRTIM1();
 
+  HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);
   HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);
   HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);
+  
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY);
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY);
 
   while (1)
   {
-    /*
-    for (float i = MIN_DUTY; i < MAX_DUTY; i += 0.01) {
-      set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
-      set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
+    for (int i = 0; i < 2000; i++) {
 
-      set_scope_channel(0, i);
-      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
-      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
-      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
-      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
-      console_scope();
+      IoutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0f*3.0f*1000.0f;
+      IoutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0f*3.0f*1000.0f;
 
-      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
-      HAL_Delay(5);
+      IavgCW = IavgCW * avgConst + IoutCW * (1.0f-avgConst);
+      IavgWW = IavgWW * avgConst + IoutWW * (1.0f-avgConst);
 
+      errorCW = targetCW - IavgCW;
+      errorWW = targetWW - IavgWW;
+
+      dutyCW += (Magiekonstante * errorCW);
+      dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY);
+
+      dutyWW += (Magiekonstante * errorWW);
+      dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY);
+
+      set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);
     }
 
-    for (float i = MAX_DUTY; i > MIN_DUTY; i -= 0.01) {
-      set_pwm(HRTIM_TIMERINDEX_TIMER_D, i);
-      set_pwm(HRTIM_TIMERINDEX_TIMER_C, i);
-
-      set_scope_channel(0, i);
-      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
-      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
-      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*CURRENT_PRESCALER*3.0*1000.0);
-      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
+      set_scope_channel(0,dutyWW*10.0f);
+      set_scope_channel(1, targetWW); //VIN - mV
+      set_scope_channel(2, errorWW); //NTC
+      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0); //ISens1 - mA
+      set_scope_channel(4, IavgWW); //Isens2 - mA
+      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/2048.0*2.12*3.0*1000); //VBAT - mV
       console_scope();
 
       HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
-      HAL_Delay(5);
 
-    }
-    */
-      set_pwm(HRTIM_TIMERINDEX_TIMER_D, 72);
-      set_pwm(HRTIM_TIMERINDEX_TIMER_C, 70);
-
-      //set_scope_channel(0, i);
-      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1));
-      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
-      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*3.0*1000.0);
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0);
-      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4));
-      console_scope();
-
-      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
-      HAL_Delay(5);
+      /*
+      set_scope_channel(0,duty);
+      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/2048.0*2.12*3.0*1000); //VIN - mV
+      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1)); //NTC
+      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*3.0*1000.0); //ISens1 - mA
+      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0); //Isens2 - mA
+      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4)/2048.0*2.12*3.0*1000); //VBAT - mV
+      */
   }
 }
 
@@ -226,7 +234,7 @@ static void ADC1_Init(void)
   /* Discontinuous injected mode: 1st injected conversion for Vout on Ch11 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset = 0;
@@ -241,12 +249,12 @@ static void ADC1_Init(void)
   /* Configure the 2nd injected conversion for Vin on Ch12 */
   //InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
-  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
+  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
   //InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
   //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
+  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
   /* Run the ADC calibration in single-ended mode */
@@ -300,7 +308,7 @@ static void ADC2_Init(void)
   /* Discontinuous injected mode: 1st injected conversion for Iout on Ch13 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset = 0;
@@ -315,17 +323,17 @@ static void ADC2_Init(void)
   /* Configure the 2nd injected conversion for NTC1 on Ch14 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_1;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   InjectionConfig.InjectedChannel = ADC_CHANNEL_2;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   InjectionConfig.InjectedChannel = ADC_CHANNEL_3;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_4;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_181CYCLES_5;
+  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   /* Run the ADC calibration in single-ended mode */
@@ -492,7 +500,7 @@ static void HRTIM1_Init(void)
 
   compare_config.AutoDelayedMode = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
-  compare_config.CompareValue = HRTIM_PERIOD / 10 * 9; /* Samples in middle of ON time */
+  compare_config.CompareValue = HRTIM_PERIOD / 10 * 8.5; /* Samples in middle of ON time */
   HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_2, &compare_config);
 
   adc_trigger_config.Trigger = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
