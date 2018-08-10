@@ -1,6 +1,7 @@
 #define SCOPE_CHANNELS 	6 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
 
-#define HRTIM_FREQUENCY_KHZ 450.0f // sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0)  
+#define HRTIM_FREQUENCY_KHZ 450.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0)  
+#define REG_CNT 127 				// sets the number of HRTIM passes to the next controller pass
 
 #define MIN_DUTY 0.002f // sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
