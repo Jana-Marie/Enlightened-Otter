@@ -65,10 +65,10 @@ uint32_t ready = 0;
 float targetCW = 0.0f;
 float targetWW = 90.0f;
 float Magiekonstante = 0.0005f;
-float cycleTime = 0;
-float Magiekonstante_neu = 0.0005f;
+float cycleTime = 1 / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT;
 float avgConst = 0.99;
 
+float MagiekonstanteCycle = Magiekonstante * cycleTime;
 float vin, vout;
 float temp1, temp2;
 float ioutCW, ioutWW;
@@ -451,7 +451,7 @@ static void HRTIM1_Init(void)
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
 
   pTimeBaseCfg.Period = HRTIM_PERIOD;
-  pTimeBaseCfg.RepetitionCounter = 127;
+  pTimeBaseCfg.RepetitionCounter = REG_CNT;
   pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg);
