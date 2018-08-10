@@ -81,12 +81,12 @@ uint8_t IdxBank = 0;
 uint32_t ready = 0;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
-float targetWW = 90.0f; // Warmwhite target current in mA
-float Magiekonstante = 0.0005f; // Ki constant
-float avgConst = 0.99;  // Averaging filter constant closer to 1 => stronger filter
+float targetWW = 0.0f; // Warmwhite target current in mA
+float Magiekonstante = 0.0000033f; // Ki constant
+float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger filter
 
-float cycleTime = 1 / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT;  // time of one cycle
-float MagiekonstanteCycle = Magiekonstante * cycleTime;           // Ki constant, independent of cycle time
+float cycleTime;            // time of one cycle
+float MagiekonstanteCycle;  // Ki constant, independent of cycle time
 float vin, vout;
 float temp1, temp2;
 float ioutCW, ioutWW;
@@ -94,6 +94,8 @@ float iavgCW, iavgWW;
 float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float errorCW, errorWW;
+
+
 
 int main(void)
 {
@@ -130,6 +132,9 @@ int main(void)
   init_RT();
   start_HRTIM1();
 
+  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT;
+  MagiekonstanteCycle = Magiekonstante * cycleTime;
+
   HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);  // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);  // clear LED "" (to be determined)
   HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);  // clear LED "" (to be determined)
@@ -160,12 +165,17 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
     }
 
-    set_scope_channel(0, dutyWW * 100.0f);
-    set_scope_channel(1, dutyCW * 100.0f);
+    targetWW += 1.5;
+    if (targetWW >= 345.0f) targetWW = 0.0f;
+
+    set_scope_channel(0, dutyWW * 1000.0f);
+    set_scope_channel(1, dutyCW * 1000.0f);
     set_scope_channel(2, errorWW);
     set_scope_channel(3, errorCW);
     set_scope_channel(4, iavgWW);
     set_scope_channel(5, iavgCW);
+    //set_scope_channel(6, ((((HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/4096.0f)*3.0f)/0.475f)*1.475f)*1000.0f); //VIN - mV
+    set_scope_channel(6, ((HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/4096.0f)*3.0f)*1000.0f); //VIN - mV
     console_scope();
 
     HAL_GPIO_TogglePin(GPIOA, LED1_Pin);  // Toggle LED as "alive-indicator"
