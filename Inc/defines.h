@@ -16,7 +16,7 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define SCOPE_CHANNELS 	6 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
+#define SCOPE_CHANNELS 	7 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
 
 #define HRTIM_FREQUENCY_KHZ 450.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0)  
 #define REG_CNT 127 				// sets the number of HRTIM passes to the next controller pass
