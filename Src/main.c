@@ -67,13 +67,13 @@ float targetWW = 90.0f;
 float Magiekonstante = 0.0005f;
 float avgConst = 0.99;
 
-float Vin,Vout;
-float Temp1,Temp2;
-float IoutCW,IoutWW;
-float IavgCW,IavgWW;
+float Vin, Vout;
+float Temp1, Temp2;
+float IoutCW, IoutWW;
+float IavgCW, IavgWW;
 float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
-float errorCW,errorWW;
+float errorCW, errorWW;
 
 int main(void)
 {
@@ -113,7 +113,7 @@ int main(void)
   HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);
   HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);
   HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);
-  
+
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY);
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY);
 
@@ -121,11 +121,11 @@ int main(void)
   {
     for (int i = 0; i < 2000; i++) {
 
-      IoutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0f*3.0f*1000.0f;
-      IoutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0f*3.0f*1000.0f;
+      IoutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;
+      IoutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;
 
-      IavgCW = IavgCW * avgConst + IoutCW * (1.0f-avgConst);
-      IavgWW = IavgWW * avgConst + IoutWW * (1.0f-avgConst);
+      IavgCW = IavgCW * avgConst + IoutCW * (1.0f - avgConst);
+      IavgWW = IavgWW * avgConst + IoutWW * (1.0f - avgConst);
 
       errorCW = targetCW - IavgCW;
       errorWW = targetWW - IavgWW;
@@ -140,24 +140,24 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);
     }
 
-      set_scope_channel(0,dutyWW*10.0f);
-      set_scope_channel(1, targetWW); //VIN - mV
-      set_scope_channel(2, errorWW); //NTC
-      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0); //ISens1 - mA
-      set_scope_channel(4, IavgWW); //Isens2 - mA
-      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/2048.0*2.12*3.0*1000); //VBAT - mV
-      console_scope();
+    set_scope_channel(0, dutyWW * 10.0f);
+    set_scope_channel(1, targetWW); //VIN - mV
+    set_scope_channel(2, errorWW); //NTC
+    set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0 * 3.0 * 1000.0); //ISens1 - mA
+    set_scope_channel(4, IavgWW); //Isens2 - mA
+    set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1) / 2048.0 * 2.12 * 3.0 * 1000); //VBAT - mV
+    console_scope();
 
-      HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+    HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
 
-      /*
-      set_scope_channel(0,duty);
-      set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/2048.0*2.12*3.0*1000); //VIN - mV
-      set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1)); //NTC
-      set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*3.0*1000.0); //ISens1 - mA
-      set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0); //Isens2 - mA
-      set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4)/2048.0*2.12*3.0*1000); //VBAT - mV
-      */
+    /*
+    set_scope_channel(0,duty);
+    set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/2048.0*2.12*3.0*1000); //VIN - mV
+    set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1)); //NTC
+    set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*3.0*1000.0); //ISens1 - mA
+    set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0); //Isens2 - mA
+    set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4)/2048.0*2.12*3.0*1000); //VBAT - mV
+    */
   }
 }
 
