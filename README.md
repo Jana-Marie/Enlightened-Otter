@@ -41,10 +41,26 @@ and flash it via Ozone or st-utils
 ### To do:
 
 - [ ] Test Injected ADC
+	- [x] ADC tested and seems to work just fine
+	- [x] add moving average filter to smooth out ADC values
+	- [ ] current,voltage,temperature calculation
+
 - [ ] Write regulator
-- [ ] Add second TSC bank
+	- [x] Write simple, working I regulator
+	- [x] Make it cycle time independend
+	- [ ] Write a better PI regulator
+- [ ] Fix/write TSC controller
+	- [ ] Add second TSC bank
 - [ ] Write the user interface
 - [ ] Fix the HRTIM FLT1 line
+- [ ] PCB
+	- [ ] Move 18650 clips to fit battery
+	- [ ] Add pullup to NTC
+	- [ ] Check USB footprint
+	- [x] Add CC1,CC2 pulldown resistors
+	- [ ] Check for analog design improvements
+	- [x] Gate pulldowns
+	- [ ] Reduce inductance
 - [ ] Find more to do's
 
 ### Done:
