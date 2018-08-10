@@ -65,12 +65,14 @@ uint32_t ready = 0;
 float targetCW = 0.0f;
 float targetWW = 90.0f;
 float Magiekonstante = 0.0005f;
+float cycleTime = 0;
+float Magiekonstante_neu = 0.0005f;
 float avgConst = 0.99;
 
-float Vin, Vout;
-float Temp1, Temp2;
-float IoutCW, IoutWW;
-float IavgCW, IavgWW;
+float vin, vout;
+float temp1, temp2;
+float ioutCW, ioutWW;
+float iavgCW, iavgWW;
 float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float errorCW, errorWW;
@@ -121,31 +123,31 @@ int main(void)
   {
     for (int i = 0; i < 2000; i++) {
 
-      IoutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;
-      IoutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;
+      ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
+      ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
-      IavgCW = IavgCW * avgConst + IoutCW * (1.0f - avgConst);
-      IavgWW = IavgWW * avgConst + IoutWW * (1.0f - avgConst);
+      iavgCW = iavgCW * avgConst + ioutCW * (1.0f - avgConst);  // Moving average filter for CW input current
+      iavgWW = iavgWW * avgConst + ioutWW * (1.0f - avgConst);  // Moving average filter for WW input current
 
-      errorCW = targetCW - IavgCW;
-      errorWW = targetWW - IavgWW;
+      errorCW = targetCW - iavgCW;  // Calculate CW-current error
+      errorWW = targetWW - iavgWW;  // Calculate WW-current error
 
-      dutyCW += (Magiekonstante * errorCW);
-      dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY);
+      dutyCW += (Magiekonstante * errorCW);       // Simple I regulator for CW current, quite ugly, should be rewritten
+      dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-      dutyWW += (Magiekonstante * errorWW);
-      dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY);
+      dutyWW += (Magiekonstante * errorWW);       // Simple I regulator for WW current, quite ugly, should be rewritten
+      dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-      set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);
-      set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);
+      set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
+      set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
     }
 
-    set_scope_channel(0, dutyWW * 10.0f);
-    set_scope_channel(1, targetWW); //VIN - mV
-    set_scope_channel(2, errorWW); //NTC
-    set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0 * 3.0 * 1000.0); //ISens1 - mA
-    set_scope_channel(4, IavgWW); //Isens2 - mA
-    set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1) / 2048.0 * 2.12 * 3.0 * 1000); //VBAT - mV
+    set_scope_channel(0, dutyWW * 100.0f);
+    set_scope_channel(1, dutyCW * 100.0f);
+    set_scope_channel(2, errorWW);
+    set_scope_channel(3, errorCW);
+    set_scope_channel(4, iavgWW);
+    set_scope_channel(5, iavgCW);
     console_scope();
 
     HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
@@ -803,8 +805,8 @@ void set_pwm(uint8_t timer, float duty) {
   if (duty < MIN_DUTY) duty = MIN_DUTY;
   if (duty > MAX_DUTY) duty = MAX_DUTY;
 
-  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD / 1000 * (duty * 10);
-  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD / 1000 * (duty * 10));
+  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
+  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
   HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
   HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
   HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
