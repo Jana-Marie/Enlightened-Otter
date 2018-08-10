@@ -63,7 +63,7 @@ and flash it via Ozone or st-utils
 	- [ ] Check for analog design improvements
 	- [x] Gate pulldowns
 	- [ ] Reduce Boost inductance
-	- [ ] Change voltage regulator to 3.3V type
+	- [ ] Change voltage regulator to 3.0V type
 - [ ] Find more to do's
 
 ### Done:
