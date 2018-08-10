@@ -248,34 +248,11 @@ static void ADC1_Init(void)
   InjectionConfig.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
   HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
-  /* Configure the 2nd injected conversion for Vin on Ch12 */
-  //InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
-  //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
-  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
-  //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
-
-  //InjectionConfig.InjectedChannel = ADC_CHANNEL_13;
-  //InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  //InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
-  //HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
-
   /* Run the ADC calibration in single-ended mode */
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc1);
-
-  /**Configure Regular Channel
-  */
-  /*
-  sConfig.Channel = ADC_CHANNEL_TEMPSENSOR;
-  sConfig.Rank = 1;
-  sConfig.SingleDiff = ADC_SINGLE_ENDED;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  sConfig.OffsetNumber = ADC_OFFSET_NONE;
-  sConfig.Offset = 0;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig);
-  */
 }
 
 static void ADC2_Init(void)
@@ -343,17 +320,6 @@ static void ADC2_Init(void)
 
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc2);
-  /**Configure Regular Channel
-  */
-  /*
-  sConfig.Channel = ADC_CHANNEL_12;
-  sConfig.Rank = 1;
-  sConfig.SingleDiff = ADC_SINGLE_ENDED;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
-  sConfig.OffsetNumber = ADC_OFFSET_NONE;
-  sConfig.Offset = 0;
-  if (HAL_ADC_ConfigChannel(&hadc2, &sConfig);
-  */
 }
 
 static void COMP2_Init(void)
