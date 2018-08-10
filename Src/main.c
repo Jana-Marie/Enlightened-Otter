@@ -174,8 +174,7 @@ int main(void)
     set_scope_channel(3, errorCW);
     set_scope_channel(4, iavgWW);
     set_scope_channel(5, iavgCW);
-    //set_scope_channel(6, ((((HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/4096.0f)*3.0f)/0.475f)*1.475f)*1000.0f); //VIN - mV
-    set_scope_channel(6, ((HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/4096.0f)*3.0f)*1000.0f); //VIN - mV
+    set_scope_channel(6, ((HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/4096.0f)*3.0f)*3.597*1000.0f); //VIN - mV
     console_scope();
 
     HAL_GPIO_TogglePin(GPIOA, LED1_Pin);  // Toggle LED as "alive-indicator"
