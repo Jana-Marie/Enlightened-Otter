@@ -2,8 +2,8 @@
 
 #define HRTIM_FREQUENCY_KHZ 450.0 // sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0)  
 
-#define MIN_DUTY 0.2 	// sets the minimum duty cycle that the regulation can reach, can be left at 0
-#define MAX_DUTY 83 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
+#define MIN_DUTY 0.002 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
+#define MAX_DUTY 0.83 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.300		// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
