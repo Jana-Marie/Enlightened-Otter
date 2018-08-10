@@ -62,13 +62,13 @@ __IO int32_t uhTSCOffsetValue[3];
 uint8_t IdxBank = 0;
 uint32_t ready = 0;
 
-float targetCW = 0.0f;
-float targetWW = 90.0f;
-float Magiekonstante = 0.0005f;
-float cycleTime = 1 / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT;
-float avgConst = 0.99;
+float targetCW = 0.0f;  // Coldwhite target current in mA
+float targetWW = 90.0f; // Warmwhite target current in mA
+float Magiekonstante = 0.0005f; // Ki constant
+float avgConst = 0.99;  // Averaging filter constant closer to 1 => stronger filter
 
-float MagiekonstanteCycle = Magiekonstante * cycleTime;
+float cycleTime = 1 / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT;  // time of one cycle
+float MagiekonstanteCycle = Magiekonstante * cycleTime;           // Ki constant, independent of cycle time
 float vin, vout;
 float temp1, temp2;
 float ioutCW, ioutWW;
@@ -82,8 +82,8 @@ int main(void)
   HAL_Init();
   SystemClock_Config();
 
-  set_pwm(HRTIM_TIMERINDEX_TIMER_D, 0);
-  set_pwm(HRTIM_TIMERINDEX_TIMER_C, 0);
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
   GPIO_Init();
   DMA_Init();
@@ -112,16 +112,16 @@ int main(void)
   init_RT();
   start_HRTIM1();
 
-  HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);
-  HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);
-  HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);
+  HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);  // clear LED "Brightness"
+  HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);  // clear LED "" (to be determined)
+  HAL_GPIO_WritePin(GPIOA, LED3_Pin, 0);  // clear LED "" (to be determined)
 
-  set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY);
-  set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY);
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
   while (1)
   {
-    for (int i = 0; i < 2000; i++) {
+    for (int i = 0; i < 2000; i++) {  // print only every 2000 cycles
 
       ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
       ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
@@ -150,7 +150,7 @@ int main(void)
     set_scope_channel(5, iavgCW);
     console_scope();
 
-    HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+    HAL_GPIO_TogglePin(GPIOA, LED1_Pin);  // Toggle LED as "alive-indicator"
 
     /*
     set_scope_channel(0,duty);
@@ -211,6 +211,7 @@ static void ADC1_Init(void)
 
   hadc1.Instance = ADC1;
 
+  /* std ADC config */
   hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -228,12 +229,13 @@ static void ADC1_Init(void)
   hadc1.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   HAL_ADC_Init(&hadc1);
 
+  /* Disable DMA mode */
   multimode.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
   multimode.Mode = ADC_MODE_INDEPENDENT;
   multimode.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
   HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
 
-  /* Discontinuous injected mode: 1st injected conversion for Vout on Ch11 */
+  /* Discontinuous injected mode: 1st injected conversion for VIN on Ch12 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
@@ -262,6 +264,7 @@ static void ADC2_Init(void)
 
   hadc2.Instance = ADC2;
 
+  /* std ADC config */
   hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
   hadc2.Init.Resolution = ADC_RESOLUTION_12B;
   hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -279,12 +282,13 @@ static void ADC2_Init(void)
   hadc2.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
   HAL_ADC_Init(&hadc2);
 
+  /* Disable DMA mode */
   MultiModeConfig.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
   MultiModeConfig.Mode = ADC_MODE_INDEPENDENT;
   MultiModeConfig.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
   HAL_ADCEx_MultiModeConfigChannel(&hadc2, &MultiModeConfig);
 
-  /* Discontinuous injected mode: 1st injected conversion for Iout on Ch13 */
+  /* Discontinuous injected mode: 1st injected conversion for NTC on Ch12 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
@@ -299,17 +303,19 @@ static void ADC2_Init(void)
   InjectionConfig.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
-  /* Configure the 2nd injected conversion for NTC1 on Ch14 */
+  /* Configure the 2nd injected conversion for ICW on Ch1 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_1;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
+  /* Configure the 2nd injected conversion for IWW on Ch2 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_2;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
+  /* Configure the 2nd injected conversion for VBAT on Ch3 */
   InjectionConfig.InjectedChannel = ADC_CHANNEL_3;
   InjectionConfig.InjectedRank = ADC_INJECTED_RANK_4;
   InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
@@ -327,6 +333,7 @@ static void COMP2_Init(void)
 
   hcomp2.Instance = COMP2;
 
+  /* CMP2 config, input ICW and DAC1 channel 2, output HRTIM fault line 1 */
   hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output = HRTIM_FAULT_1;
@@ -341,6 +348,7 @@ static void COMP4_Init(void)
 
   hcomp4.Instance = COMP4;
 
+  /* CMP4 config, input IWW and DAC1 channel 2, output HRTIM fault line 1 */
   hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output = HRTIM_FAULT_1;
@@ -355,6 +363,7 @@ static void COMP6_Init(void)
 
   hcomp6.Instance = COMP6;
 
+  /* CMP6 config, input VREG and DAC2 channel 1, output HRTIM fault line 1 */
   hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output = HRTIM_FAULT_1;
@@ -369,9 +378,11 @@ static void DAC1_Init(void)
 
   DAC_ChannelConfTypeDef sConfig;
 
+  /* std DAC config, no changes needed */
   hdac1.Instance = DAC1;
   HAL_DAC_Init(&hdac1);
 
+  /* DAC not routed to output */
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputSwitch = DAC_OUTPUTSWITCH_DISABLE;
   HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2);
@@ -382,9 +393,11 @@ static void DAC2_Init(void)
 
   DAC_ChannelConfTypeDef sConfig;
 
+  /* std DAC config, no changes needed */
   hdac2.Instance = DAC2;
   HAL_DAC_Init(&hdac2);
 
+  /* DAC not routed to output */
   sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputSwitch = DAC_OUTPUTSWITCH_DISABLE;
   HAL_DAC_ConfigChannel(&hdac2, &sConfig, DAC_CHANNEL_1);
@@ -402,12 +415,14 @@ static void HRTIM1_Init(void)
 
   hhrtim1.Instance = HRTIM1;
 
+  /* HRTIM initialised with no Interrupt and synchronisation */
   hhrtim1.Init.HRTIMInterruptResquests = HRTIM_IT_NONE;
   hhrtim1.Init.SyncOptions = HRTIM_SYNCOPTION_NONE;
   HAL_HRTIM_Init(&hhrtim1);
 
   HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1);
 
+  /* Select internal fault source (FLT_1) */
   pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
   pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_LOW;
   pFaultCfg.Filter = HRTIM_FAULTFILTER_NONE;
@@ -416,12 +431,14 @@ static void HRTIM1_Init(void)
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
 
+  /* Set the frequency and period */
   pTimeBaseCfg.Period = HRTIM_PERIOD;
   pTimeBaseCfg.RepetitionCounter = REG_CNT;
   pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg);
 
+  /* main timer config, mostly std. with no DMA */
   pTimerCfg.DMARequests = HRTIM_MASTER_DMA_NONE;
   pTimerCfg.DMASrcAddress = 0x0000;
   pTimerCfg.DMADstAddress = 0x0000;
@@ -449,6 +466,7 @@ static void HRTIM1_Init(void)
 
   HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimerCfg);
 
+  /* set output and fault behavioral for HRTIM Timer C & D */
   pOutputCfg.Polarity = HRTIM_OUTPUTPOLARITY_HIGH;
   pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMPER;
   pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
@@ -466,9 +484,10 @@ static void HRTIM1_Init(void)
 
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg);
 
+  /* settings for the injected ADC */
   compare_config.AutoDelayedMode = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
-  compare_config.CompareValue = HRTIM_PERIOD / 10 * 8.5; /* Samples in middle of ON time */
+  compare_config.CompareValue = HRTIM_PERIOD / 10 * 8.5;
   HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_2, &compare_config);
 
   adc_trigger_config.Trigger = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
@@ -477,6 +496,7 @@ static void HRTIM1_Init(void)
 
   HAL_HRTIM_ADCTriggerConfig(&hhrtim1, HRTIM_ADCTRIGGER_1, &adc_trigger_config);
 
+  /* std. config for Timer C & D */
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg);
 
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimeBaseCfg);
@@ -490,6 +510,7 @@ static void I2C1_Init(void)
 
   hi2c1.Instance = I2C1;
 
+  /* I2C Master config */
   hi2c1.Init.Timing = 0x2000090E;
   hi2c1.Init.OwnAddress1 = 0;
   hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -543,6 +564,7 @@ static void USART1_UART_Init(void)
 
   huart1.Instance = USART1;
 
+  /* UART master config */
   huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
@@ -575,12 +597,15 @@ static void GPIO_Init(void)
 
   GPIO_InitTypeDef GPIO_InitStruct;
 
+  /* Enable GPIO Bank clocks */
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
+  /* Set output state to LOW */
   HAL_GPIO_WritePin(GPIOA, LED1_Pin | LED2_Pin | LED3_Pin, GPIO_PIN_RESET);
 
+  /* Change pin mode to output */
   GPIO_InitStruct.Pin = LED1_Pin | LED2_Pin | LED3_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -589,10 +614,12 @@ static void GPIO_Init(void)
 }
 
 static void start_HRTIM1(void) {
+  /* Enable HRTIM timers */
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_D);
 
+  /* Enable outputs */
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
@@ -600,11 +627,13 @@ static void start_HRTIM1(void) {
 }
 
 static void init_RT(void) {
+  /* Configure the RT9466, set currents to maximum */
   configure_RT(CHG_CTRL2, IINLIM_MASK);
   configure_RT(CHG_CTRL3, SET_ILIM_3A);
 }
 
 void boost_reg() {
+  /* move regulator into here */
   HAL_GPIO_TogglePin(GPIOA, LED2_Pin);
 }
 
@@ -768,9 +797,11 @@ void primitive_TSC_task(void) {
 
 void set_pwm(uint8_t timer, float duty) {
 
+  /* Clamp duty cycle values */
   if (duty < MIN_DUTY) duty = MIN_DUTY;
   if (duty > MAX_DUTY) duty = MAX_DUTY;
 
+  /* Set registers according to duty cycle */
   HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
   HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
   HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
