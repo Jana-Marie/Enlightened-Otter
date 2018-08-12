@@ -64,6 +64,8 @@ and flash it via Ozone or st-utils
 	- [x] Gate pulldowns
 	- [ ] Reduce Boost inductance
 	- [ ] Change voltage regulator to 3.0V type
+	- [ ] Divide Vin voltage divider by 10
+	- [ ] Add Mosfet to turn ESP off
 - [ ] Find more to do's
 
 ### Done:
