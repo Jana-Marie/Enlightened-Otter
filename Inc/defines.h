@@ -34,7 +34,7 @@
 #define VOLTAGE_PRESCALER	7.47f	//set the divisor for the voltage input
 #define FAULT_CURRENT		4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
 #define FAULT_VOLTAGE		4096*(((OVERVOLTAGE-0.7f)/VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
-#define HRTIM_PERIOD 		(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
+#define HRTIM_PERIOD 		(int)(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
 
 #define RT_ADDRESS 			(0x53 << 1)	// std i2c address for the rt9466
 
