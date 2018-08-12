@@ -66,7 +66,7 @@ static void init_RT(void);
 static void start_HRTIM1(void);
 uint16_t read_RT_ADC(void);
 void set_pwm(uint8_t timer, float duty);
-void boost_reg();
+extern void boost_reg();
 
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
@@ -95,7 +95,9 @@ float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float errorCW, errorWW;
 
+float _v,_i,_w,_wAvg;
 
+int print = 1;
 
 int main(void)
 {
@@ -144,6 +146,9 @@ int main(void)
 
   while (1)
   {
+    targetWW += 0.5f;
+    if (targetWW > 245.0f) targetWW = 245.0f;
+
     for (int i = 0; i < 2000; i++) {  // print only every 2000 cycles
 
       ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
@@ -164,18 +169,28 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
     }
-
-    targetWW += 1.5;
-    if (targetWW >= 345.0f) targetWW = 0.0f;
-
+    
     set_scope_channel(0, dutyWW * 1000.0f);
     set_scope_channel(1, dutyCW * 1000.0f);
     set_scope_channel(2, errorWW);
-    set_scope_channel(3, errorCW);
-    set_scope_channel(4, iavgWW);
-    set_scope_channel(5, iavgCW);
-    set_scope_channel(6, ((HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/4096.0f)*3.0f)*3.597*1000.0f);
+    set_scope_channel(3, targetWW);
+    if (print == 1) {
+      _i = read_RT_ADC() * 50.0f;
+      set_scope_channel(4, _i);
+      configure_RT(CHG_ADC,ADC_VBUS2);
+      print = 0;
+    } else if (print == 0) {
+      _v = read_RT_ADC()*10.0f;
+      set_scope_channel(5, _v);
+      configure_RT(CHG_ADC,ADC_IBUS);
+      print = 1;
+    }
+    _w = (_v*_i)/1000.0f;
+    _wAvg = _wAvg * 0.9f + _w * 0.1f;  // Moving average filter for CW input current
+
+    set_scope_channel(6, (uint16_t)_wAvg);
     console_scope();
+    //HAL_Delay(10);
 
     HAL_GPIO_TogglePin(GPIOA, LED2_Pin);  // Toggle LED as "alive-indicator"
 
@@ -661,7 +676,7 @@ static void init_RT(void) {
 
 void boost_reg() {
   /* move regulator into here */
-  HAL_GPIO_TogglePin(GPIOA, LED2_Pin);
+  HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
 }
 
 void configure_RT(uint8_t _register, uint8_t _mask) {
