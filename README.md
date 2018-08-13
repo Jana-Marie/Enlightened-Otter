@@ -55,17 +55,8 @@ and flash it via Ozone or st-utils
 	- [ ] Add second TSC bank
 - [ ] Write the user interface
 - [ ] Fix the HRTIM FLT1 line
-- [ ] PCB
-	- [ ] Move 18650 clips to fit battery
-	- [ ] Add pullup to NTC
-	- [ ] Check USB footprint
-	- [x] Add CC1,CC2 pulldown resistors
-	- [ ] Check for analog design improvements
-	- [x] Gate pulldowns
-	- [ ] Reduce Boost inductance
-	- [ ] Change voltage regulator to 3.0V type
-	- [ ] Divide Vin voltage divider by 10
-	- [ ] Add Mosfet to turn ESP off
+- [ ] HW
+	-  See HW/README.md
 - [ ] Find more to do's
 
 ### Done:
