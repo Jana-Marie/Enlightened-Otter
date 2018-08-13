@@ -1,3 +1,4 @@
 build/*
 .mxproject
 .jdebug.user
+.user
