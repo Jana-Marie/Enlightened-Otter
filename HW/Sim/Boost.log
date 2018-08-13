@@ -1,0 +1,23 @@
+Circuit: * C:\users\janhenrik\Meine Dokumente\STM32Cube\Enlighted-Otter\HW\Sim\Boost.asc
+
+Limiting rise time of source v2 to 4.097e-008
+Limiting fall time of source v2 to 4.097e-008
+Direct Newton iteration for .op point succeeded.
+
+Date: Mon Aug 13 11:52:31 2018
+Total elapsed time: 0.763 seconds.
+
+tnom = 27
+temp = 27
+method = modified trap
+totiter = 627489
+traniter = 627482
+tranpoints = 187480
+accept = 148761
+rejected = 38719
+matrix size = 11
+fillins = 0
+solver = Normal
+Matrix Compiler1: 530 bytes object code size  0.5/0.4/[0.4]
+Matrix Compiler2: 793 bytes object code size  0.4/0.4/[0.4]
+
