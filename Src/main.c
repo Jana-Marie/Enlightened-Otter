@@ -97,7 +97,8 @@ float errorCW, errorWW;
 
 float _v, _i, _w, _wAvg; // debugvalues to find matching boost frequency will be removed later
 
-int print = 1;  // debugvalue for alternating reding of current / voltage
+uint8_t print = 1;    // debugvalue for alternating reading of current / voltage
+uint8_t printCnt = 0; // debugvalue for delay reading of current / voltage
 
 int main(void)
 {
@@ -174,19 +175,27 @@ int main(void)
     set_scope_channel(1, dutyCW * 1000.0f);
     set_scope_channel(2, errorWW);
     set_scope_channel(3, targetWW);
-    if (print == 1) {
-      _i = read_RT_ADC() * 50.0f;
-      set_scope_channel(4, _i);
-      configure_RT(CHG_ADC,ADC_VBUS2);
-      print = 0;
-    } else if (print == 0) {
-      _v = read_RT_ADC() * 10.0f;
-      set_scope_channel(5, _v);
-      configure_RT(CHG_ADC, ADC_IBUS);
-      print = 1;
+
+    printCnt++;
+
+    if (printCnt > 5) {
+      if (print == 1) {
+        _i = read_RT_ADC() * 50.0f;
+        set_scope_channel(4, _i);
+        configure_RT(CHG_ADC, ADC_VBUS2);
+        print = 0;
+      } else if (print == 0) {
+        _v = read_RT_ADC() * 10.0f;
+        set_scope_channel(5, _v);
+        configure_RT(CHG_ADC, ADC_IBUS);
+        print = 1;
+      }
+      printCnt = 0;
     }
+    
     _w = (_v * _i) / 1000.0f;
-    _wAvg = _wAvg * 0.9f + _w * 0.1f;  // Moving average filter for input power
+    _wAvg = _wAvg * 0.8f + _w * 0.2f;  // Moving average filter for input power
+
     set_scope_channel(6, (uint16_t)_wAvg);
     console_scope();
     HAL_GPIO_TogglePin(GPIOA, LED2_Pin);  // Toggle LED as "alive-indicator"
