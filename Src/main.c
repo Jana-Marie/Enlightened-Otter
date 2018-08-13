@@ -142,7 +142,7 @@ int main(void)
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
-    cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // not used now, calculated cycle time
+  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // not used now, calculated cycle time
   MagiekonstanteCycle = Magiekonstante * cycleTime;             // not used now, calculated Ki
 
   while (1)
