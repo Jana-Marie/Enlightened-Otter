@@ -18,6 +18,9 @@
 
 #define SCOPE_CHANNELS 	7 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
 
+// values to be tested to determine the most efficient boost converter frequency
+// 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
+
 #define HRTIM_FREQUENCY_KHZ 766.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
 #define REG_CNT 127 				// sets the number of HRTIM passes to the next controller pass
 
