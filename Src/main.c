@@ -82,7 +82,7 @@ uint32_t ready = 0;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f; // Warmwhite target current in mA
-float Magiekonstante = 0.0005f; // Ki constant
+float Magiekonstante = 0.0002f; // Ki constant
 float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger filter
 
 float cycleTime;            // time of one cycle
@@ -131,15 +131,9 @@ int main(void)
 
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);  // set the current for the COMP2,4 to trigger FLT_1
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);  // set the voltage for the COMP6 to trigger FLT_1
-  
-  __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
-  __HAL_ADC_ENABLE_IT(&hadc2,ADC_IT_JEOC);
 
   init_RT();
   start_HRTIM1();
-
-  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // not used now, calculated cycle time
-  MagiekonstanteCycle = Magiekonstante * cycleTime;             // not used now, calculated Ki
 
   HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);  // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);  // clear LED "Color"
@@ -147,6 +141,9 @@ int main(void)
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
+
+    cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // not used now, calculated cycle time
+  MagiekonstanteCycle = Magiekonstante * cycleTime;             // not used now, calculated Ki
 
   while (1)
   {
@@ -293,6 +290,9 @@ static void ADC1_Init(void)
 
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc1);
+
+      __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
+
 }
 
 static void ADC2_Init(void)
@@ -364,6 +364,8 @@ static void ADC2_Init(void)
 
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc2);
+
+  __HAL_ADC_ENABLE_IT(&hadc2,ADC_IT_JEOC);
 }
 
 static void COMP2_Init(void)
