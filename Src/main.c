@@ -82,7 +82,7 @@ uint32_t ready = 0;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f; // Warmwhite target current in mA
-float Magiekonstante = 0.0000033f; // Ki constant
+float Magiekonstante = 0.0005f; // Ki constant
 float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger filter
 
 float cycleTime;            // time of one cycle
@@ -131,6 +131,9 @@ int main(void)
 
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);  // set the current for the COMP2,4 to trigger FLT_1
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);  // set the voltage for the COMP6 to trigger FLT_1
+  
+  __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
+  __HAL_ADC_ENABLE_IT(&hadc2,ADC_IT_JEOC);
 
   init_RT();
   start_HRTIM1();
@@ -147,35 +150,24 @@ int main(void)
 
   while (1)
   {
-    targetWW += 0.5f;
-    if (targetWW > 245.0f) targetWW = 245.0f; //swwe up and stay at 245mA
 
-    for (int i = 0; i < 2000; i++) {  // print only every 2000 cycles
-
-      ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
-      ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
-
-      iavgCW = iavgCW * avgConst + ioutCW * (1.0f - avgConst);  // Moving average filter for CW input current
-      iavgWW = iavgWW * avgConst + ioutWW * (1.0f - avgConst);  // Moving average filter for WW input current
-
-      errorCW = targetCW - iavgCW;  // Calculate CW-current error
-      errorWW = targetWW - iavgWW;  // Calculate WW-current error
-
-      dutyCW += (Magiekonstante * errorCW);       // Simple I regulator for CW current, quite ugly, should be rewritten
-      dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
-
-      dutyWW += (Magiekonstante * errorWW);       // Simple I regulator for WW current, quite ugly, should be rewritten
-      dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
-
-      set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
-      set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
+    targetWW += 2.5f;
+    if (targetWW > 245.0f) targetWW = 245.0f; //sweep up and stay at 245mA
+    
+    if(printCnt++>250){ // print only every n cycle
+      set_scope_channel(0, dutyWW * 1000.0f);
+      set_scope_channel(1, dutyCW * 1000.0f);
+      set_scope_channel(2, errorWW);
+      set_scope_channel(3, targetWW);
+      set_scope_channel(4, iavgWW);
+      console_scope();
+      printCnt = 0;
     }
 
-    set_scope_channel(0, dutyWW * 1000.0f);
-    set_scope_channel(1, dutyCW * 1000.0f);
-    set_scope_channel(2, errorWW);
-    set_scope_channel(3, targetWW);
+    HAL_GPIO_TogglePin(GPIOA, LED2_Pin);  // Toggle LED as "alive-indicator"
 
+    /* maybe still usefull code snippets after here for now */
+    /*
     printCnt++;
 
     if (printCnt > 5) {
@@ -197,9 +189,7 @@ int main(void)
     _wAvg = _wAvg * 0.8f + _w * 0.2f;  // Moving average filter for input power
 
     set_scope_channel(6, (uint16_t)_wAvg);
-    console_scope();
-    HAL_GPIO_TogglePin(GPIOA, LED2_Pin);  // Toggle LED as "alive-indicator"
-
+    */
     /*
     set_scope_channel(0,duty);
     set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/2048.0*2.12*3.0*1000); //VIN - mV
@@ -638,7 +628,7 @@ static void DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
   HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
-  HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(ADC1_2_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
 }
 
@@ -683,8 +673,24 @@ static void init_RT(void) {
 }
 
 void boost_reg() {
-  /* move regulator into here */
-  HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
+  /* Main current regulator */
+  ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
+  ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
+
+  iavgCW = iavgCW * avgConst + ioutCW * (1.0f - avgConst);  // Moving average filter for CW input current
+  iavgWW = iavgWW * avgConst + ioutWW * (1.0f - avgConst);  // Moving average filter for WW input current
+
+  errorCW = targetCW - iavgCW;  // Calculate CW-current error
+  errorWW = targetWW - iavgWW;  // Calculate WW-current error
+
+  dutyCW += (MagiekonstanteCycle * errorCW);       // Simple I regulator for CW current, quite ugly, should be rewritten
+  dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+
+  dutyWW += (MagiekonstanteCycle * errorWW);       // Simple I regulator for WW current, quite ugly, should be rewritten
+  dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
 }
 
 void configure_RT(uint8_t _register, uint8_t _mask) {
