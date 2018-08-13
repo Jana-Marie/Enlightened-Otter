@@ -1,6 +1,6 @@
 - [ ] HW
 	- [ ] Move 18650 clips to fit battery
-	- dont fit the battery move by 1-2mm
+	- dont fit the battery, move by 1-2mm
 	- [ ] Add pullup to NTC (LED)
 	- 10k
 	- [ ] Check USB footprint
@@ -12,7 +12,7 @@
 	- [x] Gate pulldowns
 	- Gate driver has no pulldowns, unknown behaviour while not driven
 	- [ ] Reduce Boost inductance
-	- 15uH is too high, 3.3uH is better, also increase current maybe use this inductor https://de.rs-online.com/web/p/drahtgewickelte-smd-induktivitaten/9236194/
+	- 15uH is too high, 3.3uH is better, also increase dc-current, maybe use this inductor https://de.rs-online.com/web/p/drahtgewickelte-smd-induktivitaten/9236194/
 	- [ ] Change voltage regulator to 3.0V type
 	- Is still 3.3V type in schematic, 3.0V was used for testing
 	- [ ] Divide Vin voltage divider resistance by 10
@@ -20,7 +20,7 @@
 	- [ ] Add Mosfet to turn ESP off
 	- ESP will be turned on all the time, add sleepmode and/or switched power 
 	- [ ] Check schematic symbols
-	- Mosfets and inductors have the wrong aprt numbers (mosfet has to be AO3400, inductor to be determined)
+	- Mosfets and inductors have the wrong part numbers (mosfet has to be AO3400, inductor to be determined)
 	- Change ADC voltage divider values
 	- [ ] Export PCB design files to kicad and publish
 	- Also export Gerber?
