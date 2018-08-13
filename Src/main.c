@@ -638,6 +638,8 @@ static void DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel5_IRQn);
   HAL_NVIC_SetPriority(DMA1_Channel6_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
 }
 
 static void GPIO_Init(void)
