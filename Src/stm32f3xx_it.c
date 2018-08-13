@@ -281,8 +281,8 @@ void DMA1_Channel6_IRQHandler(void)
 void ADC1_2_IRQHandler(void)
 {
   /* USER CODE BEGIN ADC1_2_IRQn 0 */
-  HAL_GPIO_TogglePin(GPIOA, LED1_Pin);
-  //boost_reg();
+  
+  boost_reg();
 
   /* USER CODE END ADC1_2_IRQn 0 */
   HAL_ADC_IRQHandler(&hadc1);
@@ -291,6 +291,7 @@ void ADC1_2_IRQHandler(void)
 
   /* USER CODE END ADC1_2_IRQn 1 */
 }
+
 void TSCx_EXTI_IRQHandler(void)
 {
   HAL_TSC_IRQHandler(&htsc);
