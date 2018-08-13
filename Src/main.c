@@ -95,7 +95,7 @@ float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float errorCW, errorWW;
 
-float _v,_i,_w,_wAvg;
+float _v, _i, _w, _wAvg;
 
 int print = 1;
 
@@ -169,7 +169,7 @@ int main(void)
       set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
       set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
     }
-    
+
     set_scope_channel(0, dutyWW * 1000.0f);
     set_scope_channel(1, dutyCW * 1000.0f);
     set_scope_channel(2, errorWW);
@@ -180,12 +180,12 @@ int main(void)
       configure_RT(CHG_ADC,ADC_VBUS2);
       print = 0;
     } else if (print == 0) {
-      _v = read_RT_ADC()*10.0f;
+      _v = read_RT_ADC() * 10.0f;
       set_scope_channel(5, _v);
-      configure_RT(CHG_ADC,ADC_IBUS);
+      configure_RT(CHG_ADC, ADC_IBUS);
       print = 1;
     }
-    _w = (_v*_i)/1000.0f;
+    _w = (_v * _i) / 1000.0f;
     _wAvg = _wAvg * 0.9f + _w * 0.1f;  // Moving average filter for CW input current
 
     set_scope_channel(6, (uint16_t)_wAvg);
