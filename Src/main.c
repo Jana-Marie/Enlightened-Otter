@@ -192,7 +192,7 @@ int main(void)
       }
       printCnt = 0;
     }
-    
+
     _w = (_v * _i) / 1000.0f;
     _wAvg = _wAvg * 0.8f + _w * 0.2f;  // Moving average filter for input power
 
