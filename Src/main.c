@@ -95,9 +95,9 @@ float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float errorCW, errorWW;
 
-float _v, _i, _w, _wAvg;
+float _v, _i, _w, _wAvg; // debugvalues to find matching boost frequency will be removed later
 
-int print = 1;
+int print = 1;  // debugvalue for alternating reding of current / voltage
 
 int main(void)
 {
@@ -134,8 +134,8 @@ int main(void)
   init_RT();
   start_HRTIM1();
 
-  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT;
-  MagiekonstanteCycle = Magiekonstante * cycleTime;
+  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // not used now, calculated cycle time
+  MagiekonstanteCycle = Magiekonstante * cycleTime;             // not used now, calculated Ki
 
   HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);  // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);  // clear LED "Color"
@@ -147,7 +147,7 @@ int main(void)
   while (1)
   {
     targetWW += 0.5f;
-    if (targetWW > 245.0f) targetWW = 245.0f;
+    if (targetWW > 245.0f) targetWW = 245.0f; //swwe up and stay at 245mA
 
     for (int i = 0; i < 2000; i++) {  // print only every 2000 cycles
 
@@ -186,12 +186,9 @@ int main(void)
       print = 1;
     }
     _w = (_v * _i) / 1000.0f;
-    _wAvg = _wAvg * 0.9f + _w * 0.1f;  // Moving average filter for CW input current
-
+    _wAvg = _wAvg * 0.9f + _w * 0.1f;  // Moving average filter for input power
     set_scope_channel(6, (uint16_t)_wAvg);
     console_scope();
-    //HAL_Delay(10);
-
     HAL_GPIO_TogglePin(GPIOA, LED2_Pin);  // Toggle LED as "alive-indicator"
 
     /*
