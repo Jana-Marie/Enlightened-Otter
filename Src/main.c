@@ -82,7 +82,6 @@ uint32_t ready = 0;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f; // Warmwhite target current in mA
-float Magiekonstante = 0.0002f; // Ki constant
 float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger filter
 
 float cycleTime;            // time of one cycle
@@ -95,10 +94,9 @@ float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float errorCW, errorWW;
 
-float _v, _i, _w, _wAvg; // debugvalues to find matching boost frequency will be removed later
-
-uint8_t print = 1;    // debugvalue for alternating reading of current / voltage
-uint8_t printCnt = 0; // debugvalue for delay reading of current / voltage
+float _v, _i, _w, _wAvg;// debugvalues to find matching boost frequency will be removed later
+uint8_t print = 1;      // debugvalue for alternating reading of current / voltage
+uint8_t printCnt = 0;   // debugvalue for delay reading of current / voltage
 
 int main(void)
 {
@@ -143,7 +141,7 @@ int main(void)
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
   cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // not used now, calculated cycle time
-  MagiekonstanteCycle = Magiekonstante * cycleTime;             // not used now, calculated Ki
+  MagiekonstanteCycle = KI * cycleTime;             // not used now, calculated Ki
 
   while (1)
   {
