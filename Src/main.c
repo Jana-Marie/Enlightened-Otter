@@ -583,6 +583,9 @@ static void TSC_Init(void)
   IoConfig.SamplingIOs = TSC_GROUP5_IO4;
   IoConfig.ShieldIOs   = 0;
   HAL_TSC_IOConfig(&htsc, &IoConfig);
+
+  HAL_NVIC_SetPriority(EXTI2_TSC_IRQn, 2, 0); // NOT TESTED
+  HAL_NVIC_EnableIRQ(EXTI2_TSC_IRQn); // NOT TESTED
 }
 
 static void USART1_UART_Init(void)
@@ -725,7 +728,6 @@ void primitive_TSC_task(void) {
   case 2:
     IoConfig.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
     IdxBank = 0;/* TSC init function */
-
     break;
   default:
     break;
@@ -780,6 +782,7 @@ void primitive_TSC_task(void) {
 
       uint16_t distance = 0;
       uint8_t section = 0;
+
       if (x < y && x < z && y < z) {
         section = 1;
         distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
@@ -799,13 +802,11 @@ void primitive_TSC_task(void) {
         section = 6;
         distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
       }
+
       if (MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]) > -100) {
         distance = 0;
         section = 0;
-        HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);
-      } else {
-        HAL_GPIO_WritePin(GPIOA, LED_Brightness, 1);
-      }
+      } 
       set_scope_channel(1, (uint16_t)section);
       set_scope_channel(0, (uint16_t)distance / 1.43f);
       //setScopeChannel(2, read_RT_ADC());
