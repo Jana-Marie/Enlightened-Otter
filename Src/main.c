@@ -81,7 +81,7 @@ uint8_t IdxBank = 0;
 uint32_t ready = 0;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
-float targetWW = 0.0f; // Warmwhite target current in mA
+float targetWW = 0.0f;  // Warmwhite target current in mA
 float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger filter
 
 float cycleTime;            // time of one cycle
@@ -205,10 +205,10 @@ void boost_reg() {
   errorCW = targetCW - iavgCW;  // Calculate CW-current error
   errorWW = targetWW - iavgWW;  // Calculate WW-current error
 
-  dutyCW += (MagiekonstanteCycle * errorCW);       // Simple I regulator for CW current, quite ugly, should be rewritten
+  dutyCW += (MagiekonstanteCycle * errorCW);  // Simple I regulator for CW current
   dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-  dutyWW += (MagiekonstanteCycle * errorWW);       // Simple I regulator for WW current, quite ugly, should be rewritten
+  dutyWW += (MagiekonstanteCycle * errorWW);  // Simple I regulator for WW current
   dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
