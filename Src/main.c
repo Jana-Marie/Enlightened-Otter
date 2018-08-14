@@ -86,10 +86,9 @@ float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger fil
 
 float cycleTime;            // time of one cycle
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
-float iavgCW, iavgWW;
+float iavgCW, iavgWW, errorCW, errorWW; // stores the average current 
 float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
-float errorCW, errorWW;
 
 float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
 uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
@@ -127,8 +126,8 @@ int main(void)
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);  // set the current for the COMP2,4 to trigger FLT_1
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);  // set the voltage for the COMP6 to trigger FLT_1
 
-  init_RT();
-  start_HRTIM1();
+  init_RT();      // mainly sets ILIM
+  start_HRTIM1(); // start HRTIM and enable outputs
 
   HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);  // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED_Color, 0);       // clear LED "Color"
@@ -156,7 +155,7 @@ int main(void)
       printCnt = 0;
     }
 
-    HAL_GPIO_TogglePin(GPIOA, LED_Color);  // Toggle LED as "alive-indicator"
+    HAL_GPIO_TogglePin(GPIOA, LED_Power);  // Toggle LED as "alive-indicator"
 
     /* maybe still usefull code snippets after here for now */
     /*
