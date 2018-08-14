@@ -135,9 +135,9 @@ int main(void)
   init_RT();
   start_HRTIM1();
 
-  HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);  // clear LED "Brightness"
-  HAL_GPIO_WritePin(GPIOA, LED2_Pin, 0);  // clear LED "Color"
-  HAL_GPIO_WritePin(GPIOA, LED3_Pin, 1);  // clear LED "Power"
+  HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);  // clear LED "Brightness"
+  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);  // clear LED "Color"
+  HAL_GPIO_WritePin(GPIOA, LED_Power, 1);  // clear LED "Power"
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
@@ -161,7 +161,7 @@ int main(void)
       printCnt = 0;
     }
 
-    HAL_GPIO_TogglePin(GPIOA, LED2_Pin);  // Toggle LED as "alive-indicator"
+    HAL_GPIO_TogglePin(GPIOA, LED_Color);  // Toggle LED as "alive-indicator"
 
     /* maybe still usefull code snippets after here for now */
     /*
@@ -668,10 +668,10 @@ static void GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /* Set output state to LOW */
-  HAL_GPIO_WritePin(GPIOA, LED1_Pin | LED2_Pin | LED3_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED_Brightness | LED_Color | LED_Power, GPIO_PIN_RESET);
 
   /* Change pin mode to output */
-  GPIO_InitStruct.Pin = LED1_Pin | LED2_Pin | LED3_Pin;
+  GPIO_InitStruct.Pin = LED_Brightness | LED_Color | LED_Power;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -804,7 +804,7 @@ void primitive_TSC_task(void) {
     } else {
       uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] - uhTSCOffsetValue[IdxBank]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
       if (IdxBank == 2) {
-        HAL_GPIO_WritePin(GPIOA, LED3_Pin, 1);
+        HAL_GPIO_WritePin(GPIOA, LED_Power, 1);
         uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] * 2;
       }
 
@@ -839,9 +839,9 @@ void primitive_TSC_task(void) {
       if (MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]) > -100) {
         distance = 0;
         section = 0;
-        HAL_GPIO_WritePin(GPIOA, LED1_Pin, 0);
+        HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);
       } else {
-        HAL_GPIO_WritePin(GPIOA, LED1_Pin, 1);
+        HAL_GPIO_WritePin(GPIOA, LED_Brightness, 1);
       }
       set_scope_channel(1, (uint16_t)section);
       set_scope_channel(0, (uint16_t)distance / 1.43f);
