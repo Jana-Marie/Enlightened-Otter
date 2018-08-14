@@ -150,8 +150,8 @@ int main(void)
 
     targetWW += 2.5f;
     if (targetWW > 245.0f) targetWW = 245.0f; //sweep up and stay at 245mA
-    
-    if(printCnt++>250){ // print only every n cycle
+
+    if (printCnt++ > 250) { // print only every n cycle
       set_scope_channel(0, dutyWW * 1000.0f);
       set_scope_channel(1, dutyCW * 1000.0f);
       set_scope_channel(2, errorWW);
@@ -291,7 +291,7 @@ static void ADC1_Init(void)
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc1);
 
-      __HAL_ADC_ENABLE_IT(&hadc1,ADC_IT_JEOC);
+  __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_JEOC);
 
 }
 
@@ -365,7 +365,7 @@ static void ADC2_Init(void)
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc2);
 
-  __HAL_ADC_ENABLE_IT(&hadc2,ADC_IT_JEOC);
+  __HAL_ADC_ENABLE_IT(&hadc2, ADC_IT_JEOC);
 }
 
 static void COMP2_Init(void)
