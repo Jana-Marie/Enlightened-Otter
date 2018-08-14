@@ -198,6 +198,27 @@ int main(void)
   }
 }
 
+void boost_reg() {
+  /* Main current regulator */
+  ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
+  ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
+
+  iavgCW = iavgCW * avgConst + ioutCW * (1.0f - avgConst);  // Moving average filter for CW input current
+  iavgWW = iavgWW * avgConst + ioutWW * (1.0f - avgConst);  // Moving average filter for WW input current
+
+  errorCW = targetCW - iavgCW;  // Calculate CW-current error
+  errorWW = targetWW - iavgWW;  // Calculate WW-current error
+
+  dutyCW += (MagiekonstanteCycle * errorCW);       // Simple I regulator for CW current, quite ugly, should be rewritten
+  dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+
+  dutyWW += (MagiekonstanteCycle * errorWW);       // Simple I regulator for WW current, quite ugly, should be rewritten
+  dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
+}
+
 void SystemClock_Config(void)
 {
 
@@ -674,27 +695,6 @@ static void init_RT(void) {
   /* Configure the RT9466, set currents to maximum */
   configure_RT(CHG_CTRL2, IINLIM_MASK);
   configure_RT(CHG_CTRL3, SET_ILIM_3A);
-}
-
-void boost_reg() {
-  /* Main current regulator */
-  ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
-  ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
-
-  iavgCW = iavgCW * avgConst + ioutCW * (1.0f - avgConst);  // Moving average filter for CW input current
-  iavgWW = iavgWW * avgConst + ioutWW * (1.0f - avgConst);  // Moving average filter for WW input current
-
-  errorCW = targetCW - iavgCW;  // Calculate CW-current error
-  errorWW = targetWW - iavgWW;  // Calculate WW-current error
-
-  dutyCW += (MagiekonstanteCycle * errorCW);       // Simple I regulator for CW current, quite ugly, should be rewritten
-  dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
-
-  dutyWW += (MagiekonstanteCycle * errorWW);       // Simple I regulator for WW current, quite ugly, should be rewritten
-  dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
-
-  set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
-  set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
 }
 
 void configure_RT(uint8_t _register, uint8_t _mask) {
