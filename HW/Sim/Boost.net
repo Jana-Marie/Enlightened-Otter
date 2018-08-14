@@ -1,0 +1,17 @@
+* C:\users\janhenrik\Meine Dokumente\STM32Cube\Enlighted-Otter\HW\Sim\Boost.asc
+M1 N001 GATE 0 0 FDS5690
+L1 VIN N001 3.3µ Ipk=3.7 Rser=0.042 Rpar=15188 Cpar=3.369p mfg="Würth Elektronik" pn="784774033 WE-PD2A 5848"
+D1 N001 VOUT SS24
+V1 VIN 0 4.2 Rser=0
+R2 VOUT 0 55 tol=1 pwr=0.1
+C1 VOUT 0 10µ V=25 Irms=0 Rser=0.001 Lser=0 mfg="TDK" pn="C575OX7RIE106M" type="X7R"
+V2 GATE 0 PULSE(0 5 0 0 0 {0.72/freq} {1/freq})
+.model D D
+.lib C:\users\janhenrik\Meine Dokumente\LTspiceXVII\lib\cmp\standard.dio
+.model NMOS NMOS
+.model PMOS PMOS
+.lib C:\users\janhenrik\Meine Dokumente\LTspiceXVII\lib\cmp\standard.mos
+.tran 0 0.001 0
+.param freq=750k
+.backanno
+.end
