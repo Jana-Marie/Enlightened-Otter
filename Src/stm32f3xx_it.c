@@ -292,8 +292,10 @@ void ADC1_2_IRQHandler(void)
   /* USER CODE END ADC1_2_IRQn 1 */
 }
 
-void TSCx_EXTI_IRQHandler(void)
+void EXTI2_TSC_IRQHandler(void)
 {
+  //https://stackoverflow.com/questions/40057581/stm32f3-discovery-implement-gpio-interrupt
+  //meow
   HAL_TSC_IRQHandler(&htsc);
 }
 
