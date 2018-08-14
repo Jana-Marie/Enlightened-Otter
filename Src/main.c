@@ -94,9 +94,9 @@ float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float errorCW, errorWW;
 
-float _v, _i, _w, _wAvg;// debugvalues to find matching boost frequency will be removed later
-uint8_t print = 1;      // debugvalue for alternating reading of current / voltage
-uint8_t printCnt = 0;   // debugvalue for delay reading of current / voltage
+float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
+uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
+uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
 
 int main(void)
 {
@@ -134,14 +134,14 @@ int main(void)
   start_HRTIM1();
 
   HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);  // clear LED "Brightness"
-  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);  // clear LED "Color"
-  HAL_GPIO_WritePin(GPIOA, LED_Power, 1);  // clear LED "Power"
+  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);       // clear LED "Color"
+  HAL_GPIO_WritePin(GPIOA, LED_Power, 1);       // clear LED "Power"
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
-  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // not used now, calculated cycle time
-  MagiekonstanteCycle = KI * cycleTime;             // not used now, calculated Ki
+  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // calculated cycle time
+  MagiekonstanteCycle = KI * cycleTime;             // calculated Ki independent of cycle time
 
   while (1)
   {
