@@ -86,9 +86,6 @@ float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger fil
 
 float cycleTime;            // time of one cycle
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
-float vin, vout;
-float temp1, temp2;
-float ioutCW, ioutWW;
 float iavgCW, iavgWW;
 float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
@@ -198,6 +195,8 @@ int main(void)
 
 void boost_reg() {
   /* Main current regulator */
+  float ioutCW, ioutWW;
+
   ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
