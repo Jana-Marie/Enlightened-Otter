@@ -46,11 +46,11 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define LED1_Pin GPIO_PIN_8
+#define LED_Brightness GPIO_PIN_8
 #define LED1_GPIO_Port GPIOA
-#define LED2_Pin GPIO_PIN_11
+#define LED_Color GPIO_PIN_11
 #define LED2_GPIO_Port GPIOA
-#define LED3_Pin GPIO_PIN_15
+#define LED_Power GPIO_PIN_15
 #define LED3_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
