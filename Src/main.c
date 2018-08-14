@@ -291,6 +291,7 @@ static void ADC1_Init(void)
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc1);
 
+  /* Enable End of Injected Conversion interrupt */
   __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_JEOC);
 
 }
@@ -365,6 +366,7 @@ static void ADC2_Init(void)
   /* Start ADC2 Injected Conversions */
   HAL_ADCEx_InjectedStart(&hadc2);
 
+  /* Enable End of Injected Conversion interrupt */
   __HAL_ADC_ENABLE_IT(&hadc2, ADC_IT_JEOC);
 }
 
