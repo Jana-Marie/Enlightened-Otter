@@ -1,0 +1,29 @@
+
+/* maybe still usefull code snippets */
+
+printCnt++;
+
+if (printCnt > 5) {
+  if (print == 1) {
+    _i = read_RT_ADC() * 50.0f;
+    set_scope_channel(4, _i);
+    configure_RT(CHG_ADC, ADC_VBUS2);
+    print = 0;
+  } else if (print == 0) {
+    _v = read_RT_ADC() * 10.0f;
+    set_scope_channel(5, _v);
+    configure_RT(CHG_ADC, ADC_IBUS);
+    print = 1;
+  }
+  printCnt = 0;
+}
+
+_w = (_v * _i) / 1000.0f;
+_wAvg = _wAvg * 0.8f + _w * 0.2f;  // Moving average filter for input power
+
+
+set_scope_channel(1, HAL_ADCEx_InjectedGetValue(&hadc1, ADC_INJECTED_RANK_1)/2048.0*2.12*3.0*1000); //VIN - mV
+set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1)); //NTC
+set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*3.0*1000.0); //ISens1 - mA
+set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0); //Isens2 - mA
+set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4)/2048.0*2.12*3.0*1000); //VBAT - mV
