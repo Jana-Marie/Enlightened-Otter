@@ -40,29 +40,39 @@ and flash it via Ozone or st-utils
 
 ## Planning
 
+### Current state:
+
+HW is flashable, both bosst converter work properly up to a current of ~250mA, current regulation works on both boost converters (+-0.5-1.5mA), RT9466 seems to do its job, does not work properly on batteries, LED outputs and Touch inputs seem to work, FLT_1 is always on
+
+HW regulates after boot while main loop is basically empty \o/
+
 ### To do:
 
 - [ ] Test Injected ADC
 	- [x] ADC tested and seems to work just fine
-	- [x] add moving average filter to smooth out ADC values
+	- [x] Add moving average filter to smooth out ADC values
+	- [x] Add JEOC Interrupt
 	- [ ] current,voltage,temperature calculation
-
-- [ ] Write regulator
-	- [x] Write simple, working I regulator
-	- [x] Make it cycle time independent
-	- [ ] Write a better PI regulator
 - [ ] Fix/write TSC controller
 	- [ ] Add second TSC bank
+	- [ ] Make it interrupt based
 - [ ] Write the user interface
+- [ ] Fix I2C timing/Interrupt issue
 - [ ] Fix the HRTIM FLT1 line
 - [ ] HW
 	-  See HW/README.md
+- [ ] find MPP
 - [ ] Find more to do's
 
 ### Done:
 
 - [x] Get HRTIM to run
 - [x] Get the LED's to light up
+- [x] Write regulator
+	- [x] Write simple, working I regulator
+	- [x] Make it cycle time independent
+	- [x] Make regulator interrupt based
+	- [x] Write a better PI regulator
 - [x] Basic TSC,UART,DAC,COMP,I2C and GPIO functionality
 - [x] Readout of touchslider
 - [x] Be an otter
