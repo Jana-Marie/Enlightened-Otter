@@ -1,21 +1,24 @@
 * C:\users\janhenrik\Meine Dokumente\STM32Cube\Enlighted-Otter\HW\Sim\Boost.asc
 M1 N001 GATE 0 0 FDS5690
-L1 VIN N001 3.3µ Ipk=3.7 Rser=0.042 Rpar=15188 Cpar=3.369p mfg="Würth Elektronik" pn="784774033 WE-PD2A 5848"
+L1 VIN N001 {hen} Ipk=3.7 Rser=0.042 Rpar=15188 Cpar=3.369p
 D1 N001 VOUT SS24
 V1 VIN 0 4.2 Rser=0
-C1 VOUT 0 10µ V=25 Irms=0 Rser=0.001 Lser=0 mfg="TDK" pn="C575OX7RIE106M" type="X7R"
-V2 GATE 0 PULSE(0 5 0 0 0 {0.72/freq} {1/freq})
+C1 VOUT 0 4.7µ V=25 Irms=0 Rser=0.003 Lser=0
+V2 N002 0 PULSE(0 5 0 0 0 {0.715/freq} {1/freq}) Rser=5
 C2 VIN 0 10µ V=25 Irms=0 Rser=0.001 Lser=0 mfg="TDK" pn="C575OX7RIE106M" type="X7R"
-R1 VOUT 0 75 tol=1 pwr=1
+R1 VOUT 0 {res} tol=1 pwr=1
+R2 GATE N002 5 tol=1 pwr=1
+C3 VOUT 0 4.7µ V=25 Irms=0 Rser=0.003 Lser=0
 .model D D
 .lib C:\users\janhenrik\Meine Dokumente\LTspiceXVII\lib\cmp\standard.dio
 .model NMOS NMOS
 .model PMOS PMOS
 .lib C:\users\janhenrik\Meine Dokumente\LTspiceXVII\lib\cmp\standard.mos
 .tran 0 0.001 0.00095
-.step param freq 150k 950k 25k
+.step param hen 1µ 15µ 200n
 .meas Pin RMS -V(vin)*I(V1)
 .meas Pout RMS V(vout)*I(R1)
-.meas Eff param Pout/Pin
+.meas Eff PARAM Pout/Pin*100.0
+.param res=85 freq=750k
 .backanno
 .end
