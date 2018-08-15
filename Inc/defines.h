@@ -23,7 +23,7 @@
 
 #define HRTIM_FREQUENCY_KHZ 766.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
 #define REG_CNT 4096 				// sets the number of HRTIM passes to the next controller pass
-#define KI 0.0002f 					// sets the KI constant for the current regulator - do not change unless you know what you're doing
+#define KI 0.0001f 					// sets the KI constant for the current regulator - do not change unless you know what you're doing
 
 #define MIN_DUTY 0.002f // sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value

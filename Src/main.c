@@ -39,8 +39,11 @@ I2C_HandleTypeDef hi2c1;
 DMA_HandleTypeDef hdma_i2c1_rx;
 DMA_HandleTypeDef hdma_i2c1_tx;
 
-TSC_HandleTypeDef htsc;
-TSC_IOConfigTypeDef IoConfig;
+TSC_HandleTypeDef htscs;
+TSC_IOConfigTypeDef IoConfigs;
+
+TSC_HandleTypeDef htscb;
+TSC_IOConfigTypeDef IoConfigb;
 
 UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
@@ -67,7 +70,8 @@ static void start_HRTIM1(void);
 uint16_t read_RT_ADC(void);
 void set_pwm(uint8_t timer, float duty);
 extern void boost_reg();
-
+void primitive_TSC_button_task(void);
+void primitive_TSC_slider_task(void);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
@@ -75,10 +79,15 @@ uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
-__IO int32_t uhTSCAcquisitionValue[3];
-__IO int32_t uhTSCOffsetValue[3];
-uint8_t IdxBank = 0;
+__IO int32_t sliderAcquisitionValue[3];
+__IO int32_t buttonAcquisitionValue[3];
+__IO int32_t sliderOffsetValue[3] = {1945,1934,1134};
+__IO int32_t buttonOffsetValue[3] = {1945,1934,1134};
+
+uint8_t IdxBankS = 0;
+uint8_t IdxBankB = 0;
 uint32_t ready = 0;
+      uint16_t distance = 0;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f;  // Warmwhite target current in mA
@@ -141,18 +150,23 @@ int main(void)
 
   while (1)
   {
+    targetCW = distance;
+    //targetCW += 2.5f;
+    //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
-    targetWW += 2.5f;
-    if (targetWW > 245.0f) targetWW = 245.0f; //sweep up and stay at 245mA
+    if (printCnt == 1 )primitive_TSC_slider_task();
+    if (printCnt == 0 )primitive_TSC_button_task();
 
-    if (printCnt++ > 250) { // print only every n cycle
-      set_scope_channel(0, dutyWW * 1000.0f);
-      set_scope_channel(1, dutyCW * 1000.0f);
-      set_scope_channel(2, errorWW);
-      set_scope_channel(3, targetWW);
-      set_scope_channel(4, iavgWW);
-      console_scope();
+    if (printCnt++ > 2) { // print only every n cycle
+      set_scope_channel(0, dutyCW * 1000.0f);
+      set_scope_channel(1, iavgCW);
+      set_scope_channel(2, errorCW);
+      set_scope_channel(3, IdxBankS);
+      set_scope_channel(4, buttonAcquisitionValue[0]);
+      set_scope_channel(5, buttonAcquisitionValue[1]);
+      set_scope_channel(6, buttonAcquisitionValue[2]);
       printCnt = 0;
+      console_scope();
     }
 
     HAL_GPIO_TogglePin(GPIOA, LED_Power);  // Toggle LED as "alive-indicator"
@@ -556,36 +570,54 @@ static void I2C1_Init(void)
 static void TSC_Init(void)
 {
 
-  htsc.Instance = TSC;
+  htscs.Instance = TSC;
 
-  htsc.Init.CTPulseHighLength = TSC_CTPH_1CYCLE;
-  htsc.Init.CTPulseLowLength = TSC_CTPL_1CYCLE;
-  htsc.Init.SpreadSpectrum = DISABLE;
-  htsc.Init.SpreadSpectrumDeviation = 1;
-  htsc.Init.SpreadSpectrumPrescaler = TSC_SS_PRESC_DIV1;
-  htsc.Init.PulseGeneratorPrescaler = TSC_PG_PRESC_DIV64;
-  htsc.Init.MaxCountValue = TSC_MCV_8191;
-  htsc.Init.IODefaultMode = TSC_IODEF_OUT_PP_LOW;
-  htsc.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
-  htsc.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
-  htsc.Init.MaxCountInterrupt = DISABLE;
-  htsc.Init.ChannelIOs = 0;//TSC_GROUP1_IO2|TSC_GROUP1_IO3|TSC_GROUP1_IO4|TSC_GROUP5_IO2
+  htscs.Init.CTPulseHighLength = TSC_CTPH_1CYCLE;
+  htscs.Init.CTPulseLowLength = TSC_CTPL_1CYCLE;
+  htscs.Init.SpreadSpectrum = DISABLE;
+  htscs.Init.SpreadSpectrumDeviation = 1;
+  htscs.Init.SpreadSpectrumPrescaler = TSC_SS_PRESC_DIV1;
+  htscs.Init.PulseGeneratorPrescaler = TSC_PG_PRESC_DIV64;
+  htscs.Init.MaxCountValue = TSC_MCV_8191;
+  htscs.Init.IODefaultMode = TSC_IODEF_OUT_PP_LOW;
+  htscs.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
+  htscs.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
+  htscs.Init.MaxCountInterrupt = DISABLE;
+  htscs.Init.ChannelIOs = 0;//TSC_GROUP1_IO2|TSC_GROUP1_IO3|TSC_GROUP1_IO4|TSC_GROUP5_IO2
   //  |TSC_GROUP5_IO3|TSC_GROUP5_IO4;
-  htsc.Init.SamplingIOs = 0;//TSC_GROUP1_IO1|TSC_GROUP5_IO1;
-  HAL_TSC_Init(&htsc);
+  htscs.Init.SamplingIOs = 0;//TSC_GROUP1_IO1|TSC_GROUP5_IO1;
+  HAL_TSC_Init(&htscs);
 
-  IoConfig.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
-  IoConfig.SamplingIOs = TSC_GROUP1_IO4;
-  IoConfig.ShieldIOs   = 0;
-  HAL_TSC_IOConfig(&htsc, &IoConfig);
+  htscb.Instance = TSC;
 
-  IoConfig.ChannelIOs  = TSC_GROUP5_IO1; /* Start with the first channel */
-  IoConfig.SamplingIOs = TSC_GROUP5_IO4;
-  IoConfig.ShieldIOs   = 0;
-  HAL_TSC_IOConfig(&htsc, &IoConfig);
+  htscb.Init.CTPulseHighLength = TSC_CTPH_1CYCLE;
+  htscb.Init.CTPulseLowLength = TSC_CTPL_1CYCLE;
+  htscb.Init.SpreadSpectrum = DISABLE;
+  htscb.Init.SpreadSpectrumDeviation = 1;
+  htscb.Init.SpreadSpectrumPrescaler = TSC_SS_PRESC_DIV1;
+  htscb.Init.PulseGeneratorPrescaler = TSC_PG_PRESC_DIV64;
+  htscb.Init.MaxCountValue = TSC_MCV_8191;
+  htscb.Init.IODefaultMode = TSC_IODEF_OUT_PP_LOW;
+  htscb.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
+  htscb.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
+  htscb.Init.MaxCountInterrupt = DISABLE;
+  htscb.Init.ChannelIOs = 0;//TSC_GROUP1_IO2|TSC_GROUP1_IO3|TSC_GROUP1_IO4|TSC_GROUP5_IO2
+  //  |TSC_GROUP5_IO3|TSC_GROUP5_IO4;
+  htscb.Init.SamplingIOs = 0;//TSC_GROUP1_IO1|TSC_GROUP5_IO1;
+  HAL_TSC_Init(&htscb);
 
-  HAL_NVIC_SetPriority(EXTI2_TSC_IRQn, 2, 0); // NOT TESTED
-  HAL_NVIC_EnableIRQ(EXTI2_TSC_IRQn); // NOT TESTED
+  IoConfigs.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
+  IoConfigs.SamplingIOs = TSC_GROUP1_IO4;
+  IoConfigs.ShieldIOs   = 0;
+  HAL_TSC_IOConfig(&htscs, &IoConfigs);
+
+  IoConfigb.ChannelIOs  = TSC_GROUP5_IO2; /* Start with the first channel */
+  IoConfigb.SamplingIOs = TSC_GROUP5_IO1;
+  IoConfigb.ShieldIOs   = 0;
+  HAL_TSC_IOConfig(&htscb, &IoConfigb);
+
+  //HAL_NVIC_SetPriority(EXTI2_TSC_IRQn, 2, 0); // NOT TESTED
+  //HAL_NVIC_EnableIRQ(EXTI2_TSC_IRQn); // NOT TESTED
 }
 
 static void USART1_UART_Init(void)
@@ -713,41 +745,39 @@ void console_scope(void) {
 }
 #endif
 
-void primitive_TSC_task(void) {
-
-  switch (IdxBank)
+void primitive_TSC_button_task(void){
+  switch (IdxBankB++)
   {
   case 0:
-    IoConfig.ChannelIOs = TSC_GROUP1_IO1; /* Second channel */
-    IdxBank = 1;
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO2; /* Second channel */
+    IdxBankB = 1;
     break;
   case 1:
-    IoConfig.ChannelIOs = TSC_GROUP1_IO2; /* Third channel */
-    IdxBank = 2;
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO3; /* Third channel */
+    IdxBankB = 2;
     break;
   case 2:
-    IoConfig.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
-    IdxBank = 0;/* TSC init function */
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO4; /* First channel */
+    IdxBankB = 0;/* TSC init function */
     break;
   default:
     break;
   }
-
-  HAL_TSC_IOConfig(&htsc, &IoConfig);
+  HAL_TSC_IOConfig(&htscb, &IoConfigb);
 
   /*##-2- Discharge the touch-sensing IOs ##################################*/
   /* Must be done before each acquisition */
-  HAL_TSC_IODischarge(&htsc, ENABLE);
+  HAL_TSC_IODischarge(&htscb, ENABLE);
   HAL_Delay(1); /* 1 ms is more than enough to discharge all capacitors */
 
   /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
-  HAL_TSC_Start(&htsc);
+  HAL_TSC_Start(&htscb);
 
   /*##-4- Wait for the end of acquisition ##################################*/
   /*  Before starting a new acquisition, you need to check the current state of
        the peripheral; if its busy you need to wait for the end of current
        acquisition before starting a new one. */
-  while (HAL_TSC_GetState(&htsc) == HAL_TSC_STATE_BUSY)
+  while (HAL_TSC_GetState(&htscb) == HAL_TSC_STATE_BUSY)
   {
     /* For simplicity reasons, this example is just waiting till the end of the
        acquisition, but application may perform other tasks while acquisition
@@ -755,32 +785,82 @@ void primitive_TSC_task(void) {
   }
 
   /*##-5- Clear flags ######################################################*/
-  __HAL_TSC_CLEAR_FLAG(&htsc, (TSC_FLAG_EOA | TSC_FLAG_MCE));
+  __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE));
 
   /*##-6- Check if the acquisition is correct (no max count) ###############*/
-  if (HAL_TSC_GroupGetStatus(&htsc, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
+  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)// && HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
+      buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+      //buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
+
+      if (MIN(MIN(buttonAcquisitionValue[0], buttonAcquisitionValue[1]), buttonAcquisitionValue[2]) > -100) {
+
+      } 
+  }
+}
+
+void primitive_TSC_slider_task(void) {
+
+  switch (IdxBankS++)
+  {
+  case 0:
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO1; /* Second channel */
+    IdxBankS = 1;
+    break;
+  case 1:
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO2; /* Third channel */
+    IdxBankS = 2;
+    break;
+  case 2:
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
+    IdxBankS = 0;/* TSC init function */
+    break;
+  default:
+    break;
+  }
+  HAL_TSC_IOConfig(&htscs, &IoConfigs);
+
+  /*##-2- Discharge the touch-sensing IOs ##################################*/
+  /* Must be done before each acquisition */
+  HAL_TSC_IODischarge(&htscs, ENABLE);
+  HAL_Delay(1); /* 1 ms is more than enough to discharge all capacitors */
+
+  /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
+  HAL_TSC_Start(&htscs);
+
+  /*##-4- Wait for the end of acquisition ##################################*/
+  /*  Before starting a new acquisition, you need to check the current state of
+       the peripheral; if its busy you need to wait for the end of current
+       acquisition before starting a new one. */
+  while (HAL_TSC_GetState(&htscs) == HAL_TSC_STATE_BUSY)
+  {
+    /* For simplicity reasons, this example is just waiting till the end of the
+       acquisition, but application may perform other tasks while acquisition
+       operation is ongoing. */
+  }
+
+  /*##-5- Clear flags ######################################################*/
+  __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE));
+
+  /*##-6- Check if the acquisition is correct (no max count) ###############*/
+
+
+  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)// && HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  {
+
     /*##-7- Store the acquisition value ####################################*/
-    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htsc, TSC_GROUP1_IDX);
+      sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+      sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
+      if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
+       HAL_GPIO_TogglePin(GPIOA, LED_Brightness); 
 
-    if (ready < 300) {
-      uhTSCOffsetValue[IdxBank] =  uhTSCOffsetValue[IdxBank] * 0.9f + uhTSCAcquisitionValue[IdxBank] * 0.1f;
-      ready++;
-    } else {
-      uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] - uhTSCOffsetValue[IdxBank]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
-      if (IdxBank == 2) {
-        HAL_GPIO_WritePin(GPIOA, LED_Power, 1);
-        uhTSCAcquisitionValue[IdxBank] = uhTSCAcquisitionValue[IdxBank] * 2;
-      }
+      sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
 
-      uhTSCAcquisitionValue[IdxBank] = CLAMP(uhTSCAcquisitionValue[IdxBank], -2000, 0);
-
-      int16_t z = ((uhTSCAcquisitionValue[0] + uhTSCAcquisitionValue[1]) / 2) - uhTSCAcquisitionValue[2];
-      int16_t x = ((uhTSCAcquisitionValue[0] + uhTSCAcquisitionValue[2]) / 2) - uhTSCAcquisitionValue[1];
-      int16_t y = ((uhTSCAcquisitionValue[1] + uhTSCAcquisitionValue[2]) / 2) - uhTSCAcquisitionValue[0];
+      int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
+      int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
+      int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
 
 
-      uint16_t distance = 0;
       uint8_t section = 0;
 
       if (x < y && x < z && y < z) {
@@ -803,18 +883,10 @@ void primitive_TSC_task(void) {
         distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
       }
 
-      if (MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]) > -100) {
+      if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
         distance = 0;
         section = 0;
       } 
-      set_scope_channel(1, (uint16_t)section);
-      set_scope_channel(0, (uint16_t)distance / 1.43f);
-      //setScopeChannel(2, read_RT_ADC());
-      //configure_RT(CHG_ADC,0x11);
-      //setScopeChannel(2, y);
-      //setScopeChannel(3, MIN(MIN(uhTSCAcquisitionValue[0], uhTSCAcquisitionValue[1]), uhTSCAcquisitionValue[2]));
-      console_scope();
-    }
   }
 }
 
