@@ -82,7 +82,7 @@ volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 __IO int32_t sliderAcquisitionValue[3];
 __IO int32_t buttonAcquisitionValue[3];
 __IO int32_t sliderOffsetValue[3] = {1945,1934,1134};
-__IO int32_t buttonOffsetValue[3] = {1945,1934,1134};
+__IO int32_t buttonOffsetValue[3] = {2120,2433,2058};
 
 uint8_t IdxBankS = 0;
 uint8_t IdxBankB = 0;
@@ -768,8 +768,6 @@ void primitive_TSC_button_task(void){
   /*##-2- Discharge the touch-sensing IOs ##################################*/
   /* Must be done before each acquisition */
   HAL_TSC_IODischarge(&htscb, ENABLE);
-  HAL_Delay(1); /* 1 ms is more than enough to discharge all capacitors */
-
   /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
   HAL_TSC_Start(&htscb);
 
@@ -791,11 +789,14 @@ void primitive_TSC_button_task(void){
   if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)// && HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
       buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-      //buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
+      buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
 
-      if (MIN(MIN(buttonAcquisitionValue[0], buttonAcquisitionValue[1]), buttonAcquisitionValue[2]) > -100) {
+      if (MIN(MIN(buttonAcquisitionValue[0], buttonAcquisitionValue[1]), buttonAcquisitionValue[2]) < -100) {
+       HAL_GPIO_TogglePin(GPIOA, LED_Brightness); 
 
-      } 
+      } else {
+        HAL_GPIO_WritePin(GPIOA, LED_Brightness,GPIO_PIN_SET); 
+      }
   }
 }
 
@@ -804,16 +805,16 @@ void primitive_TSC_slider_task(void) {
   switch (IdxBankS++)
   {
   case 0:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO1; /* Second channel */
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
     IdxBankS = 1;
     break;
   case 1:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO2; /* Third channel */
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
     IdxBankS = 2;
     break;
   case 2:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO3; /* First channel */
-    IdxBankS = 0;/* TSC init function */
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
+    IdxBankS = 0;
     break;
   default:
     break;
@@ -823,7 +824,6 @@ void primitive_TSC_slider_task(void) {
   /*##-2- Discharge the touch-sensing IOs ##################################*/
   /* Must be done before each acquisition */
   HAL_TSC_IODischarge(&htscs, ENABLE);
-  HAL_Delay(1); /* 1 ms is more than enough to discharge all capacitors */
 
   /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
   HAL_TSC_Start(&htscs);
@@ -852,7 +852,6 @@ void primitive_TSC_slider_task(void) {
       sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
       sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
       if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
-       HAL_GPIO_TogglePin(GPIOA, LED_Brightness); 
 
       sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
 
