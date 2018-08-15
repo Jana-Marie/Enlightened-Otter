@@ -81,7 +81,7 @@
 #define ADC_REGN  	0xB1    //lsb 5mv +-2lsb
 #define ADC_TEMP_JC 0xC1 	//lsb 2degreeC +-2lsb
 
-#define TOUCH_SCALE 16   	// sets the touch slider scale 16 -> 0-100
+#define TOUCH_SCALE 32   	// sets the touch slider scale 16 -> 0-143
 
 #define UART_DMA_CHANNEL DMA1_Channel4
 
