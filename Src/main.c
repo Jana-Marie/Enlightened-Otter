@@ -87,7 +87,9 @@ __IO int32_t buttonOffsetValue[3] = {2120,2433,2058};
 uint8_t IdxBankS = 0;
 uint8_t IdxBankB = 0;
 uint32_t ready = 0;
-      uint16_t distance = 0;
+uint16_t distance = 0;
+uint8_t colBri = 0;
+uint8_t powBt = 1;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f;  // Warmwhite target current in mA
@@ -169,7 +171,10 @@ int main(void)
       console_scope();
     }
 
-    HAL_GPIO_TogglePin(GPIOA, LED_Power);  // Toggle LED as "alive-indicator"
+  HAL_GPIO_WritePin(GPIOA, LED_Brightness, colBri);  // clear LED "Brightness"
+  HAL_GPIO_WritePin(GPIOA, LED_Color, !colBri);       // clear LED "Color"
+  HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);       // clear LED "Power"
+
   }
 }
 
@@ -746,57 +751,47 @@ void console_scope(void) {
 #endif
 
 void primitive_TSC_button_task(void){
+
+  int16_t buttonThr = -1500;
+
   switch (IdxBankB++)
   {
   case 0:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO2; /* Second channel */
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO2; 
     IdxBankB = 1;
     break;
   case 1:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO3; /* Third channel */
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
     IdxBankB = 2;
     break;
   case 2:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO4; /* First channel */
-    IdxBankB = 0;/* TSC init function */
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
+    IdxBankB = 0;
     break;
   default:
     break;
   }
   HAL_TSC_IOConfig(&htscb, &IoConfigb);
-
-  /*##-2- Discharge the touch-sensing IOs ##################################*/
-  /* Must be done before each acquisition */
   HAL_TSC_IODischarge(&htscb, ENABLE);
-  /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
   HAL_TSC_Start(&htscb);
 
-  /*##-4- Wait for the end of acquisition ##################################*/
-  /*  Before starting a new acquisition, you need to check the current state of
-       the peripheral; if its busy you need to wait for the end of current
-       acquisition before starting a new one. */
   while (HAL_TSC_GetState(&htscb) == HAL_TSC_STATE_BUSY)
   {
-    /* For simplicity reasons, this example is just waiting till the end of the
-       acquisition, but application may perform other tasks while acquisition
-       operation is ongoing. */
+    //FIXME INTERRUPT
   }
 
-  /*##-5- Clear flags ######################################################*/
-  __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE));
+  __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
 
-  /*##-6- Check if the acquisition is correct (no max count) ###############*/
-  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)// && HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED) 
   {
       buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-      buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
+      buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB];
 
-      if (MIN(MIN(buttonAcquisitionValue[0], buttonAcquisitionValue[1]), buttonAcquisitionValue[2]) < -100) {
-       HAL_GPIO_TogglePin(GPIOA, LED_Brightness); 
-
-      } else {
-        HAL_GPIO_WritePin(GPIOA, LED_Brightness,GPIO_PIN_SET); 
-      }
+      if (buttonAcquisitionValue[0] < buttonThr) colBri = 0;
+      else if (buttonAcquisitionValue[1] < buttonThr)  colBri = 1;
+      else;
+      if (buttonAcquisitionValue[2] < buttonThr) powBt ^= 1;
+      else;
   }
 }
 
@@ -820,37 +815,20 @@ void primitive_TSC_slider_task(void) {
     break;
   }
   HAL_TSC_IOConfig(&htscs, &IoConfigs);
-
-  /*##-2- Discharge the touch-sensing IOs ##################################*/
-  /* Must be done before each acquisition */
   HAL_TSC_IODischarge(&htscs, ENABLE);
-
-  /*##-3- Start the acquisition process #####HAL_TSC_GroupGetValue###############################*/
   HAL_TSC_Start(&htscs);
 
-  /*##-4- Wait for the end of acquisition ##################################*/
-  /*  Before starting a new acquisition, you need to check the current state of
-       the peripheral; if its busy you need to wait for the end of current
-       acquisition before starting a new one. */
   while (HAL_TSC_GetState(&htscs) == HAL_TSC_STATE_BUSY)
   {
-    /* For simplicity reasons, this example is just waiting till the end of the
-       acquisition, but application may perform other tasks while acquisition
-       operation is ongoing. */
+  //FIXME ADD INTERRUPT
   }
 
-  /*##-5- Clear flags ######################################################*/
-  __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE));
+  __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
 
-  /*##-6- Check if the acquisition is correct (no max count) ###############*/
-
-
-  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)// && HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
-
-    /*##-7- Store the acquisition value ####################################*/
       sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-      sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS]; // uhTSCOffsetValue[IdxBank] - uhTSCAcquisitionValue[IdxBank];
+      sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
       if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
 
       sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
