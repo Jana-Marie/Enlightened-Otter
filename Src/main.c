@@ -88,6 +88,9 @@ uint8_t IdxBankS = 0;
 uint8_t IdxBankB = 0;
 uint32_t ready = 0;
 uint16_t distance = 0;
+uint16_t disDelta = 0;
+uint16_t briDelta = 0;
+uint16_t oldDistance = 0;
 uint8_t colBri = 0;
 uint8_t powBt = 1;
 
@@ -100,6 +103,7 @@ float MagiekonstanteCycle;  // Ki constant, independent of cycle time
 float iavgCW, iavgWW, errorCW, errorWW; // stores the average current 
 float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
+float colorProportion = 0;
 
 float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
 uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
@@ -152,7 +156,7 @@ int main(void)
 
   while (1)
   {
-    targetCW = distance;
+    //targetCW = distance;
     //targetCW += 2.5f;
     //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
@@ -160,19 +164,33 @@ int main(void)
     if (printCnt == 0 )primitive_TSC_button_task();
 
     if (printCnt++ > 2) { // print only every n cycle
-      set_scope_channel(0, dutyCW * 1000.0f);
+      set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
-      set_scope_channel(2, errorCW);
-      set_scope_channel(3, IdxBankS);
-      set_scope_channel(4, buttonAcquisitionValue[0]);
-      set_scope_channel(5, buttonAcquisitionValue[1]);
-      set_scope_channel(6, buttonAcquisitionValue[2]);
+      set_scope_channel(2, targetWW);
+      set_scope_channel(3, targetCW);
+      set_scope_channel(4, disDelta);
+      set_scope_channel(5, distance-oldDistance);
+      set_scope_channel(6, colorProportion*100.0f);
       printCnt = 0;
       console_scope();
     }
 
-  HAL_GPIO_WritePin(GPIOA, LED_Brightness, colBri);  // clear LED "Brightness"
-  HAL_GPIO_WritePin(GPIOA, LED_Color, !colBri);       // clear LED "Color"
+    if ( distance != 0) {
+      disDelta += distance-oldDistance;
+      if(colBri == 0) {
+        briDelta = disDelta;
+      }
+      if(colBri == 1) {
+      colorProportion = disDelta/287.0f;
+      }
+
+      oldDistance = distance;
+      targetCW = briDelta*colorProportion;
+      targetWW = briDelta*(1.0f-colorProportion);
+    }
+
+  HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
+  HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);       // clear LED "Color"
   HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);       // clear LED "Power"
 
   }
