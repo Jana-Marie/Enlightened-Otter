@@ -49,7 +49,8 @@ extern DMA_HandleTypeDef hdma_i2c1_tx;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart1_tx;
 
-extern TSC_HandleTypeDef htsc;
+extern TSC_HandleTypeDef htscs;
+extern TSC_HandleTypeDef htscb;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */
@@ -291,6 +292,13 @@ void ADC1_2_IRQHandler(void)
 
   /* USER CODE END ADC1_2_IRQn 1 */
 }
+
+void TSCx_EXTI_IRQHandler(void)
+{
+  HAL_TSC_IRQHandler(&htscs);
+  HAL_TSC_IRQHandler(&htscb);
+}
+
 /*
 void EXTI2_TSC_IRQHandler(void)
 {
