@@ -193,7 +193,6 @@ int main(void)
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
     HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);         // clear LED "Power"
-
   }
 }
 
@@ -784,9 +783,8 @@ static void TSC_Init(void)
   htscs.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
   htscs.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
   htscs.Init.MaxCountInterrupt = DISABLE;
-  htscs.Init.ChannelIOs = 0;//TSC_GROUP1_IO2|TSC_GROUP1_IO3|TSC_GROUP1_IO4|TSC_GROUP5_IO2
-  //  |TSC_GROUP5_IO3|TSC_GROUP5_IO4;
-  htscs.Init.SamplingIOs = 0;//TSC_GROUP1_IO1|TSC_GROUP5_IO1;
+  htscs.Init.ChannelIOs = 0;
+  htscs.Init.SamplingIOs = 0;
   HAL_TSC_Init(&htscs);
 
   htscb.Instance = TSC;
@@ -802,9 +800,8 @@ static void TSC_Init(void)
   htscb.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
   htscb.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
   htscb.Init.MaxCountInterrupt = DISABLE;
-  htscb.Init.ChannelIOs = 0;//TSC_GROUP1_IO2|TSC_GROUP1_IO3|TSC_GROUP1_IO4|TSC_GROUP5_IO2
-  //  |TSC_GROUP5_IO3|TSC_GROUP5_IO4;
-  htscb.Init.SamplingIOs = 0;//TSC_GROUP1_IO1|TSC_GROUP5_IO1;
+  htscb.Init.ChannelIOs = 0;
+  htscb.Init.SamplingIOs = 0;
   HAL_TSC_Init(&htscb);
 
   IoConfigs.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
