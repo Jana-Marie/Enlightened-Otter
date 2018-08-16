@@ -52,6 +52,8 @@ extern DMA_HandleTypeDef hdma_usart1_tx;
 extern TSC_HandleTypeDef htscs;
 extern TSC_HandleTypeDef htscb;
 
+extern void boost_reg(void);
+
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */
 /******************************************************************************/
