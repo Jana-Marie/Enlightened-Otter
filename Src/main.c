@@ -86,6 +86,7 @@ __IO int32_t buttonOffsetValue[3] = {2120, 2433, 2058}; // Todo - make some kind
 
 uint8_t IdxBankS = 0;       // IO indexer for the slider
 uint8_t IdxBankB = 0;       // IO indexer for the buttons
+uint8_t IdxBank = 0;
 uint16_t sliderPos = 0;     // current slider position
 uint8_t sliderIsTouched = 0;// 1 if slider is touched
 uint16_t disDelta = 0;      // delta slider position
@@ -164,10 +165,10 @@ int main(void)
     //targetCW += 2.5f;
     //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
-    if (printCnt == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
+    //if (printCnt == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
+    //if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
 
-    if (printCnt++ > 3) { // print only every n cycle
+    if (printCnt++ > 50) { // print only every n cycle
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
@@ -223,83 +224,50 @@ void boost_reg() {
 }
 
 void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)
-{  
+{
   HAL_GPIO_TogglePin(GPIOA, LED_Color);
 
-  /*
-  HAL_TSC_IODischarge(&TscHandle, ENABLE);
 
-  if (HAL_TSC_GroupGetStatus(&TscHandle, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
+  HAL_TSC_IODischarge(&htscb, ENABLE);
+  HAL_TSC_IODischarge(&htscs, ENABLE);
+
+  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
-    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&TscHandle, TSC_GROUP1_IDX);  
-    if ((uhTSCAcquisitionValue[0] > 1000) && (uhTSCAcquisitionValue[0] < TSCx_TS1_MAXTHRESHOLD)) // Channel 1
-    {
-      BSP_LED_On(LED4);
-    }
-    else
-    {
-      BSP_LED_Off(LED4);
-    }
+    sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
+  }
+  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  {
+    buttonAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    buttonAcquisitionValue[IdxBank] = buttonAcquisitionValue[IdxBank] - buttonOffsetValue[IdxBank];
   }
 
-  if (HAL_TSC_GroupGetStatus(&TscHandle, TSC_GROUP2_IDX) == TSC_GROUP_COMPLETED)
-  {
-    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&TscHandle, TSC_GROUP2_IDX);  
-    if ((uhTSCAcquisitionValue[1] > 1000) && (uhTSCAcquisitionValue[1] < TSCx_TS2_MAXTHRESHOLD)) // Channel 2
-    {
-      BSP_LED_On(LED6);
-    }
-    else
-    {
-      BSP_LED_Off(LED6);
-    }
-  }
-
-  if (HAL_TSC_GroupGetStatus(&TscHandle, TSC_GROUP3_IDX) == TSC_GROUP_COMPLETED)
-  {
-    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&TscHandle, TSC_GROUP3_IDX);  
-    if ((uhTSCAcquisitionValue[2] > 1000) && (uhTSCAcquisitionValue[2] < TSCx_TS3_MAXTHRESHOLD)) // Channel 3
-    {
-      BSP_LED_On(LED5);
-    }
-    else
-    {
-      BSP_LED_Off(LED5);
-    }
-  }
-  */
-  /*
   switch (IdxBank)
   {
-    case 0:
-      IoConfig.ChannelIOs = TSC_GROUP2_IO3;
-      IdxBank = 1;
-      break;
-    case 1:
-      IoConfig.ChannelIOs = TSC_GROUP3_IO2; 
-      IdxBank = 2;
-      break;
-    case 2:
-      IoConfig.ChannelIOs = TSC_GROUP1_IO3; 
-      IdxBank = 0;
-      break;
-    default:
-      break;
+  case 0:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
+    IdxBankB = 1;
+    break;
+  case 1:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
+    IdxBankB = 2;
+    break;
+  case 2:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
+    IdxBankB = 0;
+    break;
+  default:
+    break;
   }
-  
-  if (HAL_TSC_IOConfig(&TscHandle, &IoConfig) != HAL_OK)
-  {
-  
-    Error_Handler();
-  }
- 
- 
-  if (HAL_TSC_Start_IT(&TscHandle) != HAL_OK)
-  {
- 
-    Error_Handler();
-  }
-  */
+
+  HAL_TSC_IOConfig(&htscb, &IoConfigb);
+  HAL_TSC_IOConfig(&htscs, &IoConfigs);
+
+  HAL_TSC_Start_IT(&htscb);
+  HAL_TSC_Start_IT(&htscs);
 }
 
 
