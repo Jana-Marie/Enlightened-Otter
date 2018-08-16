@@ -234,8 +234,8 @@ void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)
 
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
-    sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-    sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
+    sliderAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] - sliderOffsetValue[IdxBank];
   }
   if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
@@ -866,9 +866,6 @@ static void TSC_Init(void)
   IoConfigb.SamplingIOs = TSC_GROUP5_IO1;
   IoConfigb.ShieldIOs   = 0;
   HAL_TSC_IOConfig(&htscb, &IoConfigb);
-
-  //HAL_NVIC_SetPriority(EXTI2_TSC_IRQn, 2, 0); // NOT TESTED
-  //HAL_NVIC_EnableIRQ(EXTI2_TSC_IRQn); // NOT TESTED
 }
 
 static void USART1_UART_Init(void)
@@ -939,8 +936,6 @@ static void start_HRTIM1(void) {
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
 }
-
-
 
 void _Error_Handler(char * file, int line)
 {
