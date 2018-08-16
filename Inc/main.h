@@ -54,6 +54,9 @@
 #define LED3_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
+/* Definition for TSCx's NVIC */
+#define TSCx_EXTI_IRQn                              TSC_IRQn
+#define TSCx_EXTI_IRQHandler                        TSC_IRQHandler
 
 /* USER CODE END Private defines */
 
