@@ -145,6 +145,9 @@ int main(void)
   init_RT();      // mainly sets ILIM
   start_HRTIM1(); // start HRTIM and enable outputs
 
+  HAL_TSC_Start_IT(&htscb);
+  HAL_TSC_Start_IT(&htscs);
+
   HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);  // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED_Color, 0);       // clear LED "Color"
   HAL_GPIO_WritePin(GPIOA, LED_Power, 1);       // clear LED "Power"
@@ -218,6 +221,87 @@ void boost_reg() {
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
 }
+
+void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)
+{  
+  HAL_GPIO_TogglePin(GPIOA, LED_Color);
+
+  /*
+  HAL_TSC_IODischarge(&TscHandle, ENABLE);
+
+  if (HAL_TSC_GroupGetStatus(&TscHandle, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
+  {
+    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&TscHandle, TSC_GROUP1_IDX);  
+    if ((uhTSCAcquisitionValue[0] > 1000) && (uhTSCAcquisitionValue[0] < TSCx_TS1_MAXTHRESHOLD)) // Channel 1
+    {
+      BSP_LED_On(LED4);
+    }
+    else
+    {
+      BSP_LED_Off(LED4);
+    }
+  }
+
+  if (HAL_TSC_GroupGetStatus(&TscHandle, TSC_GROUP2_IDX) == TSC_GROUP_COMPLETED)
+  {
+    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&TscHandle, TSC_GROUP2_IDX);  
+    if ((uhTSCAcquisitionValue[1] > 1000) && (uhTSCAcquisitionValue[1] < TSCx_TS2_MAXTHRESHOLD)) // Channel 2
+    {
+      BSP_LED_On(LED6);
+    }
+    else
+    {
+      BSP_LED_Off(LED6);
+    }
+  }
+
+  if (HAL_TSC_GroupGetStatus(&TscHandle, TSC_GROUP3_IDX) == TSC_GROUP_COMPLETED)
+  {
+    uhTSCAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&TscHandle, TSC_GROUP3_IDX);  
+    if ((uhTSCAcquisitionValue[2] > 1000) && (uhTSCAcquisitionValue[2] < TSCx_TS3_MAXTHRESHOLD)) // Channel 3
+    {
+      BSP_LED_On(LED5);
+    }
+    else
+    {
+      BSP_LED_Off(LED5);
+    }
+  }
+  */
+  /*
+  switch (IdxBank)
+  {
+    case 0:
+      IoConfig.ChannelIOs = TSC_GROUP2_IO3;
+      IdxBank = 1;
+      break;
+    case 1:
+      IoConfig.ChannelIOs = TSC_GROUP3_IO2; 
+      IdxBank = 2;
+      break;
+    case 2:
+      IoConfig.ChannelIOs = TSC_GROUP1_IO3; 
+      IdxBank = 0;
+      break;
+    default:
+      break;
+  }
+  
+  if (HAL_TSC_IOConfig(&TscHandle, &IoConfig) != HAL_OK)
+  {
+  
+    Error_Handler();
+  }
+ 
+ 
+  if (HAL_TSC_Start_IT(&TscHandle) != HAL_OK)
+  {
+ 
+    Error_Handler();
+  }
+  */
+}
+
 
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton) {
 
