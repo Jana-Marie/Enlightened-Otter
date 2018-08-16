@@ -17,7 +17,9 @@
  */
 
 $fn=200;
+
 rotate([180,0,0])
+translate([0,0,-20])
 insert(31,35,21.6,0,28);
 //translate([0,0,4])
 //nut(42);
@@ -43,7 +45,7 @@ module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
             cylinder(d=lowerDiameter,h=height-1.6);
         }union(){
             translate([0,0,-2])
-            thread(25,14,2.2,3.8,1.6); // Club Mate
+            thread(25.4,16,2.2,3.8,1.0); // Club Mate
             translate([0,0,-lowerHeight-0.01])
             cylinder(d=outerBottleDiameter,h=lowerHeight+0.01);
             translate([0,0,10])
