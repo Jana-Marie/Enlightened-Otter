@@ -17,7 +17,8 @@
  */
 
 $fn=200;
-insert(31,35,21.5,3,28);
+rotate([180,0,0])
+insert(31,35,21.6,0,28);
 //translate([0,0,4])
 //nut(42);
 
@@ -28,7 +29,7 @@ module nut(diameter){
             translate([0,0,2])
             cylinder(d=diameter,h=14-4,$fn=6);
         }union(){
-            thread(31,14,2,3.8,1.3); // inner
+            thread(31,14,2.4,3.8,1.8); // inner
         }
     }
 }
@@ -36,15 +37,13 @@ module nut(diameter){
 module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
     difference(){
         union(){
-            cylinder(d=diameter,h=1.6);
-            cylinder(d=diameter-(1.3*2),h=height);
-            translate([0,0,-lowerHeight])
-            cylinder(d=lowerDiameter,h=lowerHeight);
-            translate([0,0,1.6])
-            thread(diameter-(1.3*2),12,2,3.8,1.3); // inner
+            translate([0,0,0])
+            cylinder(d=diameter,h=height);
+            translate([0,0,-lowerHeight+1.6])
+            cylinder(d=lowerDiameter,h=height-1.6);
         }union(){
             translate([0,0,-2])
-            thread(25,14,2,3.8,1.3); // Club Mate
+            thread(25,14,2.2,3.8,1.6); // Club Mate
             translate([0,0,-lowerHeight-0.01])
             cylinder(d=outerBottleDiameter,h=lowerHeight+0.01);
             translate([0,0,10])
