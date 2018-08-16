@@ -456,31 +456,31 @@ void SystemClock_Config(void)
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
   RCC_PeriphCLKInitTypeDef PeriphClkInit;
 
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSE;
-  RCC_OscInitStruct.HSEState = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
-  RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.HSEState            = RCC_HSE_ON;
+  RCC_OscInitStruct.HSEPredivValue      = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.HSIState            = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = 16;
-  RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
-  RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;
+  RCC_OscInitStruct.PLL.PLLState        = RCC_PLL_ON;
+  RCC_OscInitStruct.PLL.PLLSource       = RCC_PLLSOURCE_HSE;
+  RCC_OscInitStruct.PLL.PLLMUL          = RCC_PLL_MUL9;
   HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
-  RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-                                | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
-  RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
-  RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.ClockType       = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
+                                    | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+  RCC_ClkInitStruct.SYSCLKSource    = RCC_SYSCLKSOURCE_PLLCLK;
+  RCC_ClkInitStruct.AHBCLKDivider   = RCC_SYSCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider  = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider  = RCC_HCLK_DIV1;
 
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 
-  PeriphClkInit.PeriphClockSelection = RCC_PERIPHCLK_HRTIM1 | RCC_PERIPHCLK_USART1
-                                       | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_ADC12;
-  PeriphClkInit.Usart1ClockSelection = RCC_USART1CLKSOURCE_PCLK1;
-  PeriphClkInit.Adc12ClockSelection = RCC_ADC12PLLCLK_DIV1;
-  PeriphClkInit.I2c1ClockSelection = RCC_I2C1CLKSOURCE_HSI;
-  PeriphClkInit.Hrtim1ClockSelection = RCC_HRTIM1CLK_PLLCLK;
+  PeriphClkInit.PeriphClockSelection  = RCC_PERIPHCLK_HRTIM1 | RCC_PERIPHCLK_USART1
+                                      | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_ADC12;
+  PeriphClkInit.Usart1ClockSelection  = RCC_USART1CLKSOURCE_PCLK1;
+  PeriphClkInit.Adc12ClockSelection   = RCC_ADC12PLLCLK_DIV1;
+  PeriphClkInit.I2c1ClockSelection    = RCC_I2C1CLKSOURCE_HSI;
+  PeriphClkInit.Hrtim1ClockSelection  = RCC_HRTIM1CLK_PLLCLK;
   HAL_RCCEx_PeriphCLKConfig(&PeriphClkInit);
 
   HAL_SYSTICK_Config(HAL_RCC_GetHCLKFreq() / 1000);
@@ -498,42 +498,42 @@ static void ADC1_Init(void)
   hadc1.Instance = ADC1;
 
   /* std ADC config */
-  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
-  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.ScanConvMode = ENABLE;
-  hadc1.Init.ContinuousConvMode = DISABLE;
-  hadc1.Init.DiscontinuousConvMode = DISABLE;
-  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 1;
-  hadc1.Init.NbrOfDiscConversion = 1;
-  hadc1.Init.DMAContinuousRequests = DISABLE;
-  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  hadc1.Init.LowPowerAutoWait = DISABLE;
-  hadc1.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+  hadc1.Init.ClockPrescaler         = ADC_CLOCK_ASYNC_DIV1;
+  hadc1.Init.Resolution             = ADC_RESOLUTION_12B;
+  hadc1.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.ScanConvMode           = ENABLE;
+  hadc1.Init.ContinuousConvMode     = DISABLE;
+  hadc1.Init.DiscontinuousConvMode  = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge   = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv       = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion        = 1;
+  hadc1.Init.NbrOfDiscConversion    = 1;
+  hadc1.Init.DMAContinuousRequests  = DISABLE;
+  hadc1.Init.EOCSelection           = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.LowPowerAutoWait       = DISABLE;
+  hadc1.Init.Overrun                = ADC_OVR_DATA_OVERWRITTEN;
   HAL_ADC_Init(&hadc1);
 
   /* Disable DMA mode */
-  multimode.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
-  multimode.Mode = ADC_MODE_INDEPENDENT;
-  multimode.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
+  multimode.DMAAccessMode     = ADC_DMAACCESSMODE_DISABLED;
+  multimode.Mode              = ADC_MODE_INDEPENDENT;
+  multimode.TwoSamplingDelay  = ADC_TWOSAMPLINGDELAY_1CYCLE;
   HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
 
   /* Discontinuous injected mode: 1st injected conversion for VIN on Ch12 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
-  InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
-  InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
-  InjectionConfig.InjectedOffset = 0;
-  InjectionConfig.InjectedNbrOfConversion = 1;
+  InjectionConfig.InjectedChannel               = ADC_CHANNEL_12;
+  InjectionConfig.InjectedRank                  = ADC_INJECTED_RANK_1;
+  InjectionConfig.InjectedSamplingTime          = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedSingleDiff            = ADC_SINGLE_ENDED;
+  InjectionConfig.InjectedOffsetNumber          = ADC_OFFSET_NONE;
+  InjectionConfig.InjectedOffset                = 0;
+  InjectionConfig.InjectedNbrOfConversion       = 1;
   InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
-  InjectionConfig.AutoInjectedConv = DISABLE;
-  InjectionConfig.QueueInjectedContext = DISABLE;
-  InjectionConfig.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
-  InjectionConfig.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
+  InjectionConfig.AutoInjectedConv              = DISABLE;
+  InjectionConfig.QueueInjectedContext          = DISABLE;
+  InjectionConfig.ExternalTrigInjecConv         = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
+  InjectionConfig.ExternalTrigInjecConvEdge     = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
   HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
 
   /* Run the ADC calibration in single-ended mode */
@@ -555,60 +555,60 @@ static void ADC2_Init(void)
   hadc2.Instance = ADC2;
 
   /* std ADC config */
-  hadc2.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
-  hadc2.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc2.Init.ScanConvMode = ENABLE;
-  hadc2.Init.ContinuousConvMode = DISABLE;
-  hadc2.Init.DiscontinuousConvMode = DISABLE;
-  hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc2.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc2.Init.NbrOfConversion = 1;
-  hadc2.Init.NbrOfDiscConversion = 1;
-  hadc2.Init.DMAContinuousRequests = DISABLE;
-  hadc2.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  hadc2.Init.LowPowerAutoWait = DISABLE;
-  hadc2.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+  hadc2.Init.ClockPrescaler         = ADC_CLOCK_ASYNC_DIV1;
+  hadc2.Init.Resolution             = ADC_RESOLUTION_12B;
+  hadc2.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
+  hadc2.Init.ScanConvMode           = ENABLE;
+  hadc2.Init.ContinuousConvMode     = DISABLE;
+  hadc2.Init.DiscontinuousConvMode  = DISABLE;
+  hadc2.Init.ExternalTrigConvEdge   = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc2.Init.ExternalTrigConv       = ADC_SOFTWARE_START;
+  hadc2.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
+  hadc2.Init.NbrOfConversion        = 1;
+  hadc2.Init.NbrOfDiscConversion    = 1;
+  hadc2.Init.DMAContinuousRequests  = DISABLE;
+  hadc2.Init.EOCSelection           = ADC_EOC_SINGLE_CONV;
+  hadc2.Init.LowPowerAutoWait       = DISABLE;
+  hadc2.Init.Overrun                = ADC_OVR_DATA_OVERWRITTEN;
   HAL_ADC_Init(&hadc2);
 
   /* Disable DMA mode */
-  MultiModeConfig.DMAAccessMode = ADC_DMAACCESSMODE_DISABLED;
-  MultiModeConfig.Mode = ADC_MODE_INDEPENDENT;
-  MultiModeConfig.TwoSamplingDelay = ADC_TWOSAMPLINGDELAY_1CYCLE;
+  MultiModeConfig.DMAAccessMode     = ADC_DMAACCESSMODE_DISABLED;
+  MultiModeConfig.Mode              = ADC_MODE_INDEPENDENT;
+  MultiModeConfig.TwoSamplingDelay  = ADC_TWOSAMPLINGDELAY_1CYCLE;
   HAL_ADCEx_MultiModeConfigChannel(&hadc2, &MultiModeConfig);
 
   /* Discontinuous injected mode: 1st injected conversion for NTC on Ch12 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_12;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
-  InjectionConfig.InjectedSingleDiff = ADC_SINGLE_ENDED;
-  InjectionConfig.InjectedOffsetNumber = ADC_OFFSET_NONE;
-  InjectionConfig.InjectedOffset = 0;
-  InjectionConfig.InjectedNbrOfConversion = 4;
+  InjectionConfig.InjectedChannel               = ADC_CHANNEL_12;
+  InjectionConfig.InjectedRank                  = ADC_INJECTED_RANK_1;
+  InjectionConfig.InjectedSamplingTime          = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedSingleDiff            = ADC_SINGLE_ENDED;
+  InjectionConfig.InjectedOffsetNumber          = ADC_OFFSET_NONE;
+  InjectionConfig.InjectedOffset                = 0;
+  InjectionConfig.InjectedNbrOfConversion       = 4;
   InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
-  InjectionConfig.AutoInjectedConv = DISABLE;
-  InjectionConfig.QueueInjectedContext = DISABLE;
-  InjectionConfig.ExternalTrigInjecConv = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
-  InjectionConfig.ExternalTrigInjecConvEdge = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
+  InjectionConfig.AutoInjectedConv              = DISABLE;
+  InjectionConfig.QueueInjectedContext          = DISABLE;
+  InjectionConfig.ExternalTrigInjecConv         = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
+  InjectionConfig.ExternalTrigInjecConvEdge     = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   /* Configure the 2nd injected conversion for ICW on Ch1 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_1;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_2;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedChannel       = ADC_CHANNEL_1;
+  InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_2;
+  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   /* Configure the 2nd injected conversion for IWW on Ch2 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_2;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_3;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedChannel       = ADC_CHANNEL_2;
+  InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_3;
+  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   /* Configure the 2nd injected conversion for VBAT on Ch3 */
-  InjectionConfig.InjectedChannel = ADC_CHANNEL_3;
-  InjectionConfig.InjectedRank = ADC_INJECTED_RANK_4;
-  InjectionConfig.InjectedSamplingTime = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedChannel       = ADC_CHANNEL_3;
+  InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_4;
+  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   /* Run the ADC calibration in single-ended mode */
@@ -627,12 +627,12 @@ static void COMP2_Init(void)
   hcomp2.Instance = COMP2;
 
   /* CMP2 config, input ICW and DAC1 channel 2, output HRTIM fault line 1 */
-  hcomp2.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
+  hcomp2.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp2.Init.Output = HRTIM_FAULT_1;
-  hcomp2.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
-  hcomp2.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
-  hcomp2.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
+  hcomp2.Init.Output            = HRTIM_FAULT_1;
+  hcomp2.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
+  hcomp2.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
+  hcomp2.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp2);
 }
 
@@ -642,12 +642,12 @@ static void COMP4_Init(void)
   hcomp4.Instance = COMP4;
 
   /* CMP4 config, input IWW and DAC1 channel 2, output HRTIM fault line 1 */
-  hcomp4.Init.InvertingInput = COMP_INVERTINGINPUT_DAC1_CH2;
+  hcomp4.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp4.Init.Output = HRTIM_FAULT_1;
-  hcomp4.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
-  hcomp4.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
-  hcomp4.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
+  hcomp4.Init.Output            = HRTIM_FAULT_1;
+  hcomp4.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
+  hcomp4.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
+  hcomp4.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp4);
 }
 
@@ -657,12 +657,12 @@ static void COMP6_Init(void)
   hcomp6.Instance = COMP6;
 
   /* CMP6 config, input VREG and DAC2 channel 1, output HRTIM fault line 1 */
-  hcomp6.Init.InvertingInput = COMP_INVERTINGINPUT_DAC2_CH1;
+  hcomp6.Init.InvertingInput  = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp6.Init.Output = HRTIM_FAULT_1;
-  hcomp6.Init.OutputPol = COMP_OUTPUTPOL_INVERTED;
-  hcomp6.Init.BlankingSrce = COMP_BLANKINGSRCE_NONE;
-  hcomp6.Init.TriggerMode = COMP_TRIGGERMODE_NONE;
+  hcomp6.Init.Output            = HRTIM_FAULT_1;
+  hcomp6.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
+  hcomp6.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
+  hcomp6.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp6);
 }
 
@@ -676,8 +676,8 @@ static void DAC1_Init(void)
   HAL_DAC_Init(&hdac1);
 
   /* DAC not routed to output */
-  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
-  sConfig.DAC_OutputSwitch = DAC_OUTPUTSWITCH_DISABLE;
+  sConfig.DAC_Trigger       = DAC_TRIGGER_NONE;
+  sConfig.DAC_OutputSwitch  = DAC_OUTPUTSWITCH_DISABLE;
   HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2);
 }
 
@@ -691,8 +691,8 @@ static void DAC2_Init(void)
   HAL_DAC_Init(&hdac2);
 
   /* DAC not routed to output */
-  sConfig.DAC_Trigger = DAC_TRIGGER_NONE;
-  sConfig.DAC_OutputSwitch = DAC_OUTPUTSWITCH_DISABLE;
+  sConfig.DAC_Trigger       = DAC_TRIGGER_NONE;
+  sConfig.DAC_OutputSwitch  = DAC_OUTPUTSWITCH_DISABLE;
   HAL_DAC_ConfigChannel(&hdac2, &sConfig, DAC_CHANNEL_1);
 }
 
@@ -709,65 +709,65 @@ static void HRTIM1_Init(void)
   hhrtim1.Instance = HRTIM1;
 
   /* HRTIM initialised with no Interrupt and synchronisation */
-  hhrtim1.Init.HRTIMInterruptResquests = HRTIM_IT_NONE;
-  hhrtim1.Init.SyncOptions = HRTIM_SYNCOPTION_NONE;
+  hhrtim1.Init.HRTIMInterruptResquests  = HRTIM_IT_NONE;
+  hhrtim1.Init.SyncOptions              = HRTIM_SYNCOPTION_NONE;
   HAL_HRTIM_Init(&hhrtim1);
 
   HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1);
 
   /* Select internal fault source (FLT_1) */
-  pFaultCfg.Source = HRTIM_FAULTSOURCE_INTERNAL;
-  pFaultCfg.Polarity = HRTIM_FAULTPOLARITY_LOW;
-  pFaultCfg.Filter = HRTIM_FAULTFILTER_NONE;
-  pFaultCfg.Lock = HRTIM_FAULTLOCK_READWRITE;
+  pFaultCfg.Source    = HRTIM_FAULTSOURCE_INTERNAL;
+  pFaultCfg.Polarity  = HRTIM_FAULTPOLARITY_LOW;
+  pFaultCfg.Filter    = HRTIM_FAULTFILTER_NONE;
+  pFaultCfg.Lock      = HRTIM_FAULTLOCK_READWRITE;
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
 
   /* Set the frequency and period */
-  pTimeBaseCfg.Period = HRTIM_PERIOD;
-  pTimeBaseCfg.RepetitionCounter = REG_CNT;
-  pTimeBaseCfg.PrescalerRatio = HRTIM_PRESCALERRATIO_MUL32;
-  pTimeBaseCfg.Mode = HRTIM_MODE_CONTINUOUS;
+  pTimeBaseCfg.Period             = HRTIM_PERIOD;
+  pTimeBaseCfg.RepetitionCounter  = REG_CNT;
+  pTimeBaseCfg.PrescalerRatio     = HRTIM_PRESCALERRATIO_MUL32;
+  pTimeBaseCfg.Mode               = HRTIM_MODE_CONTINUOUS;
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg);
 
   /* main timer config, mostly std. with no DMA */
-  pTimerCfg.DMARequests = HRTIM_MASTER_DMA_NONE;
-  pTimerCfg.DMASrcAddress = 0x0000;
-  pTimerCfg.DMADstAddress = 0x0000;
-  pTimerCfg.DMASize = 0x0;
-  pTimerCfg.HalfModeEnable = HRTIM_HALFMODE_DISABLED;
-  pTimerCfg.StartOnSync = HRTIM_SYNCSTART_DISABLED;
-  pTimerCfg.ResetOnSync = HRTIM_SYNCRESET_DISABLED;
-  pTimerCfg.DACSynchro = HRTIM_DACSYNC_NONE;
-  pTimerCfg.PreloadEnable = HRTIM_PRELOAD_ENABLED;
-  pTimerCfg.UpdateGating = HRTIM_UPDATEGATING_INDEPENDENT;
-  pTimerCfg.BurstMode = HRTIM_TIMERBURSTMODE_MAINTAINCLOCK;
-  pTimerCfg.RepetitionUpdate = HRTIM_UPDATEONREPETITION_ENABLED;
-  pTimerCfg.ResetUpdate = HRTIM_TIMUPDATEONRESET_DISABLED;
-  pTimerCfg.InterruptRequests = HRTIM_TIM_IT_REP;
-  pTimerCfg.PushPull = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable = HRTIM_TIMFAULTENABLE_FAULT1;
-  pTimerCfg.FaultLock = HRTIM_TIMFAULTLOCK_READWRITE;
-  pTimerCfg.DeadTimeInsertion = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
+  pTimerCfg.DMARequests           = HRTIM_MASTER_DMA_NONE;
+  pTimerCfg.DMASrcAddress         = 0x0000;
+  pTimerCfg.DMADstAddress         = 0x0000;
+  pTimerCfg.DMASize               = 0x0;
+  pTimerCfg.HalfModeEnable        = HRTIM_HALFMODE_DISABLED;
+  pTimerCfg.StartOnSync           = HRTIM_SYNCSTART_DISABLED;
+  pTimerCfg.ResetOnSync           = HRTIM_SYNCRESET_DISABLED;
+  pTimerCfg.DACSynchro            = HRTIM_DACSYNC_NONE;
+  pTimerCfg.PreloadEnable         = HRTIM_PRELOAD_ENABLED;
+  pTimerCfg.UpdateGating          = HRTIM_UPDATEGATING_INDEPENDENT;
+  pTimerCfg.BurstMode             = HRTIM_TIMERBURSTMODE_MAINTAINCLOCK;
+  pTimerCfg.RepetitionUpdate      = HRTIM_UPDATEONREPETITION_ENABLED;
+  pTimerCfg.ResetUpdate           = HRTIM_TIMUPDATEONRESET_DISABLED;
+  pTimerCfg.InterruptRequests     = HRTIM_TIM_IT_REP;
+  pTimerCfg.PushPull              = HRTIM_TIMPUSHPULLMODE_DISABLED;
+  pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1;
+  pTimerCfg.FaultLock             = HRTIM_TIMFAULTLOCK_READWRITE;
+  pTimerCfg.DeadTimeInsertion     = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
   pTimerCfg.DelayedProtectionMode |= HRTIM_TIMER_D_E_DELAYEDPROTECTION_DISABLED;
-  pTimerCfg.UpdateTrigger = HRTIM_TIMUPDATETRIGGER_NONE;
-  pTimerCfg.ResetTrigger = HRTIM_TIMRESETTRIGGER_NONE;
+  pTimerCfg.UpdateTrigger         = HRTIM_TIMUPDATETRIGGER_NONE;
+  pTimerCfg.ResetTrigger          = HRTIM_TIMRESETTRIGGER_NONE;
 
   HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimerCfg);
 
   HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimerCfg);
 
   /* set output and fault behavioral for HRTIM Timer C & D */
-  pOutputCfg.Polarity = HRTIM_OUTPUTPOLARITY_HIGH;
-  pOutputCfg.SetSource = HRTIM_OUTPUTSET_TIMPER;
-  pOutputCfg.ResetSource = HRTIM_OUTPUTRESET_TIMCMP1;
-  pOutputCfg.IdleMode = HRTIM_OUTPUTIDLEMODE_NONE;
-  pOutputCfg.IdleLevel = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
-  pOutputCfg.FaultLevel = HRTIM_OUTPUTFAULTLEVEL_NONE;
-  pOutputCfg.ChopperModeEnable = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
-  pOutputCfg.BurstModeEntryDelayed = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
+  pOutputCfg.Polarity               = HRTIM_OUTPUTPOLARITY_HIGH;
+  pOutputCfg.SetSource              = HRTIM_OUTPUTSET_TIMPER;
+  pOutputCfg.ResetSource            = HRTIM_OUTPUTRESET_TIMCMP1;
+  pOutputCfg.IdleMode               = HRTIM_OUTPUTIDLEMODE_NONE;
+  pOutputCfg.IdleLevel              = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
+  pOutputCfg.FaultLevel             = HRTIM_OUTPUTFAULTLEVEL_NONE;
+  pOutputCfg.ChopperModeEnable      = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
+  pOutputCfg.BurstModeEntryDelayed  = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
 
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC1, &pOutputCfg);
 
@@ -778,12 +778,12 @@ static void HRTIM1_Init(void)
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg);
 
   /* settings for the injected ADC */
-  compare_config.AutoDelayedMode = HRTIM_AUTODELAYEDMODE_REGULAR;
+  compare_config.AutoDelayedMode    = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
-  compare_config.CompareValue = HRTIM_PERIOD / 10 * 8.5;
+  compare_config.CompareValue       = HRTIM_PERIOD / 10 * 8.5;
   HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_2, &compare_config);
 
-  adc_trigger_config.Trigger = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
+  adc_trigger_config.Trigger      = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
   adc_trigger_config.UpdateSource = HRTIM_ADCTRIGGERUPDATE_TIMER_C;
   HAL_HRTIM_ADCTriggerConfig(&hhrtim1, HRTIM_ADCTRIGGER_2, &adc_trigger_config);
 
@@ -804,14 +804,14 @@ static void I2C1_Init(void)
   hi2c1.Instance = I2C1;
 
   /* I2C Master config */
-  hi2c1.Init.Timing = 0x2000090E;
-  hi2c1.Init.OwnAddress1 = 0;
-  hi2c1.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-  hi2c1.Init.DualAddressMode = I2C_DUALADDRESS_DISABLE;
-  hi2c1.Init.OwnAddress2 = 0;
+  hi2c1.Init.Timing           = 0x2000090E;
+  hi2c1.Init.OwnAddress1      = 0;
+  hi2c1.Init.AddressingMode   = I2C_ADDRESSINGMODE_7BIT;
+  hi2c1.Init.DualAddressMode  = I2C_DUALADDRESS_DISABLE;
+  hi2c1.Init.OwnAddress2      = 0;
   hi2c1.Init.OwnAddress2Masks = I2C_OA2_NOMASK;
-  hi2c1.Init.GeneralCallMode = I2C_GENERALCALL_DISABLE;
-  hi2c1.Init.NoStretchMode = I2C_NOSTRETCH_DISABLE;
+  hi2c1.Init.GeneralCallMode  = I2C_GENERALCALL_DISABLE;
+  hi2c1.Init.NoStretchMode    = I2C_NOSTRETCH_DISABLE;
   HAL_I2C_Init(&hi2c1);
 
   HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE);
@@ -825,36 +825,36 @@ static void TSC_Init(void)
 
   htscs.Instance = TSC;
 
-  htscs.Init.CTPulseHighLength = TSC_CTPH_1CYCLE;
-  htscs.Init.CTPulseLowLength = TSC_CTPL_1CYCLE;
-  htscs.Init.SpreadSpectrum = DISABLE;
-  htscs.Init.SpreadSpectrumDeviation = 1;
-  htscs.Init.SpreadSpectrumPrescaler = TSC_SS_PRESC_DIV1;
-  htscs.Init.PulseGeneratorPrescaler = TSC_PG_PRESC_DIV64;
-  htscs.Init.MaxCountValue = TSC_MCV_8191;
-  htscs.Init.IODefaultMode = TSC_IODEF_OUT_PP_LOW;
-  htscs.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
-  htscs.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
-  htscs.Init.MaxCountInterrupt = DISABLE;
-  htscs.Init.ChannelIOs = 0;
-  htscs.Init.SamplingIOs = 0;
+  htscs.Init.CTPulseHighLength        = TSC_CTPH_1CYCLE;
+  htscs.Init.CTPulseLowLength         = TSC_CTPL_1CYCLE;
+  htscs.Init.SpreadSpectrum           = DISABLE;
+  htscs.Init.SpreadSpectrumDeviation  = 1;
+  htscs.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV1;
+  htscs.Init.PulseGeneratorPrescaler  = TSC_PG_PRESC_DIV64;
+  htscs.Init.MaxCountValue            = TSC_MCV_8191;
+  htscs.Init.IODefaultMode            = TSC_IODEF_OUT_PP_LOW;
+  htscs.Init.SynchroPinPolarity       = TSC_SYNC_POLARITY_FALLING;
+  htscs.Init.AcquisitionMode          = TSC_ACQ_MODE_NORMAL;
+  htscs.Init.MaxCountInterrupt        = DISABLE;
+  htscs.Init.ChannelIOs               = 0;
+  htscs.Init.SamplingIOs              = 0;
   HAL_TSC_Init(&htscs);
 
   htscb.Instance = TSC;
 
-  htscb.Init.CTPulseHighLength = TSC_CTPH_1CYCLE;
-  htscb.Init.CTPulseLowLength = TSC_CTPL_1CYCLE;
-  htscb.Init.SpreadSpectrum = DISABLE;
-  htscb.Init.SpreadSpectrumDeviation = 1;
-  htscb.Init.SpreadSpectrumPrescaler = TSC_SS_PRESC_DIV1;
-  htscb.Init.PulseGeneratorPrescaler = TSC_PG_PRESC_DIV64;
-  htscb.Init.MaxCountValue = TSC_MCV_8191;
-  htscb.Init.IODefaultMode = TSC_IODEF_OUT_PP_LOW;
-  htscb.Init.SynchroPinPolarity = TSC_SYNC_POLARITY_FALLING;
-  htscb.Init.AcquisitionMode = TSC_ACQ_MODE_NORMAL;
-  htscb.Init.MaxCountInterrupt = DISABLE;
-  htscb.Init.ChannelIOs = 0;
-  htscb.Init.SamplingIOs = 0;
+  htscb.Init.CTPulseHighLength        = TSC_CTPH_1CYCLE;
+  htscb.Init.CTPulseLowLength         = TSC_CTPL_1CYCLE;
+  htscb.Init.SpreadSpectrum           = DISABLE;
+  htscb.Init.SpreadSpectrumDeviation  = 1;
+  htscb.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV1;
+  htscb.Init.PulseGeneratorPrescaler  = TSC_PG_PRESC_DIV64;
+  htscb.Init.MaxCountValue            = TSC_MCV_8191;
+  htscb.Init.IODefaultMode            = TSC_IODEF_OUT_PP_LOW;
+  htscb.Init.SynchroPinPolarity       = TSC_SYNC_POLARITY_FALLING;
+  htscb.Init.AcquisitionMode          = TSC_ACQ_MODE_NORMAL;
+  htscb.Init.MaxCountInterrupt        = DISABLE;
+  htscb.Init.ChannelIOs               = 0;
+  htscb.Init.SamplingIOs              = 0;
   HAL_TSC_Init(&htscb);
 
   IoConfigs.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
@@ -874,12 +874,12 @@ static void USART1_UART_Init(void)
   huart1.Instance = USART1;
 
   /* UART master config */
-  huart1.Init.BaudRate = 115200;
-  huart1.Init.WordLength = UART_WORDLENGTH_8B;
-  huart1.Init.StopBits = UART_STOPBITS_1;
-  huart1.Init.Parity = UART_PARITY_NONE;
-  huart1.Init.Mode = UART_MODE_TX_RX;
-  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.BaudRate    = 115200;
+  huart1.Init.WordLength  = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits    = UART_STOPBITS_1;
+  huart1.Init.Parity      = UART_PARITY_NONE;
+  huart1.Init.Mode        = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl   = UART_HWCONTROL_NONE;
   HAL_UART_Init(&huart1);
 }
 
@@ -917,9 +917,9 @@ static void GPIO_Init(void)
   HAL_GPIO_WritePin(GPIOA, LED_Brightness | LED_Color | LED_Power, GPIO_PIN_RESET);
 
   /* Change pin mode to output */
-  GPIO_InitStruct.Pin = LED_Brightness | LED_Color | LED_Power;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Pin   = LED_Brightness | LED_Color | LED_Power;
+  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull  = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
