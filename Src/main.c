@@ -149,9 +149,9 @@ int main(void)
   HAL_TSC_Start_IT(&htscb);
   HAL_TSC_Start_IT(&htscs);
 
-  HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);  // clear LED "Brightness"
-  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);       // clear LED "Color"
-  HAL_GPIO_WritePin(GPIOA, LED_Power, 1);       // clear LED "Power"
+  HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0); // clear LED "Brightness"
+  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);      // clear LED "Color"
+  HAL_GPIO_WritePin(GPIOA, LED_Power, 1);      // clear LED "Power"
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
@@ -169,7 +169,7 @@ int main(void)
     //if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
 
     if (printCnt++ > 50) { // print only every n cycle
-      
+
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
@@ -226,8 +226,8 @@ void boost_reg() {
 
 void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)
 {
-  HAL_GPIO_TogglePin(GPIOA, LED_Color);
 
+  HAL_GPIO_TogglePin(GPIOA, LED_Color); //debug
 
   HAL_TSC_IODischarge(&htscb, ENABLE);
   HAL_TSC_IODischarge(&htscs, ENABLE);
