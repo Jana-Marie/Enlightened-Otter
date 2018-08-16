@@ -39,10 +39,10 @@ I2C_HandleTypeDef hi2c1;
 DMA_HandleTypeDef hdma_i2c1_rx;
 DMA_HandleTypeDef hdma_i2c1_tx;
 
-TSC_HandleTypeDef htscs;
+TSC_HandleTypeDef htscs;        // Touch slider handle
 TSC_IOConfigTypeDef IoConfigs;
 
-TSC_HandleTypeDef htscb;
+TSC_HandleTypeDef htscb;        // Touch button handle
 TSC_IOConfigTypeDef IoConfigb;
 
 UART_HandleTypeDef huart1;
@@ -79,20 +79,21 @@ uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
-__IO int32_t sliderAcquisitionValue[3];
-__IO int32_t buttonAcquisitionValue[3];
-__IO int32_t sliderOffsetValue[3] = {1945, 1934, 1134};
-__IO int32_t buttonOffsetValue[3] = {2120, 2433, 2058};
+__IO int32_t sliderAcquisitionValue[3];                 // register that holds the acquired slider values
+__IO int32_t buttonAcquisitionValue[3];                 // register that holds the acquired button values
+__IO int32_t sliderOffsetValue[3] = {1945, 1934, 1134}; // offset values which needs to be subtracted from the acquired values
+__IO int32_t buttonOffsetValue[3] = {2120, 2433, 2058}; // Todo - make some kind of auto calibration
 
-uint8_t IdxBankS = 0;
-uint8_t IdxBankB = 0;
-uint32_t ready = 0;
-uint16_t distance = 0;
-uint16_t disDelta = 0;
-uint16_t briDelta = 0;
-uint16_t oldDistance = 0;
-uint8_t colBri = 0;
-uint8_t powBt = 1;
+uint8_t IdxBankS = 0;     // IO indexer for the slider
+uint8_t IdxBankB = 0;     // IO indexer for the buttons
+uint16_t distance = 0;    // current slider position
+uint16_t disDelta = 0;    // delta slider position
+uint16_t briDelta = 0;    // calculated brightness delta
+uint16_t oldDistance = 0; // old slider position
+float colorProportion = 0;// a value from 0.0f to 1.0f defining the current color porportions
+
+uint8_t colBri = 0;       // color or brightness switch
+uint8_t powBt = 1;        // power button value
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f;  // Warmwhite target current in mA
@@ -101,9 +102,8 @@ float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger fil
 float cycleTime;            // time of one cycle
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
 float iavgCW, iavgWW, errorCW, errorWW; // stores the average current
-float dutyCW = MIN_DUTY;
-float dutyWW = MIN_DUTY;
-float colorProportion = 0;
+float dutyCW = MIN_DUTY;    // cold white duty cycle
+float dutyWW = MIN_DUTY;    // warm white duty cycle
 
 float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
 uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
@@ -160,10 +160,10 @@ int main(void)
     //targetCW += 2.5f;
     //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
-    if (printCnt == 1 )primitive_TSC_slider_task();
-    if (printCnt == 0 )primitive_TSC_button_task();
+    if (printCnt == 0 ) primitive_TSC_slider_task(); // do the tsc tasks every now and then
+    if (printCnt == 2 ) primitive_TSC_button_task();
 
-    if (printCnt++ > 2) { // print only every n cycle
+    if (printCnt++ > 3) { // print only every n cycle
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
@@ -175,23 +175,23 @@ int main(void)
       console_scope();
     }
 
-    if ( distance != 0) {
-      disDelta += distance - oldDistance;
-      if (colBri == 0) {
+    if ( distance != 0) {                     // check if slider is touched - TODO fix this by not using distance, but segment or whatever
+      disDelta += distance - oldDistance;     // calculate distance delta
+      if (colBri == 0) {                      // if color/brightness switch is 0 then change brightness
         briDelta = disDelta;
       }
-      if (colBri == 1) {
-        colorProportion = disDelta / 287.0f;
+      if (colBri == 1) {                      // if color/brightness switch is 1 then change the color
+        colorProportion = disDelta / 287.0f;  // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
       }
 
-      oldDistance = distance;
-      targetCW = briDelta * colorProportion;
+      oldDistance = distance;                 // set oldDistance to current distance
+      targetCW = briDelta * colorProportion;  // set CW and WW color accordingly to brightness and color proportion
       targetWW = briDelta * (1.0f - colorProportion);
     }
 
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);       // clear LED "Color"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);       // clear LED "Power"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);         // clear LED "Power"
 
   }
 }
