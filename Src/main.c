@@ -187,11 +187,11 @@ int main(void)
     }
 
     if ( sliderPos != 0) {                  // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
-      if (sliderCnt >= 1){
+      if (sliderCnt >= 5){
         disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
         disDelta = CLAMP(disDelta,0.0f,287.0f);
 
-        if (colBri == 0) briDelta = disDelta / 2.87f;                 // if color/brightness switch is 0 then change brightness
+        if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
         if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
         // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
 
@@ -292,7 +292,7 @@ void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)
 
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton) {
 
-  int16_t buttonThr = -1500;
+  int16_t buttonThr = -1200;
 
   switch (IdxBankB)
   {

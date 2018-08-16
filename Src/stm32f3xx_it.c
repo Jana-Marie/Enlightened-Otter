@@ -297,6 +297,8 @@ void ADC1_2_IRQHandler(void)
 
 void TSCx_EXTI_IRQHandler(void)
 {
+    HAL_GPIO_TogglePin(GPIOA, LED_Color); //debug
+
   HAL_TSC_IRQHandler(&htscs);
   HAL_TSC_IRQHandler(&htscb);
 }
