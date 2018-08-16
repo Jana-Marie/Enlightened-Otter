@@ -81,8 +81,8 @@ volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 
 __IO int32_t sliderAcquisitionValue[3];
 __IO int32_t buttonAcquisitionValue[3];
-__IO int32_t sliderOffsetValue[3] = {1945,1934,1134};
-__IO int32_t buttonOffsetValue[3] = {2120,2433,2058};
+__IO int32_t sliderOffsetValue[3] = {1945, 1934, 1134};
+__IO int32_t buttonOffsetValue[3] = {2120, 2433, 2058};
 
 uint8_t IdxBankS = 0;
 uint8_t IdxBankB = 0;
@@ -100,7 +100,7 @@ float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger fil
 
 float cycleTime;            // time of one cycle
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
-float iavgCW, iavgWW, errorCW, errorWW; // stores the average current 
+float iavgCW, iavgWW, errorCW, errorWW; // stores the average current
 float dutyCW = MIN_DUTY;
 float dutyWW = MIN_DUTY;
 float colorProportion = 0;
@@ -169,29 +169,29 @@ int main(void)
       set_scope_channel(2, targetWW);
       set_scope_channel(3, targetCW);
       set_scope_channel(4, disDelta);
-      set_scope_channel(5, distance-oldDistance);
-      set_scope_channel(6, colorProportion*100.0f);
+      set_scope_channel(5, distance - oldDistance);
+      set_scope_channel(6, colorProportion * 100.0f);
       printCnt = 0;
       console_scope();
     }
 
     if ( distance != 0) {
-      disDelta += distance-oldDistance;
-      if(colBri == 0) {
+      disDelta += distance - oldDistance;
+      if (colBri == 0) {
         briDelta = disDelta;
       }
-      if(colBri == 1) {
-      colorProportion = disDelta/287.0f;
+      if (colBri == 1) {
+        colorProportion = disDelta / 287.0f;
       }
 
       oldDistance = distance;
-      targetCW = briDelta*colorProportion;
-      targetWW = briDelta*(1.0f-colorProportion);
+      targetCW = briDelta * colorProportion;
+      targetWW = briDelta * (1.0f - colorProportion);
     }
 
-  HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
-  HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);       // clear LED "Color"
-  HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);       // clear LED "Power"
+    HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);       // clear LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);       // clear LED "Power"
 
   }
 }
@@ -775,7 +775,7 @@ void primitive_TSC_button_task(void){
   switch (IdxBankB++)
   {
   case 0:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO2; 
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
     IdxBankB = 1;
     break;
   case 1:
@@ -800,16 +800,16 @@ void primitive_TSC_button_task(void){
 
   __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
 
-  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED) 
+  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
-      buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-      buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB];
+    buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB];
 
-      if (buttonAcquisitionValue[0] < buttonThr) colBri = 0;
-      else if (buttonAcquisitionValue[1] < buttonThr)  colBri = 1;
-      else;
-      if (buttonAcquisitionValue[2] < buttonThr) powBt ^= 1;
-      else;
+    if (buttonAcquisitionValue[0] < buttonThr) colBri = 0;
+    else if (buttonAcquisitionValue[1] < buttonThr)  colBri = 1;
+    else;
+    if (buttonAcquisitionValue[2] < buttonThr) powBt ^= 1;
+    else;
   }
 }
 
@@ -838,50 +838,50 @@ void primitive_TSC_slider_task(void) {
 
   while (HAL_TSC_GetState(&htscs) == HAL_TSC_STATE_BUSY)
   {
-  //FIXME ADD INTERRUPT
+    //FIXME ADD INTERRUPT
   }
 
   __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
 
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
-      sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-      sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
-      if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
+    sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
+    if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
 
-      sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
+    sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
 
-      int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
-      int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
-      int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
+    int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
+    int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
+    int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
 
 
-      uint8_t section = 0;
+    uint8_t section = 0;
 
-      if (x < y && x < z && y < z) {
-        section = 1;
-        distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-      } else if (x < y && x < z && y > z) {
-        section = 2;
-        distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-      } else if (z < y && z < x && x < y) {
-        section = 3;
-        distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-      } else if (z < y && z < x && x > y) {
-        section = 4;
-        distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-      } else if (y < x && y < z && z < x) {
-        section = 5;
-        distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-      } else if (y < x && y < z && z > x) {
-        section = 6;
-        distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
-      }
+    if (x < y && x < z && y < z) {
+      section = 1;
+      distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+    } else if (x < y && x < z && y > z) {
+      section = 2;
+      distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+    } else if (z < y && z < x && x < y) {
+      section = 3;
+      distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+    } else if (z < y && z < x && x > y) {
+      section = 4;
+      distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+    } else if (y < x && y < z && z < x) {
+      section = 5;
+      distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+    } else if (y < x && y < z && z > x) {
+      section = 6;
+      distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
+    }
 
-      if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
-        distance = 0;
-        section = 0;
-      } 
+    if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
+      distance = 0;
+      section = 0;
+    }
   }
 }
 
