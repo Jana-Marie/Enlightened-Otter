@@ -70,8 +70,8 @@ extern void boost_reg();
 uint16_t read_RT_ADC(void);
 void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
 void set_pwm(uint8_t timer, float duty);
-void primitive_TSC_button_task(void);
-void primitive_TSC_slider_task(void);
+void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton);
+void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
@@ -84,14 +84,14 @@ __IO int32_t buttonAcquisitionValue[3];                 // register that holds t
 __IO int32_t sliderOffsetValue[3] = {1945, 1934, 1134}; // offset values which needs to be subtracted from the acquired values
 __IO int32_t buttonOffsetValue[3] = {2120, 2433, 2058}; // Todo - make some kind of auto calibration
 
-uint8_t IdxBankS = 0;     // IO indexer for the slider
-uint8_t IdxBankB = 0;     // IO indexer for the buttons
-uint8_t distance = 0;     // current slider position
-uint8_t isTouched = 0;    // 1 if slider is touched
-uint16_t disDelta = 0;    // delta slider position
-uint16_t briDelta = 0;    // calculated brightness delta
-uint16_t oldDistance = 0; // old slider position
-float colorProportion = 0;// a value from 0.0f to 1.0f defining the current color porportions
+uint8_t IdxBankS = 0;       // IO indexer for the slider
+uint8_t IdxBankB = 0;       // IO indexer for the buttons
+uint16_t sliderPos = 0;     // current slider position
+uint8_t sliderIsTouched = 0;// 1 if slider is touched
+uint16_t disDelta = 0;      // delta slider position
+uint16_t briDelta = 0;      // calculated brightness delta
+uint16_t oldDistance = 0;   // old slider position
+float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 
 uint8_t colBri = 0;       // color or brightness switch
 uint8_t powBt = 1;        // power button value
@@ -157,12 +157,12 @@ int main(void)
 
   while (1)
   {
-    //targetCW = distance;
+    //targetCW = sliderPos;
     //targetCW += 2.5f;
     //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
-    if (printCnt == 0 ) primitive_TSC_slider_task(); // do the tsc tasks every now and then
-    if (printCnt == 2 ) primitive_TSC_button_task();
+    if (printCnt == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
+    if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
 
     if (printCnt++ > 3) { // print only every n cycle
       set_scope_channel(0, iavgWW);
@@ -170,14 +170,14 @@ int main(void)
       set_scope_channel(2, targetWW);
       set_scope_channel(3, targetCW);
       set_scope_channel(4, disDelta);
-      set_scope_channel(5, distance - oldDistance);
+      set_scope_channel(5, sliderPos - oldDistance);
       set_scope_channel(6, colorProportion * 100.0f);
       printCnt = 0;
       console_scope();
     }
 
-    if ( distance != 0) {                     // check if slider is touched - TODO fix this by not using distance, but segment or whatever
-      disDelta += distance - oldDistance;     // calculate distance delta
+    if ( sliderPos != 0) {                     // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
+      disDelta += sliderPos - oldDistance;     // calculate sliderPos delta
       if (colBri == 0) {                      // if color/brightness switch is 0 then change brightness
         briDelta = disDelta;
       }
@@ -185,7 +185,7 @@ int main(void)
         colorProportion = disDelta / 287.0f;  // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
       }
 
-      oldDistance = distance;                 // set oldDistance to current distance
+      oldDistance = sliderPos;                 // set oldDistance to current sliderPos
       targetCW = briDelta * colorProportion;  // set CW and WW color accordingly to brightness and color proportion
       targetWW = briDelta * (1.0f - colorProportion);
     }
@@ -220,7 +220,7 @@ void boost_reg() {
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
 }
 
-void primitive_TSC_button_task(void) {
+void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton) {
 
   int16_t buttonThr = -1500;
 
@@ -258,15 +258,15 @@ void primitive_TSC_button_task(void) {
     buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
     buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB];
 
-    if (buttonAcquisitionValue[0] < buttonThr) colBri = 0;
-    else if (buttonAcquisitionValue[1] < buttonThr)  colBri = 1;
+    if (buttonAcquisitionValue[0] < buttonThr) *colorBrightnessSwitch = 0;
+    else if (buttonAcquisitionValue[1] < buttonThr)  *colorBrightnessSwitch = 1;
     else;
-    if (buttonAcquisitionValue[2] < buttonThr) powBt ^= 1;
-    else;
+    if (buttonAcquisitionValue[2] < buttonThr) *powerButton = 1;
+    else *powerButton = 1;
   }
 }
 
-void primitive_TSC_slider_task(void) {
+void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT) {
 
   switch (IdxBankS++)
   {
@@ -301,6 +301,7 @@ void primitive_TSC_slider_task(void) {
   {
     sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
     sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
+
     if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
 
     sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
@@ -309,18 +310,18 @@ void primitive_TSC_slider_task(void) {
     int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
     int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
 
-    if      (x < y && x < z && y < z) distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-    else if (x < y && x < z && y > z) distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-    else if (z < y && z < x && x < y) distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-    else if (z < y && z < x && x > y) distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-    else if (y < x && y < z && z < x) distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-    else if (y < x && y < z && z > x) distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
+    if      (x < y && x < z && y < z) *sPos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+    else if (x < y && x < z && y > z) *sPos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+    else if (z < y && z < x && x < y) *sPos = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+    else if (z < y && z < x && x > y) *sPos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+    else if (y < x && y < z && z < x) *sPos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+    else if (y < x && y < z && z > x) *sPos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
     if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
-      distance = 0;
-      isTouched = 0;
+      *sPos = 0;
+      *isT = 0;
     } else {
-      isTouched = 1;
+      *isT = 1;
     }
   }
 }
