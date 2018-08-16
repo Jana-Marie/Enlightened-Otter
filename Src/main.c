@@ -219,6 +219,194 @@ void boost_reg() {
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
 }
 
+void primitive_TSC_button_task(void) {
+
+  int16_t buttonThr = -1500;
+
+  switch (IdxBankB++)
+  {
+  case 0:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
+    IdxBankB = 1;
+    break;
+  case 1:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
+    IdxBankB = 2;
+    break;
+  case 2:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
+    IdxBankB = 0;
+    break;
+  default:
+    break;
+  }
+  HAL_TSC_IOConfig(&htscb, &IoConfigb);
+  HAL_TSC_IODischarge(&htscb, ENABLE);
+  HAL_TSC_Start(&htscb);
+
+  while (HAL_TSC_GetState(&htscb) == HAL_TSC_STATE_BUSY)
+  {
+    //FIXME INTERRUPT
+  }
+
+  __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+
+  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  {
+    buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB];
+
+    if (buttonAcquisitionValue[0] < buttonThr) colBri = 0;
+    else if (buttonAcquisitionValue[1] < buttonThr)  colBri = 1;
+    else;
+    if (buttonAcquisitionValue[2] < buttonThr) powBt ^= 1;
+    else;
+  }
+}
+
+void primitive_TSC_slider_task(void) {
+
+  switch (IdxBankS++)
+  {
+  case 0:
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
+    IdxBankS = 1;
+    break;
+  case 1:
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
+    IdxBankS = 2;
+    break;
+  case 2:
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
+    IdxBankS = 0;
+    break;
+  default:
+    break;
+  }
+  HAL_TSC_IOConfig(&htscs, &IoConfigs);
+  HAL_TSC_IODischarge(&htscs, ENABLE);
+  HAL_TSC_Start(&htscs);
+
+  while (HAL_TSC_GetState(&htscs) == HAL_TSC_STATE_BUSY)
+  {
+    //FIXME ADD INTERRUPT
+  }
+
+  __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+
+  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
+  {
+    sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
+    if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
+
+    sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
+
+    int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
+    int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
+    int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
+
+
+    uint8_t section = 0;
+
+    if (x < y && x < z && y < z) {
+      section = 1;
+      distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+    } else if (x < y && x < z && y > z) {
+      section = 2;
+      distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+    } else if (z < y && z < x && x < y) {
+      section = 3;
+      distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+    } else if (z < y && z < x && x > y) {
+      section = 4;
+      distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+    } else if (y < x && y < z && z < x) {
+      section = 5;
+      distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+    } else if (y < x && y < z && z > x) {
+      section = 6;
+      distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
+    }
+
+    if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
+      distance = 0;
+      section = 0;
+    }
+  }
+}
+
+static void init_RT(void) {
+  /* Configure the RT9466, set currents to maximum */
+  configure_RT(CHG_CTRL2, IINLIM_MASK);
+  configure_RT(CHG_CTRL3, SET_ILIM_3A);
+}
+
+static void configure_RT(uint8_t _register, uint8_t _mask) {
+  uint8_t _tmp_data[2] = {_register, _mask};
+  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, _tmp_data, sizeof(_tmp_data), 500);
+}
+
+uint16_t read_RT_ADC(void) {
+  uint8_t _ADC_H, _ADC_L;
+  uint8_t _tmp_data_H = ADC_DATA_H;
+  uint8_t _tmp_data_L = ADC_DATA_L;
+
+  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_H, sizeof(_tmp_data_H), 500);
+  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_H, 1, 500);
+  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_L, sizeof(_tmp_data_L), 500);
+  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_L, 1, 500);
+
+  uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
+  return _tmp_data;
+}
+
+#if defined(SCOPE_CHANNELS)
+void set_scope_channel(uint8_t ch, int16_t val) {
+  ch_buf[ch] = val;
+}
+
+void console_scope(void) {
+  memset(uart_buf, 0, sizeof(uart_buf));
+
+#if (SCOPE_CHANNELS == 1)
+  sprintf((char*)uart_buf, "%i\n\r", ch_buf[0]);
+#elif (SCOPE_CHANNELS == 2)
+  sprintf((char*)uart_buf, "%i\t%i\n\r", ch_buf[0], ch_buf[1]);
+#elif (SCOPE_CHANNELS == 3)
+  sprintf((char*)uart_buf, "%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
+#elif (SCOPE_CHANNELS == 4)
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
+#elif (SCOPE_CHANNELS == 5)
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
+#elif (SCOPE_CHANNELS == 6)
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
+#elif (SCOPE_CHANNELS == 7)
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
+#elif (SCOPE_CHANNELS == 8)
+  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
+#endif
+
+  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen((char*)uart_buf));
+  huart1.gState = HAL_UART_STATE_READY;
+}
+#endif
+
+void set_pwm(uint8_t timer, float duty) {
+
+  /* Clamp duty cycle values */
+  if (duty < MIN_DUTY) duty = MIN_DUTY;
+  if (duty > MAX_DUTY) duty = MAX_DUTY;
+
+  /* Set registers according to duty cycle */
+  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
+  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
+  HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
+  HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
+  HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
+  HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
+}
+
 void SystemClock_Config(void)
 {
 
@@ -712,194 +900,7 @@ static void start_HRTIM1(void) {
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
 }
 
-static void init_RT(void) {
-  /* Configure the RT9466, set currents to maximum */
-  configure_RT(CHG_CTRL2, IINLIM_MASK);
-  configure_RT(CHG_CTRL3, SET_ILIM_3A);
-}
 
-static void configure_RT(uint8_t _register, uint8_t _mask) {
-  uint8_t _tmp_data[2] = {_register, _mask};
-  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, _tmp_data, sizeof(_tmp_data), 500);
-}
-
-uint16_t read_RT_ADC(void) {
-  uint8_t _ADC_H, _ADC_L;
-  uint8_t _tmp_data_H = ADC_DATA_H;
-  uint8_t _tmp_data_L = ADC_DATA_L;
-
-  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_H, sizeof(_tmp_data_H), 500);
-  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_H, 1, 500);
-  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_L, sizeof(_tmp_data_L), 500);
-  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_L, 1, 500);
-
-  uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
-  return _tmp_data;
-}
-
-#if defined(SCOPE_CHANNELS)
-void set_scope_channel(uint8_t ch, int16_t val) {
-  ch_buf[ch] = val;
-}
-
-void console_scope(void) {
-  memset(uart_buf, 0, sizeof(uart_buf));
-
-#if (SCOPE_CHANNELS == 1)
-  sprintf((char*)uart_buf, "%i\n\r", ch_buf[0]);
-#elif (SCOPE_CHANNELS == 2)
-  sprintf((char*)uart_buf, "%i\t%i\n\r", ch_buf[0], ch_buf[1]);
-#elif (SCOPE_CHANNELS == 3)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
-#elif (SCOPE_CHANNELS == 4)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
-#elif (SCOPE_CHANNELS == 5)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
-#elif (SCOPE_CHANNELS == 6)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
-#elif (SCOPE_CHANNELS == 7)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
-#elif (SCOPE_CHANNELS == 8)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
-#endif
-
-  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen((char*)uart_buf));
-  huart1.gState = HAL_UART_STATE_READY;
-}
-#endif
-
-void primitive_TSC_button_task(void) {
-
-  int16_t buttonThr = -1500;
-
-  switch (IdxBankB++)
-  {
-  case 0:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
-    IdxBankB = 1;
-    break;
-  case 1:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
-    IdxBankB = 2;
-    break;
-  case 2:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
-    IdxBankB = 0;
-    break;
-  default:
-    break;
-  }
-  HAL_TSC_IOConfig(&htscb, &IoConfigb);
-  HAL_TSC_IODischarge(&htscb, ENABLE);
-  HAL_TSC_Start(&htscb);
-
-  while (HAL_TSC_GetState(&htscb) == HAL_TSC_STATE_BUSY)
-  {
-    //FIXME INTERRUPT
-  }
-
-  __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
-
-  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
-  {
-    buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-    buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB];
-
-    if (buttonAcquisitionValue[0] < buttonThr) colBri = 0;
-    else if (buttonAcquisitionValue[1] < buttonThr)  colBri = 1;
-    else;
-    if (buttonAcquisitionValue[2] < buttonThr) powBt ^= 1;
-    else;
-  }
-}
-
-void primitive_TSC_slider_task(void) {
-
-  switch (IdxBankS++)
-  {
-  case 0:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
-    IdxBankS = 1;
-    break;
-  case 1:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
-    IdxBankS = 2;
-    break;
-  case 2:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
-    IdxBankS = 0;
-    break;
-  default:
-    break;
-  }
-  HAL_TSC_IOConfig(&htscs, &IoConfigs);
-  HAL_TSC_IODischarge(&htscs, ENABLE);
-  HAL_TSC_Start(&htscs);
-
-  while (HAL_TSC_GetState(&htscs) == HAL_TSC_STATE_BUSY)
-  {
-    //FIXME ADD INTERRUPT
-  }
-
-  __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
-
-  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
-  {
-    sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-    sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
-    if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
-
-    sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
-
-    int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
-    int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
-    int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
-
-
-    uint8_t section = 0;
-
-    if (x < y && x < z && y < z) {
-      section = 1;
-      distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-    } else if (x < y && x < z && y > z) {
-      section = 2;
-      distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-    } else if (z < y && z < x && x < y) {
-      section = 3;
-      distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-    } else if (z < y && z < x && x > y) {
-      section = 4;
-      distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-    } else if (y < x && y < z && z < x) {
-      section = 5;
-      distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-    } else if (y < x && y < z && z > x) {
-      section = 6;
-      distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
-    }
-
-    if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
-      distance = 0;
-      section = 0;
-    }
-  }
-}
-
-
-void set_pwm(uint8_t timer, float duty) {
-
-  /* Clamp duty cycle values */
-  if (duty < MIN_DUTY) duty = MIN_DUTY;
-  if (duty > MAX_DUTY) duty = MAX_DUTY;
-
-  /* Set registers according to duty cycle */
-  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
-  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
-  HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
-  HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
-  HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
-  HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
-}
 
 void _Error_Handler(char * file, int line)
 {
