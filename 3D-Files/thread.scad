@@ -31,7 +31,7 @@ module nut(diameter){
             translate([0,0,2])
             cylinder(d=diameter,h=14-4,$fn=6);
         }union(){
-            thread(31,14,2.4,3.8,1.8); // inner
+            thread(31,14,2.4,3.3,1.8); // inner
         }
     }
 }
@@ -42,7 +42,7 @@ module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
             translate([0,0,0])
             cylinder(d=diameter,h=height);
             translate([0,0,-lowerHeight+1.6])
-            cylinder(d=lowerDiameter,h=height-1.6);
+            cylinder(d=lowerDiameter,h=height);
         }union(){
             translate([0,0,-2])
             thread(25.4,16,2.2,3.8,1.0); // Club Mate
