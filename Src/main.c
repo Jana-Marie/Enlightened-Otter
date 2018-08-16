@@ -63,13 +63,13 @@ static void I2C1_Init(void);
 static void USART1_UART_Init(void);
 static void DAC1_Init(void);
 static void DAC2_Init(void);
-void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
-void configure_RT(uint8_t _register, uint8_t _mask);
+static void configure_RT(uint8_t _register, uint8_t _mask);
 static void init_RT(void);
 static void start_HRTIM1(void);
-uint16_t read_RT_ADC(void);
-void set_pwm(uint8_t timer, float duty);
 extern void boost_reg();
+uint16_t read_RT_ADC(void);
+void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
+void set_pwm(uint8_t timer, float duty);
 void primitive_TSC_button_task(void);
 void primitive_TSC_slider_task(void);
 #if defined(SCOPE_CHANNELS)
@@ -718,7 +718,7 @@ static void init_RT(void) {
   configure_RT(CHG_CTRL3, SET_ILIM_3A);
 }
 
-void configure_RT(uint8_t _register, uint8_t _mask) {
+static void configure_RT(uint8_t _register, uint8_t _mask) {
   uint8_t _tmp_data[2] = {_register, _mask};
   HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, _tmp_data, sizeof(_tmp_data), 500);
 }
@@ -768,7 +768,7 @@ void console_scope(void) {
 }
 #endif
 
-void primitive_TSC_button_task(void){
+void primitive_TSC_button_task(void) {
 
   int16_t buttonThr = -1500;
 
