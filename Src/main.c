@@ -89,9 +89,9 @@ uint8_t IdxBankB = 0;       // IO indexer for the buttons
 uint8_t IdxBank = 0;
 uint16_t sliderPos = 0;     // current slider position
 uint8_t sliderIsTouched = 0;// 1 if slider is touched
-uint16_t disDelta = 0;      // delta slider position
-uint16_t briDelta = 0;      // calculated brightness delta
-uint16_t oldDistance = 0;   // old slider position
+int16_t disDelta = 0;      // delta slider position
+int16_t briDelta = 0;      // calculated brightness delta
+int16_t oldDistance = 0;   // old slider position
 float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 
 uint8_t colBri = 0;       // color or brightness switch
@@ -110,6 +110,7 @@ float dutyWW = MIN_DUTY;    // warm white duty cycle
 float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
 uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
 uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
+uint8_t sliderCnt = 0;
 
 int main(void)
 {
@@ -146,8 +147,11 @@ int main(void)
   init_RT();      // mainly sets ILIM
   start_HRTIM1(); // start HRTIM and enable outputs
 
-  HAL_TSC_Start_IT(&htscb);
-  HAL_TSC_Start_IT(&htscs);
+  HAL_TSC_IODischarge(&htscb, ENABLE);
+  HAL_TSC_IODischarge(&htscs, ENABLE);
+
+  //HAL_TSC_Start_IT(&htscb);
+  //HAL_TSC_Start_IT(&htscs);
 
   HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0); // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED_Color, 0);      // clear LED "Color"
@@ -165,16 +169,16 @@ int main(void)
     //targetCW += 2.5f;
     //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
-    //if (printCnt == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    //if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
+    if (printCnt == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
+    if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
 
-    if (printCnt++ > 50) { // print only every n cycle
+    if (printCnt++ > 25) { // print only every n cycle
 
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
       set_scope_channel(3, targetCW);
-      set_scope_channel(4, disDelta);
+      set_scope_channel(4, briDelta);
       set_scope_channel(5, sliderPos - oldDistance);
       set_scope_channel(6, colorProportion * 100.0f);
       console_scope();
@@ -183,16 +187,30 @@ int main(void)
     }
 
     if ( sliderPos != 0) {                  // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
+      if (sliderCnt >= 1){
+        disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
+        disDelta = CLAMP(disDelta,0.0f,287.0f);
 
-      disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
+        if (colBri == 0) briDelta = disDelta / 2.87f;                 // if color/brightness switch is 0 then change brightness
+        if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
+        // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
 
-      if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
-      if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
-      // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
+        //colorProportion = CLAMP(colorProportion, 0.0f, 1.0f); // Clamp to duty cycle
+        //briDelta = CLAMP(briDelta, 0.0f, 200.0f); // Clamp to duty cycle
 
+        float _tempCol = briDelta * colorProportion;    // set CW and WW color accordingly to brightness and color proportion
+        if (_tempCol < 0.0f || _tempCol >= 1024) targetCW = 0.0f;
+        else targetCW = _tempCol;
+        _tempCol = briDelta * (1.0f - colorProportion);
+        if (_tempCol < 0.0f || _tempCol >= 1024) targetWW = 0.0f;
+        else targetWW = _tempCol;
+
+      } else {
+        sliderCnt++;
+      }
       oldDistance = sliderPos;                  // set oldDistance to current sliderPos
-      targetCW = briDelta * colorProportion;    // set CW and WW color accordingly to brightness and color proportion
-      targetWW = briDelta * (1.0f - colorProportion);
+    } else {
+      sliderCnt = 0;
     }
 
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
