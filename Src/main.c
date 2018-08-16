@@ -169,6 +169,7 @@ int main(void)
     //if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
 
     if (printCnt++ > 50) { // print only every n cycle
+      
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
@@ -176,21 +177,21 @@ int main(void)
       set_scope_channel(4, disDelta);
       set_scope_channel(5, sliderPos - oldDistance);
       set_scope_channel(6, colorProportion * 100.0f);
-      printCnt = 0;
       console_scope();
+
+      printCnt = 0;
     }
 
-    if ( sliderPos != 0) {                     // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
-      disDelta += sliderPos - oldDistance;     // calculate sliderPos delta
-      if (colBri == 0) {                      // if color/brightness switch is 0 then change brightness
-        briDelta = disDelta;
-      }
-      if (colBri == 1) {                      // if color/brightness switch is 1 then change the color
-        colorProportion = disDelta / 287.0f;  // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
-      }
+    if ( sliderPos != 0) {                  // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
 
-      oldDistance = sliderPos;                 // set oldDistance to current sliderPos
-      targetCW = briDelta * colorProportion;  // set CW and WW color accordingly to brightness and color proportion
+      disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
+
+      if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
+      if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
+      // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
+
+      oldDistance = sliderPos;                  // set oldDistance to current sliderPos
+      targetCW = briDelta * colorProportion;    // set CW and WW color accordingly to brightness and color proportion
       targetWW = briDelta * (1.0f - colorProportion);
     }
 
