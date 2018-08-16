@@ -86,7 +86,8 @@ __IO int32_t buttonOffsetValue[3] = {2120, 2433, 2058}; // Todo - make some kind
 
 uint8_t IdxBankS = 0;     // IO indexer for the slider
 uint8_t IdxBankB = 0;     // IO indexer for the buttons
-uint16_t distance = 0;    // current slider position
+uint8_t distance = 0;     // current slider position
+uint8_t isTouched = 0;    // 1 if slider is touched
 uint16_t disDelta = 0;    // delta slider position
 uint16_t briDelta = 0;    // calculated brightness delta
 uint16_t oldDistance = 0; // old slider position
@@ -240,6 +241,7 @@ void primitive_TSC_button_task(void) {
   default:
     break;
   }
+
   HAL_TSC_IOConfig(&htscb, &IoConfigb);
   HAL_TSC_IODischarge(&htscb, ENABLE);
   HAL_TSC_Start(&htscb);
@@ -283,6 +285,7 @@ void primitive_TSC_slider_task(void) {
   default:
     break;
   }
+
   HAL_TSC_IOConfig(&htscs, &IoConfigs);
   HAL_TSC_IODischarge(&htscs, ENABLE);
   HAL_TSC_Start(&htscs);
@@ -306,32 +309,18 @@ void primitive_TSC_slider_task(void) {
     int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
     int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
 
-
-    uint8_t section = 0;
-
-    if (x < y && x < z && y < z) {
-      section = 1;
-      distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-    } else if (x < y && x < z && y > z) {
-      section = 2;
-      distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-    } else if (z < y && z < x && x < y) {
-      section = 3;
-      distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-    } else if (z < y && z < x && x > y) {
-      section = 4;
-      distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-    } else if (y < x && y < z && z < x) {
-      section = 5;
-      distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-    } else if (y < x && y < z && z > x) {
-      section = 6;
-      distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
-    }
+    if      (x < y && x < z && y < z) distance = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+    else if (x < y && x < z && y > z) distance = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+    else if (z < y && z < x && x < y) distance = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+    else if (z < y && z < x && x > y) distance = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+    else if (y < x && y < z && z < x) distance = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+    else if (y < x && y < z && z > x) distance = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
     if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
       distance = 0;
-      section = 0;
+      isTouched = 0;
+    } else {
+      isTouched = 1;
     }
   }
 }
