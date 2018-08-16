@@ -223,7 +223,7 @@ void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerBut
 
   int16_t buttonThr = -1500;
 
-  switch (IdxBankB++)
+  switch (IdxBankB)
   {
   case 0:
     IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
@@ -267,7 +267,7 @@ void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerBut
 
 void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT) {
 
-  switch (IdxBankS++)
+  switch (IdxBankS)
   {
   case 0:
     IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
