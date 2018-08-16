@@ -42,8 +42,9 @@ and flash it via Ozone or st-utils
 
 ### Current state:
 
-HW is flashable, both bosst converter work properly up to a current of ~250mA, current regulation works on both boost converters (+-0.5-1.5mA), RT9466 seems to do its job, does not work properly on batteries, LED outputs and Touch inputs seem to work, FLT_1 is always on
-Basic User interface is also working
+HW is flashable, both bosst converter work properly up to a current of ~250mA, current regulation works on both boost converters (+-0.5-1.5mA), RT9466 seems to do its job, does not work properly on batteries (5V gate driver power supply is missing, need to fix OTG), LED outputs and Touch inputs work, FLT_1 is always on
+Basic User interface is also working, current and color can be set via touch input
+
 HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
@@ -56,6 +57,8 @@ HW regulates after boot while main loop is basically empty \o/
 - [ ] Fix/write TSC controller
 	- [x] Add second TSC bank
 	- [ ] Make it interrupt based
+		- [x] write code
+		- [ ] Test that
 - [x] Write the user interface
 	- [ ] Make it usable
 - [ ] Fix the HRTIM FLT1 line
