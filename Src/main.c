@@ -203,7 +203,7 @@ int main(void)
     } else sliderCnt = 0;
 
     if (colorProportionAvg != colorProportion){   // smooth out color value until target
-        colorProportionAvg = colorProportionAvg * 0.9 + colorProportion * 0.1;
+        colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;
         
         targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
         targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
@@ -224,9 +224,9 @@ int main(void)
 void boost_reg() {
 
   /* VIN ADC not injected mode*/
-  
-  if(adcCnt++ >= 100 && __HAL_ADC_GET_FLAG(&hadc1,ADC_FLAG_EOC)){
-    vin = HAL_ADC_GetValue(&hadc1) / 4096.0f * 1000.0f * 3.0f / 0.475 * 1.475;
+
+  if(adcCnt++ >= 2014 && __HAL_ADC_GET_FLAG(&hadc1,ADC_FLAG_EOC)){
+    vin = (HAL_ADC_GetValue(&hadc1) * 2.2744f); //  1 / 4096.0f * 1000.0f * 3.0f / 0.475 * 1.475 = 2.2744
     HAL_ADC_Start(&hadc1);
     adcCnt = 0;
   }
