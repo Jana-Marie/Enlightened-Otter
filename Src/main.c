@@ -187,31 +187,24 @@ int main(void)
     }
 
     if ( sliderPos != 0) {                  // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
-      if (sliderCnt >= 5){
+      if (sliderCnt >= 5) {
+
         disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
-        disDelta = CLAMP(disDelta,0.0f,287.0f);
+        disDelta = CLAMP(disDelta, 0.0f, 287.0f);
 
         if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
         if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
-        // divide by slider-max to get an absolute value from 0-1 - TODO fix this, make it better somehow
 
         //colorProportion = CLAMP(colorProportion, 0.0f, 1.0f); // Clamp to duty cycle
         //briDelta = CLAMP(briDelta, 0.0f, 200.0f); // Clamp to duty cycle
 
-        float _tempCol = briDelta * colorProportion;    // set CW and WW color accordingly to brightness and color proportion
-        if (_tempCol < 0.0f || _tempCol >= 1024) targetCW = 0.0f;
-        else targetCW = _tempCol;
-        _tempCol = briDelta * (1.0f - colorProportion);
-        if (_tempCol < 0.0f || _tempCol >= 1024) targetWW = 0.0f;
-        else targetWW = _tempCol;
-
-      } else {
-        sliderCnt++;
-      }
+        // set CW and WW color accordingly to brightness and color proportion
+        targetCW = CLAMP((briDelta * colorProportion), 0.0f, 287.0f);
+        targetWW = CLAMP((briDelta * (1.0f - colorProportion)), 0.0f, 287.0f);
+      } else sliderCnt++;
+      
       oldDistance = sliderPos;                  // set oldDistance to current sliderPos
-    } else {
-      sliderCnt = 0;
-    }
+    } else sliderCnt = 0;
 
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
@@ -485,7 +478,7 @@ void SystemClock_Config(void)
   HAL_RCC_OscConfig(&RCC_OscInitStruct);
 
   RCC_ClkInitStruct.ClockType       = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK
-                                    | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+                                      | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource    = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider   = RCC_SYSCLK_DIV1;
   RCC_ClkInitStruct.APB1CLKDivider  = RCC_HCLK_DIV4;
@@ -494,7 +487,7 @@ void SystemClock_Config(void)
   HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2);
 
   PeriphClkInit.PeriphClockSelection  = RCC_PERIPHCLK_HRTIM1 | RCC_PERIPHCLK_USART1
-                                      | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_ADC12;
+                                        | RCC_PERIPHCLK_I2C1 | RCC_PERIPHCLK_ADC12;
   PeriphClkInit.Usart1ClockSelection  = RCC_USART1CLKSOURCE_PCLK1;
   PeriphClkInit.Adc12ClockSelection   = RCC_ADC12PLLCLK_DIV1;
   PeriphClkInit.I2c1ClockSelection    = RCC_I2C1CLKSOURCE_HSI;
