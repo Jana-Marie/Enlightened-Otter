@@ -173,14 +173,14 @@ int main(void)
     if (printCnt == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
     if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
 
-    if (printCnt++ > 25) { // print only every n cycle
+    if (printCnt++ > 350) { // print only every n cycle
 
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
       set_scope_channel(3, targetCW);
       set_scope_channel(4, vin);
-      set_scope_channel(5, adcCnt);
+      set_scope_channel(5, 0);
       set_scope_channel(6, colorProportion * 100.0f);
       console_scope();
 
@@ -215,14 +215,17 @@ int main(void)
 
 void boost_reg() {
 
-  /* VIN ADC */
+  /* VIN ADC not injected mode*/
 
-  //if(__HAL_ADC_GET_FLAG(&hadc1,ADC_FLAG_EOC)){
-  //  vin = HAL_ADC_GetValue(&hadc1)/4096.0f*1000.0f * 3.0f;
-  //  HAL_ADC_Start(&hadc1);
-    
-  //  adcCnt = 0;
-  //}
+  // randomly stops here
+  /*
+  if(adcCnt++ >= 100 && __HAL_ADC_GET_FLAG(&hadc1,ADC_FLAG_EOC)){
+    vin = HAL_ADC_GetValue(&hadc1) / 4096.0f * 1000.0f * 3.0f / 0.475 * 1.475;
+    HAL_ADC_Start(&hadc1);
+    adcCnt = 0;
+  }
+  */
+  
 
   /* Main current regulator */
   float ioutCW, ioutWW;
