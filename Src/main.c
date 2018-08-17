@@ -202,7 +202,7 @@ int main(void)
         targetCW = CLAMP((briDelta * colorProportion), 0.0f, 287.0f);
         targetWW = CLAMP((briDelta * (1.0f - colorProportion)), 0.0f, 287.0f);
       } else sliderCnt++;
-      
+
       oldDistance = sliderPos;                  // set oldDistance to current sliderPos
     } else sliderCnt = 0;
 
@@ -393,6 +393,11 @@ static void init_RT(void) {
   /* Configure the RT9466, set currents to maximum */
   configure_RT(CHG_CTRL2, IINLIM_MASK);
   configure_RT(CHG_CTRL3, SET_ILIM_3A);
+}
+
+static void enable_OTG(void) {
+  configure_RT(CHG_CTRL16, DISABLE_UUG)
+  configure_RT(CHG_CTRL1, ENABLE_OTG_MASK);
 }
 
 static void configure_RT(uint8_t _register, uint8_t _mask) {
