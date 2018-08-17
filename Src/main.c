@@ -92,8 +92,10 @@ uint16_t sliderPos = 0;     // current slider position
 uint8_t sliderIsTouched = 0;// 1 if slider is touched
 int16_t disDelta = 0;      // delta slider position
 int16_t briDelta = 0;      // calculated brightness delta
+float briDeltaAvg = 0;      // calculated brightness delta
 int16_t oldDistance = 0;   // old slider position
 float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
+float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 
 uint8_t colBri = 0;       // color or brightness switch
 uint8_t powBt = 1;        // power button value
@@ -170,10 +172,10 @@ int main(void)
     //targetCW += 2.5f;
     //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
-    if (printCnt == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    if (printCnt == 2 ) primitive_TSC_button_task(&colBri, &powBt);
-
-    if (printCnt++ > 350) { // print only every n cycle
+    if (printCnt%2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
+    if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colBri, &powBt);
+    
+    if (printCnt++ > 250) { // print only every n cycle
 
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
@@ -186,26 +188,33 @@ int main(void)
 
       printCnt = 0;
     }
-
+    
     if ( sliderPos != 0) {                  // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
-      if (sliderCnt >= 5) {
+      if (sliderCnt >= 10) { //deboungealike
 
         disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
         disDelta = CLAMP(disDelta, 0.0f, 287.0f);
 
         if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
         if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
-
-        //colorProportion = CLAMP(colorProportion, 0.0f, 1.0f); // Clamp to duty cycle
-        //briDelta = CLAMP(briDelta, 0.0f, 200.0f); // Clamp to duty cycle
-
-        // set CW and WW color accordingly to brightness and color proportion
-        targetCW = CLAMP((briDelta * colorProportion), 0.0f, 287.0f);
-        targetWW = CLAMP((briDelta * (1.0f - colorProportion)), 0.0f, 287.0f);
       } else sliderCnt++;
 
       oldDistance = sliderPos;                  // set oldDistance to current sliderPos
     } else sliderCnt = 0;
+
+    if (colorProportionAvg != colorProportion){
+              colorProportionAvg = colorProportionAvg * 0.9 + colorProportion * 0.1;
+        // set CW and WW color accordingly to brightness and color proportion
+        targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+        targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+    }
+    if(briDeltaAvg != briDelta){
+        briDeltaAvg = briDeltaAvg * 0.9 + briDelta * 0.1;
+
+        // set CW and WW color accordingly to brightness and color proportion
+        targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+        targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+      }
 
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
@@ -299,7 +308,7 @@ void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)
 
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton) {
 
-  int16_t buttonThr = -1200;
+  int16_t buttonThr = -900;
 
   switch (IdxBankB)
   {
