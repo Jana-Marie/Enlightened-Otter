@@ -168,9 +168,6 @@ int main(void)
 
   while (1)
   {
-    //targetCW = sliderPos;
-    //targetCW += 2.5f;
-    //if (targetCW > 245.0f) targetCW = 245.0f; //sweep up and stay at 245mA
 
     if (printCnt%2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
     if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colBri, &powBt);
@@ -531,7 +528,6 @@ void SystemClock_Config(void)
 static void ADC1_Init(void)
 {
   ADC_MultiModeTypeDef multimode;
-  ADC_InjectionConfTypeDef InjectionConfig;
   ADC_ChannelConfTypeDef sConfig;
 
   hadc1.Instance = ADC1;
