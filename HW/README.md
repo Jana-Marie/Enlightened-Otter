@@ -15,8 +15,8 @@
 	- 15uH is too high, 3.3uH is better, also increase dc-current, maybe use this inductor https://de.rs-online.com/web/p/drahtgewickelte-smd-induktivitaten/9236194/
 	- [ ] Change voltage regulator to 3.0V type
 	- Is still 3.3V type in schematic, 3.0V was used for testing
-	- [ ] Divide Vin voltage divider resistance by 10
-	- Resistance seems to be too high, measuring falsifies the result
+	- [x] Divide Vin voltage divider resistance by 10
+	- ~~Resistance seems to be too high, measuring falsifies the result~~ measured to fast, meh! Is fixed now
 	- [ ] Add Mosfet to turn ESP off
 	- ESP will be turned on all the time, add sleepmode and/or switched power 
 	- [ ] Check schematic symbols
