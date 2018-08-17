@@ -59,8 +59,6 @@ HW regulates after boot while main loop is basically empty \o/
 	- [ ] Make it interrupt based
 		- [x] write code
 		- [ ] Test that
-- [x] Write the user interface
-	- [ ] Make it usable
 - [ ] Fix the HRTIM FLT1 line
 - [ ] HW
 	-  See HW/README.md
@@ -79,6 +77,8 @@ HW regulates after boot while main loop is basically empty \o/
 	- [x] Make regulator interrupt based
 	- [x] Write a better PI regulator
 - [x] Basic TSC,UART,DAC,COMP,I2C and GPIO functionality
+- [x] Write the user interface
+	- [x] Make it usable
 - [x] Readout of touchslider
 - [x] Be an otter
 - [x] PCB does not burn
