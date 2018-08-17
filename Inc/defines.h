@@ -22,8 +22,8 @@
 // 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
 
 #define HRTIM_FREQUENCY_KHZ 766.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
-#define REG_CNT 4096 				// sets the number of HRTIM passes to the next controller pass
-#define KI 0.0001f 					// sets the KI constant for the current regulator - do not change unless you know what you're doing
+#define REG_CNT 			4096 	// sets the number of HRTIM passes to the next controller pass
+#define KI 					0.0001f // sets the KI constant for the current regulator - do not change unless you know what you're doing
 
 #define MIN_DUTY 0.002f // sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
@@ -51,14 +51,14 @@
 #define TURNOFF_MASK 	0x83	// shuts down power immediately, can only be resetted by button press
 #define IINLIM_MASK 	0x0B	// sets the input current limit to software register see CHG_CTRL3
 
-#define CHG_CTRL3 	0x03	//
-#define SET_ILIM_3A 0xEB	// sets the input current limit to 3A
+#define CHG_CTRL3 		0x03	//
+#define SET_ILIM_3A 	0xEB	// sets the input current limit to 3A
 
 #define CHG_CTRL16 		0x10	//
 #define DISABLE_JEITA 	0x00	// Disable JEITA charger profile, idk maybe we dont want this
 #define ENABLE_JEITA 	0x10	// Enable it again
 
-#define CHG_STAT 0x42		// Contains all the status bits
+#define CHG_STAT 		0x42		// Contains all the status bits
 // [7:6] 00 ready; 01 charge in progress; 10 charge done; 11 fault
 // 5 	 0 precharge; 1 fastcharge
 // 4	 0 no trickle charge; 1 trickle charge
@@ -67,8 +67,8 @@
 // 1  	 reserved
 // 0 	 0 ADC idle; 1 ADC under conversion
 
-#define ADC_DATA_H 0x44		// ADC High byte value
-#define ADC_DATA_L 0x45		// ADC Low byte value
+#define ADC_DATA_H 	0x44	// ADC High byte value
+#define ADC_DATA_L 	0x45	// ADC Low byte value
 
 #define CHG_ADC   	0x11 	//
 #define ADC_VBUS5 	0x11    //lsb 25mv +-2lsb
