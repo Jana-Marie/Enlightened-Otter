@@ -187,7 +187,7 @@ int main(void)
     }
     
     if ( sliderPos != 0) {    // check if slider is touched
-      if (sliderCnt >= 10) {  //deboungealike
+      if (sliderCnt >= 15) {  //deboungealike
 
         disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
         disDelta = CLAMP(disDelta, 0.0f, 287.0f);
@@ -196,6 +196,9 @@ int main(void)
         if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
       } else sliderCnt++;
 
+      if (colBri == 0) disDelta = briDelta;                 // prevents jumps when switching between modes
+      if (colBri == 1) disDelta = colorProportion * 287.0f; // prevents jumps when switching between modes
+      
       oldDistance = sliderPos;                  // set oldDistance to current sliderPos
     } else sliderCnt = 0;
 
