@@ -67,6 +67,7 @@ static void configure_RT(uint8_t _register, uint8_t _mask);
 static void init_RT(void);
 static void start_HRTIM1(void);
 extern void boost_reg();
+static void enable_OTG(void);
 uint16_t read_RT_ADC(void);
 void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
 void set_pwm(uint8_t timer, float duty);
@@ -103,7 +104,7 @@ float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger fil
 
 float cycleTime;            // time of one cycle
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
-float iavgCW, iavgWW, errorCW, errorWW; // stores the average current
+float iavgCW, iavgWW, errorCW, errorWW, vin; // stores the average current
 float dutyCW = MIN_DUTY;    // cold white duty cycle
 float dutyWW = MIN_DUTY;    // warm white duty cycle
 
@@ -111,7 +112,7 @@ float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will b
 uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
 uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
 uint8_t sliderCnt = 0;
-
+uint16_t adcCnt = 0;
 int main(void)
 {
   HAL_Init();
@@ -178,8 +179,8 @@ int main(void)
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
       set_scope_channel(3, targetCW);
-      set_scope_channel(4, briDelta);
-      set_scope_channel(5, sliderPos - oldDistance);
+      set_scope_channel(4, vin);
+      set_scope_channel(5, adcCnt);
       set_scope_channel(6, colorProportion * 100.0f);
       console_scope();
 
@@ -213,6 +214,16 @@ int main(void)
 }
 
 void boost_reg() {
+
+  /* VIN ADC */
+
+  //if(__HAL_ADC_GET_FLAG(&hadc1,ADC_FLAG_EOC)){
+  //  vin = HAL_ADC_GetValue(&hadc1)/4096.0f*1000.0f * 3.0f;
+  //  HAL_ADC_Start(&hadc1);
+    
+  //  adcCnt = 0;
+  //}
+
   /* Main current regulator */
   float ioutCW, ioutWW;
 
@@ -396,7 +407,7 @@ static void init_RT(void) {
 }
 
 static void enable_OTG(void) {
-  configure_RT(CHG_CTRL16, DISABLE_UUG)
+  configure_RT(CHG_CTRL16, DISABLE_UUG);
   configure_RT(CHG_CTRL1, ENABLE_OTG_MASK);
 }
 
@@ -510,6 +521,7 @@ static void ADC1_Init(void)
 {
   ADC_MultiModeTypeDef multimode;
   ADC_InjectionConfTypeDef InjectionConfig;
+  ADC_ChannelConfTypeDef sConfig;
 
   hadc1.Instance = ADC1;
 
@@ -517,7 +529,7 @@ static void ADC1_Init(void)
   hadc1.Init.ClockPrescaler         = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution             = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.ScanConvMode           = ENABLE;
+  hadc1.Init.ScanConvMode           = DISABLE;
   hadc1.Init.ContinuousConvMode     = DISABLE;
   hadc1.Init.DiscontinuousConvMode  = DISABLE;
   hadc1.Init.ExternalTrigConvEdge   = ADC_EXTERNALTRIGCONVEDGE_NONE;
@@ -537,30 +549,20 @@ static void ADC1_Init(void)
   multimode.TwoSamplingDelay  = ADC_TWOSAMPLINGDELAY_1CYCLE;
   HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
 
-  /* Discontinuous injected mode: 1st injected conversion for VIN on Ch12 */
-  InjectionConfig.InjectedChannel               = ADC_CHANNEL_12;
-  InjectionConfig.InjectedRank                  = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime          = ADC_SAMPLETIME_601CYCLES_5;
-  InjectionConfig.InjectedSingleDiff            = ADC_SINGLE_ENDED;
-  InjectionConfig.InjectedOffsetNumber          = ADC_OFFSET_NONE;
-  InjectionConfig.InjectedOffset                = 0;
-  InjectionConfig.InjectedNbrOfConversion       = 1;
-  InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
-  InjectionConfig.AutoInjectedConv              = DISABLE;
-  InjectionConfig.QueueInjectedContext          = DISABLE;
-  InjectionConfig.ExternalTrigInjecConv         = ADC_EXTERNALTRIGINJECCONV_HRTIM_TRG2;
-  InjectionConfig.ExternalTrigInjecConvEdge     = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
-  HAL_ADCEx_InjectedConfigChannel(&hadc1, &InjectionConfig);
+  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Rank = 1;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.SamplingTime = ADC_SAMPLETIME_601CYCLES_5;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
   /* Run the ADC calibration in single-ended mode */
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 
-  /* Start ADC2 Injected Conversions */
-  HAL_ADCEx_InjectedStart(&hadc1);
-
   /* Enable End of Injected Conversion interrupt */
-  __HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_JEOC);
-
+  //__HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_EOC);
+  HAL_ADC_Start(&hadc1);
 }
 
 static void ADC2_Init(void)
@@ -673,7 +675,7 @@ static void COMP6_Init(void)
   hcomp6.Instance = COMP6;
 
   /* CMP6 config, input VREG and DAC2 channel 1, output HRTIM fault line 1 */
-  hcomp6.Init.InvertingInput  = COMP_INVERTINGINPUT_DAC2_CH1;
+  hcomp6.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output            = HRTIM_FAULT_1;
   hcomp6.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
@@ -802,8 +804,6 @@ static void HRTIM1_Init(void)
   adc_trigger_config.Trigger      = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
   adc_trigger_config.UpdateSource = HRTIM_ADCTRIGGERUPDATE_TIMER_C;
   HAL_HRTIM_ADCTriggerConfig(&hhrtim1, HRTIM_ADCTRIGGER_2, &adc_trigger_config);
-
-  HAL_HRTIM_ADCTriggerConfig(&hhrtim1, HRTIM_ADCTRIGGER_1, &adc_trigger_config);
 
   /* std. config for Timer C & D */
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg);
