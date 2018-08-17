@@ -175,7 +175,7 @@ int main(void)
     if (printCnt%2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
     if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colBri, &powBt);
     
-    if (printCnt++ > 250) { // print only every n cycle
+    if (printCnt++ > 50) { // print only every n cycle
 
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
@@ -189,8 +189,8 @@ int main(void)
       printCnt = 0;
     }
     
-    if ( sliderPos != 0) {                  // check if slider is touched - TODO fix this by not using sliderPos, but segment or whatever
-      if (sliderCnt >= 10) { //deboungealike
+    if ( sliderPos != 0) {    // check if slider is touched
+      if (sliderCnt >= 10) {  //deboungealike
 
         disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
         disDelta = CLAMP(disDelta, 0.0f, 287.0f);
@@ -203,18 +203,17 @@ int main(void)
     } else sliderCnt = 0;
 
     if (colorProportionAvg != colorProportion){
-              colorProportionAvg = colorProportionAvg * 0.9 + colorProportion * 0.1;
-        // set CW and WW color accordingly to brightness and color proportion
+        colorProportionAvg = colorProportionAvg * 0.9 + colorProportion * 0.1;
+        
         targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
         targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
     }
     if(briDeltaAvg != briDelta){
         briDeltaAvg = briDeltaAvg * 0.9 + briDelta * 0.1;
 
-        // set CW and WW color accordingly to brightness and color proportion
         targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
         targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
-      }
+    }
 
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
