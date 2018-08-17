@@ -54,6 +54,10 @@
 #define CHG_CTRL3 		0x03	//
 #define SET_ILIM_3A 	0xEB	// sets the input current limit to 3A
 
+#define CHG_CTRL13		0x0D	//
+#define ENABLE_UUG		0x52 	// Enables UUG_Fet, battery voltage is present on VMID
+#define DISABLE_UUG		0x50 	// Disables UUG_Fet, no Battery voltage is present on VMID nor the OTG voltage is present on VBUS
+
 #define CHG_CTRL16 		0x10	//
 #define DISABLE_JEITA 	0x00	// Disable JEITA charger profile, idk maybe we dont want this
 #define ENABLE_JEITA 	0x10	// Enable it again
@@ -81,7 +85,7 @@
 #define ADC_REGN  	0xB1    //lsb 5mv +-2lsb
 #define ADC_TEMP_JC 0xC1 	//lsb 2degreeC +-2lsb
 
-#define TOUCH_SCALE 32   	// sets the touch slider scale 16 -> 0-143
+#define TOUCH_SCALE 22.2996515   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
 
 #define UART_DMA_CHANNEL DMA1_Channel4
 
