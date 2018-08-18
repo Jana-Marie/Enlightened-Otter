@@ -1,4 +1,4 @@
 build/*
 .mxproject
-.jdebug.user
-.user
+*.jdebug.user
+*.stl
