@@ -363,7 +363,7 @@ void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerBut
     else if (buttonAcquisitionValue[1] < buttonThr)  *colorBrightnessSwitch = 1;
     else;
     if (buttonAcquisitionValue[2] < buttonThr) *powerButton = 1;
-    else *powerButton = 1;
+    else *powerButton = 0;
   }
 }
 
