@@ -218,10 +218,9 @@ int main(void)
           targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
           targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
-    }
-    else if( powState == 0) {                   // if lamp is turned "soft" off
-      if(briDeltaAvg != 0){
-        briDeltaAvg = briDeltaAvg * 0.9;          // moving average filter with fixed constants and fixed taget
+    } else if( powState == 0) {                   // if lamp is turned "soft" off
+      if(briDeltaAvg != 0){                     // calculate and set until target is reached
+        briDeltaAvg = briDeltaAvg * 0.9;        // moving average filter with fixed constants and fixed taget
 
         targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
         targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
@@ -238,6 +237,8 @@ int main(void)
       }
     } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
     
+
+
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
     HAL_GPIO_WritePin(GPIOA, LED_Power, powState);      // clear LED "Power"
