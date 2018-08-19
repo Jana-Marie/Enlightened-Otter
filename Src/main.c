@@ -108,7 +108,6 @@ uint8_t powState = 1;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f;  // Warmwhite target current in mA
-float avgConst = 0.99f; // Averaging filter constant closer to 1 => stronger filter
 
 float cycleTime;            // time of one cycle
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
@@ -273,8 +272,8 @@ void boost_reg() {
   ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
-  iavgCW = iavgCW * avgConst + ioutCW * (1.0f - avgConst);  // Moving average filter for CW input current
-  iavgWW = iavgWW * avgConst + ioutWW * (1.0f - avgConst);  // Moving average filter for WW input current
+  iavgCW = iavgCW * CURRENT_AVERAGING + ioutCW * (1.0f - CURRENT_AVERAGING);  // Moving average filter for CW input current
+  iavgWW = iavgWW * CURRENT_AVERAGING + ioutWW * (1.0f - CURRENT_AVERAGING);  // Moving average filter for WW input current
 
   errorCW = targetCW - iavgCW;  // Calculate CW-current error
   errorWW = targetWW - iavgWW;  // Calculate WW-current error

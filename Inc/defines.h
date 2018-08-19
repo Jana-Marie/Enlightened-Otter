@@ -31,6 +31,8 @@
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.300f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
+#define CURRENT_AVERAGING 0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+
 #define POWER_LED_BRIGHTNESS 16 // brightness of the power LED in off state (0-1024)
 
 // Automatic calculated Values, please use the variables above
