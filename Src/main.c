@@ -99,6 +99,8 @@ float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current
 
 uint8_t colBri = 0;       // color or brightness switch
 uint8_t powBt = 1;        // power button value
+uint8_t powBtOld = 1;        // power button value
+uint8_t powState = 1;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f;  // Warmwhite target current in mA
@@ -186,35 +188,53 @@ int main(void)
       printCnt = 0;
     }
     
-    if ( sliderPos != 0) {    // check if slider is touched
-      if (sliderCnt >= 5) {   // debounce
+    if (powState == 1){
+      if ( sliderPos != 0) {    // check if slider is touched
+        if (sliderCnt >= 5) {   // debounce
 
-        disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
-        disDelta = CLAMP(disDelta, 0.0f, 287.0f);
+          disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
+          disDelta = CLAMP(disDelta, 0.0f, 287.0f);
 
-        if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
-        if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
-      } else sliderCnt++;
+          if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
+          if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
+        } else sliderCnt++;
 
-      if (colBri == 0) disDelta = briDelta;                 // prevents jumps when switching between modes
-      if (colBri == 1) disDelta = colorProportion * 287.0f; // prevents jumps when switching between modes
-      
-      oldDistance = sliderPos;                  // set oldDistance to current sliderPos
-    } else sliderCnt = 0;
-
-    if (colorProportionAvg != colorProportion){   // smooth out color value until target
-        colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;
+        if (colBri == 0) disDelta = briDelta;                 // prevents jumps when switching between modes
+        if (colBri == 1) disDelta = colorProportion * 287.0f; // prevents jumps when switching between modes
         
-        targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
-        targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
-    }
-    if(briDeltaAvg != briDelta){  // smooth out brightness value until target
-        briDeltaAvg = briDeltaAvg * 0.9 + briDelta * 0.1;
+        oldDistance = sliderPos;                  // set oldDistance to current sliderPos
+      } else sliderCnt = 0;
 
-        targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
-        targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
-    }
+      if (colorProportionAvg != colorProportion){   // smooth out color value until target
+          colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;
+          
+          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
+          targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+      }
+      if(briDeltaAvg != briDelta){  // smooth out brightness value until target
+          briDeltaAvg = briDeltaAvg * 0.9 + briDelta * 0.1;
 
+          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
+          targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+      }
+    } else if( powState == 0) {
+      briDeltaAvg = briDeltaAvg * 0.9;
+
+      targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
+      targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+    }
+    
+    if (powBtOld){
+    if (powBt == 1 && powState == 0){
+      powState = 1;
+      powBtOld = 0;
+    } else if (powBt == 1 && powState == 1){
+      powState = 0;
+      powBtOld = 0;
+    }
+  }else if (!powBtOld && powBt == 0){
+    powBtOld = 1;
+  }
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
     HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);         // clear LED "Power"
