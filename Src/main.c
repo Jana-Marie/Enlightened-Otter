@@ -189,9 +189,9 @@ int main(void)
       printCnt = 0;
     }
     
-    if (powState == 1){                                         // if lamp is turned "soft" on
-      if ( sliderPos != 0) {                                    // check if slider is touched
-        if (sliderCnt >= 5) {                                   // "debounce" slider
+    if (powState == 1){       // if lamp is turned "soft" on
+      if ( sliderPos != 0) {  // check if slider is touched
+        if (sliderCnt >= 5) { // "debounce" slider
 
           distanceDelta += sliderPos - oldDistance;             // calculate sliderPos delta
           distanceDelta = CLAMP(distanceDelta, 0.0f, 287.0f);
@@ -238,13 +238,14 @@ int main(void)
     } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
     
     if (powState == 1){
-      HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch); // clear LED "Brightness"
-      HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);       // clear LED "Color"
-      HAL_GPIO_WritePin(GPIOA, LED_Power, powState);                    // clear LED "Power"
-    else {
+      HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch); // set LED "Brightness"
+      HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);       // set LED "Color"
+      HAL_GPIO_WritePin(GPIOA, LED_Power, powState);                    // set LED "Power"
+    } else {
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);    // clear LED "Brightness"
       HAL_GPIO_WritePin(GPIOA, LED_Color, 0);         // clear LED "Color"
-      HAL_GPIO_WritePin(GPIOA, LED_Power, powState);  // clear LED "Power"
+      HAL_GPIO_WritePin(GPIOA, LED_Power, 0);         // clear LED "Power"
+      if(printCnt == 0) HAL_GPIO_WritePin(GPIOA, LED_Power, 1);  // set LED "Power"
     }
   }
 }
