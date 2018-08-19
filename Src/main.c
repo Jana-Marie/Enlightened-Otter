@@ -220,11 +220,12 @@ int main(void)
       }
     }
     else if( powState == 0) {                   // if lamp is turned "soft" off
+      if(briDeltaAvg != 0){
+        briDeltaAvg = briDeltaAvg * 0.9;          // moving average filter with fixed constants and fixed taget
 
-      briDeltaAvg = briDeltaAvg * 0.9;          // moving average filter with fixed constants and fixed taget
-
-      targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-      targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+        targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+        targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+      }
     }
     
     if (powStateHasChanged){                        // power button state maschine start if something has changed
