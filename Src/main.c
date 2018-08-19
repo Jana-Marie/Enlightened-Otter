@@ -90,14 +90,14 @@ uint8_t IdxBankB = 0;       // IO indexer for the buttons
 uint8_t IdxBank = 0;
 uint16_t sliderPos = 0;     // current slider position
 uint8_t sliderIsTouched = 0;// 1 if slider is touched
-int16_t disDelta = 0;      // delta slider position
-int16_t briDelta = 0;      // calculated brightness delta
-float briDeltaAvg = 0;      // calculated brightness delta
+int16_t distanceDelta = 0;      // delta slider position
+int16_t brightnessDelta = 0;      // calculated brightness delta
+float brightnessDeltaAvg = 0;      // calculated brightness delta
 int16_t oldDistance = 0;   // old slider position
 float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 
-uint8_t colBri = 0;       // color or brightness switch
+uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
 uint8_t powButton = 1;        // power button value
 uint8_t powStateHasChanged = 1;        // power button value
 uint8_t powState = 1;
@@ -117,6 +117,7 @@ uint8_t print = 1;        // debugvalue for alternating reading of current / vol
 uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
 uint8_t sliderCnt = 0;
 uint16_t adcCnt = 0;
+
 int main(void)
 {
   HAL_Init();
@@ -172,7 +173,7 @@ int main(void)
   {
 
     if (printCnt%2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colBri, &powButton);
+    if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
     
     if (printCnt++ > 50) { // print only every n cycle
 
@@ -192,15 +193,15 @@ int main(void)
       if ( sliderPos != 0) {                                    // check if slider is touched
         if (sliderCnt >= 5) {                                   // "debounce" slider
 
-          disDelta += sliderPos - oldDistance;                  // calculate sliderPos delta
-          disDelta = CLAMP(disDelta, 0.0f, 287.0f);
+          distanceDelta += sliderPos - oldDistance;                  // calculate sliderPos delta
+          distanceDelta = CLAMP(distanceDelta, 0.0f, 287.0f);
 
-          if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
-          if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
+          if (colorBrightnessSwitch == 0) brightnessDelta = distanceDelta;                 // if color/brightness switch is 0 then change brightness
+          if (colorBrightnessSwitch == 1) colorProportion = distanceDelta / 287.0f; // if color/brightness switch is 1 then change the color
         } else sliderCnt++;
 
-        if (colBri == 0) disDelta = briDelta;                   // prevents jumps when switching between modes
-        if (colBri == 1) disDelta = colorProportion * 287.0f;   // prevents jumps when switching between modes
+        if (colorBrightnessSwitch == 0) distanceDelta = brightnessDelta;                   // prevents jumps when switching between modes
+        if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * 287.0f;   // prevents jumps when switching between modes
         
         oldDistance = sliderPos;                                // set oldDistance to current sliderPos
       } else sliderCnt = 0;
@@ -209,21 +210,21 @@ int main(void)
       if (colorProportionAvg != colorProportion){               // smooth out color value until target
           colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;  // moving average filter with fixed constants
           
-          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-          targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+          targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+          targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
-      if(briDeltaAvg != briDelta){                              // smooth out brightness value until target
-          briDeltaAvg = briDeltaAvg * 0.9 + briDelta * 0.1;     // moving average filter with fixed constants
+      if(brightnessDeltaAvg != brightnessDelta){                              // smooth out brightness value until target
+          brightnessDeltaAvg = brightnessDeltaAvg * 0.9 + brightnessDelta * 0.1;     // moving average filter with fixed constants
 
-          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-          targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+          targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+          targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
     } else if( powState == 0) {                   // if lamp is turned "soft" off
-      if(briDeltaAvg != 0){                     // calculate and set until target is reached
-        briDeltaAvg = briDeltaAvg * 0.9;        // moving average filter with fixed constants and fixed taget
+      if(brightnessDeltaAvg != 0){                     // calculate and set until target is reached
+        brightnessDeltaAvg = brightnessDeltaAvg * 0.9;        // moving average filter with fixed constants and fixed taget
 
-        targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-        targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
     }
     
@@ -239,8 +240,8 @@ int main(void)
     
 
 
-    HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch);  // clear LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);        // clear LED "Color"
     HAL_GPIO_WritePin(GPIOA, LED_Power, powState);      // clear LED "Power"
   }
 }
