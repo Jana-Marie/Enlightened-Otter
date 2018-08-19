@@ -188,45 +188,47 @@ int main(void)
       printCnt = 0;
     }
     
-    if (powState == 1){
-      if ( sliderPos != 0) {    // check if slider is touched
-        if (sliderCnt >= 5) {   // debounce
+    if (powState == 1){                                         // if lamp is turned "soft" on
+      if ( sliderPos != 0) {                                    // check if slider is touched
+        if (sliderCnt >= 5) {                                   // "debounce" slider
 
-          disDelta += sliderPos - oldDistance;  // calculate sliderPos delta
+          disDelta += sliderPos - oldDistance;                  // calculate sliderPos delta
           disDelta = CLAMP(disDelta, 0.0f, 287.0f);
 
           if (colBri == 0) briDelta = disDelta;                 // if color/brightness switch is 0 then change brightness
           if (colBri == 1) colorProportion = disDelta / 287.0f; // if color/brightness switch is 1 then change the color
         } else sliderCnt++;
 
-        if (colBri == 0) disDelta = briDelta;                 // prevents jumps when switching between modes
-        if (colBri == 1) disDelta = colorProportion * 287.0f; // prevents jumps when switching between modes
+        if (colBri == 0) disDelta = briDelta;                   // prevents jumps when switching between modes
+        if (colBri == 1) disDelta = colorProportion * 287.0f;   // prevents jumps when switching between modes
         
-        oldDistance = sliderPos;                  // set oldDistance to current sliderPos
+        oldDistance = sliderPos;                                // set oldDistance to current sliderPos
       } else sliderCnt = 0;
 
-      if (colorProportionAvg != colorProportion){   // smooth out color value until target
-          colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;
+                                                                // calculate nex value with moving average filter, do this until target is reached  
+      if (colorProportionAvg != colorProportion){               // smooth out color value until target
+          colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;  // moving average filter with fixed constants
           
-          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
+          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
           targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
-      if(briDeltaAvg != briDelta){  // smooth out brightness value until target
-          briDeltaAvg = briDeltaAvg * 0.9 + briDelta * 0.1;
+      if(briDeltaAvg != briDelta){                              // smooth out brightness value until target
+          briDeltaAvg = briDeltaAvg * 0.9 + briDelta * 0.1;     // moving average filter with fixed constants
 
-          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
+          targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
           targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
     }
-    else if( powState == 0) {
-      briDeltaAvg = briDeltaAvg * 0.9;
+    else if( powState == 0) {                   // if lamp is turned "soft" off
 
-      targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
+      briDeltaAvg = briDeltaAvg * 0.9;          // moving average filter with fixed constants and fixed taget
+
+      targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
       targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
     }
     
-    if (powStateHasChanged){                          // power button state maschine start if something has changed
-      if (powButton == 1 && powState == 0){     // if powerbutton is pressed and device is off, turn on and set "has changed flag"
+    if (powStateHasChanged){                        // power button state maschine start if something has changed
+      if (powButton == 1 && powState == 0){         // if powerbutton is pressed and device is off, turn on and set "has changed flag"
         powState = 1;
         powStateHasChanged = 0;
       } else if (powButton == 1 && powState == 1){  // if powerbutton is pressed and device is on, turn off and set "has changed flag"
@@ -237,7 +239,7 @@ int main(void)
     
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, powState);         // clear LED "Power"
+    HAL_GPIO_WritePin(GPIOA, LED_Power, powState);      // clear LED "Power"
   }
 }
 
