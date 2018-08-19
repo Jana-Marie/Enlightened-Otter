@@ -31,6 +31,8 @@
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.300f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
+#define POWER_LED_BRIGHTNESS 16 // brightness of the power LED in off state (0-1024)
+
 // Automatic calculated Values, please use the variables above
 
 #define VDDA 				3.0f 	// Vref = VDDA = Analog power supply

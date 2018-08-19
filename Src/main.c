@@ -252,7 +252,7 @@ int main(void)
     } else {
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);    // clear LED "Brightness"
       HAL_GPIO_WritePin(GPIOA, LED_Color, 0);         // clear LED "Color"
-      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 127);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);         // clear LED "Power"
+      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);         // clear LED "Power"
     }
   }
 }
@@ -875,7 +875,7 @@ static void TIM2_Init(void)
   HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig);
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 127;
+  sConfigOC.Pulse = POWER_LED_BRIGHTNESS;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
