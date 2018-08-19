@@ -217,7 +217,8 @@ int main(void)
           targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
           targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
-    } else if( powState == 0) {
+    }
+    else if( powState == 0) {
       briDeltaAvg = briDeltaAvg * 0.9;
 
       targetCW = CLAMP((briDeltaAvg * colorProportionAvg), 0.0f, 287.0f);   // set values
@@ -225,16 +226,15 @@ int main(void)
     }
     
     if (powBtOld){
-    if (powBt == 1 && powState == 0){
-      powState = 1;
-      powBtOld = 0;
-    } else if (powBt == 1 && powState == 1){
-      powState = 0;
-      powBtOld = 0;
-    }
-  }else if (!powBtOld && powBt == 0){
-    powBtOld = 1;
-  }
+      if (powBt == 1 && powState == 0){
+        powState = 1;
+        powBtOld = 0;
+      } else if (powBt == 1 && powState == 1){
+        powState = 0;
+        powBtOld = 0;
+      }
+    } else if (!powBtOld && powBt == 0) powBtOld = 1;
+    
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
     HAL_GPIO_WritePin(GPIOA, LED_Power, powState);         // clear LED "Power"
