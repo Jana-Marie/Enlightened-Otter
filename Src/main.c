@@ -238,11 +238,15 @@ int main(void)
       }
     } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
     
-
-
-    HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch);  // clear LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);        // clear LED "Color"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, powState);      // clear LED "Power"
+    if (powState == 1){
+      HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch);  // clear LED "Brightness"
+      HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);        // clear LED "Color"
+      HAL_GPIO_WritePin(GPIOA, LED_Power, powState);      // clear LED "Power"
+    else {
+      HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);  // clear LED "Brightness"
+      HAL_GPIO_WritePin(GPIOA, LED_Color, 0);        // clear LED "Color"
+      HAL_GPIO_WritePin(GPIOA, LED_Power, powState);      // clear LED "Power"
+    }
   }
 }
 
