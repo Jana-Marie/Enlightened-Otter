@@ -98,8 +98,8 @@ float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current co
 float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 
 uint8_t colBri = 0;       // color or brightness switch
-uint8_t powBt = 1;        // power button value
-uint8_t powBtOld = 1;        // power button value
+uint8_t powButton = 1;        // power button value
+uint8_t powStateHasChanged = 1;        // power button value
 uint8_t powState = 1;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
@@ -172,7 +172,7 @@ int main(void)
   {
 
     if (printCnt%2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colBri, &powBt);
+    if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colBri, &powButton);
     
     if (printCnt++ > 50) { // print only every n cycle
 
@@ -225,15 +225,15 @@ int main(void)
       targetWW = CLAMP((briDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
     }
     
-    if (powBtOld){
-      if (powBt == 1 && powState == 0){
+    if (powStateHasChanged){                          // power button state maschine start if something has changed
+      if (powButton == 1 && powState == 0){     // if powerbutton is pressed and device is off, turn on and set "has changed flag"
         powState = 1;
-        powBtOld = 0;
-      } else if (powBt == 1 && powState == 1){
+        powStateHasChanged = 0;
+      } else if (powButton == 1 && powState == 1){  // if powerbutton is pressed and device is on, turn off and set "has changed flag"
         powState = 0;
-        powBtOld = 0;
+        powStateHasChanged = 0;
       }
-    } else if (!powBtOld && powBt == 0) powBtOld = 1;
+    } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
     
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
