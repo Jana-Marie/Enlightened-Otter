@@ -39,6 +39,8 @@ I2C_HandleTypeDef hi2c1;
 DMA_HandleTypeDef hdma_i2c1_rx;
 DMA_HandleTypeDef hdma_i2c1_tx;
 
+TIM_HandleTypeDef htim2;
+
 TSC_HandleTypeDef htscs;        // Touch slider handle
 TSC_IOConfigTypeDef IoConfigs;
 
@@ -63,6 +65,7 @@ static void I2C1_Init(void);
 static void USART1_UART_Init(void);
 static void DAC1_Init(void);
 static void DAC2_Init(void);
+static void TIM2_Init(void);
 static void configure_RT(uint8_t _register, uint8_t _mask);
 static void init_RT(void);
 static void start_HRTIM1(void);
@@ -70,6 +73,7 @@ extern void boost_reg();
 static void enable_OTG(void);
 uint16_t read_RT_ADC(void);
 void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
+void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void set_pwm(uint8_t timer, float duty);
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton);
 void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT);
@@ -139,6 +143,8 @@ int main(void)
   USART1_UART_Init();
   DAC1_Init();
   DAC2_Init();
+  TIM2_Init();
+
 
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
@@ -156,12 +162,14 @@ int main(void)
   HAL_TSC_IODischarge(&htscb, ENABLE);
   HAL_TSC_IODischarge(&htscs, ENABLE);
 
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+
   //HAL_TSC_Start_IT(&htscb);
   //HAL_TSC_Start_IT(&htscs);
 
   HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0); // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED_Color, 0);      // clear LED "Color"
-  HAL_GPIO_WritePin(GPIOA, LED_Power, 1);      // clear LED "Power"
+  //HAL_GPIO_WritePin(GPIOA, LED_Power, 1);      // clear LED "Power"
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
@@ -240,12 +248,11 @@ int main(void)
     if (powState == 1){
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch); // set LED "Brightness"
       HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);       // set LED "Color"
-      HAL_GPIO_WritePin(GPIOA, LED_Power, powState);                    // set LED "Power"
+      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);
     } else {
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);    // clear LED "Brightness"
       HAL_GPIO_WritePin(GPIOA, LED_Color, 0);         // clear LED "Color"
-      HAL_GPIO_WritePin(GPIOA, LED_Power, 0);         // clear LED "Power"
-      if(printCnt == 0) HAL_GPIO_WritePin(GPIOA, LED_Power, 1);  // set LED "Power"
+      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 127);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);         // clear LED "Power"
     }
   }
 }
@@ -847,6 +854,33 @@ static void HRTIM1_Init(void)
 
   HAL_HRTIM_MspPostInit(&hhrtim1);
 
+}
+
+static void TIM2_Init(void)
+{
+
+  TIM_MasterConfigTypeDef sMasterConfig;
+  TIM_OC_InitTypeDef sConfigOC;
+
+  htim2.Instance = TIM2;
+  htim2.Init.Prescaler = 0;
+  htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim2.Init.Period = 1024;
+  htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  HAL_TIM_PWM_Init(&htim2);
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  HAL_TIMEx_MasterConfigSynchronization(&htim2, &sMasterConfig);
+
+  sConfigOC.OCMode = TIM_OCMODE_PWM1;
+  sConfigOC.Pulse = 127;
+  sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
+  sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
+  
+  HAL_TIM_MspPostInit(&htim2);
 }
 
 static void I2C1_Init(void)
