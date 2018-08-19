@@ -237,7 +237,7 @@ int main(void)
   }
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colBri);  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, colBri);        // clear LED "Color"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, powBt);         // clear LED "Power"
+    HAL_GPIO_WritePin(GPIOA, LED_Power, powState);         // clear LED "Power"
   }
 }
 
