@@ -201,36 +201,36 @@ int main(void)
         if (sliderCnt >= 5) { // "debounce" slider
 
           distanceDelta += sliderPos - oldDistance;             // calculate sliderPos delta
-          distanceDelta = CLAMP(distanceDelta, 0.0f, 287.0f);
+          distanceDelta = CLAMP(distanceDelta, 0.0f, TOUCH_SCALE_DIVIDER);
 
           if (colorBrightnessSwitch == 0) brightnessDelta = distanceDelta;          // if color/brightness switch is 0 then change brightness
-          if (colorBrightnessSwitch == 1) colorProportion = distanceDelta / 287.0f; // if color/brightness switch is 1 then change the color
+          if (colorBrightnessSwitch == 1) colorProportion = distanceDelta / TOUCH_SCALE_DIVIDER; // if color/brightness switch is 1 then change the color
         } else sliderCnt++;
 
         if (colorBrightnessSwitch == 0) distanceDelta = brightnessDelta;          // prevents jumps when switching between modes
-        if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * 287.0f; // prevents jumps when switching between modes
+        if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * TOUCH_SCALE_DIVIDER; // prevents jumps when switching between modes
 
         oldDistance = sliderPos;                                // set oldDistance to current sliderPos
       } else sliderCnt = 0;
       // calculate nex value with moving average filter, do this until target is reached
       if (colorProportionAvg != colorProportion) {              // smooth out color value until target
-        colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;  // moving average filter with fixed constants
+        colorProportionAvg = colorProportionAvg * COLOR_FADING_FILTER + colorProportion * (1.0f - COLOR_FADING_FILTER);  // moving average filter with fixed constants
 
-        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
+        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
       }
       if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
-        brightnessDeltaAvg = brightnessDeltaAvg * 0.9 + brightnessDelta * 0.1;  // moving average filter with fixed constants
+        brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER + brightnessDelta * (1.0f - BRIGHTNESS_FADING_FILTER);  // moving average filter with fixed constants
 
-        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
+        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
       }
     } else if ( powState == 0) {                        // if lamp is turned "soft" off
       if (brightnessDeltaAvg != 0) {                    // calculate and set until target is reached
-        brightnessDeltaAvg = brightnessDeltaAvg * 0.9;  // moving average filter with fixed constants and fixed taget
+        brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER;  // moving average filter with fixed constants and fixed taget
 
-        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
+        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
       }
     }
 
@@ -272,8 +272,8 @@ void boost_reg() {
   ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
-  iavgCW = iavgCW * CURRENT_AVERAGING + ioutCW * (1.0f - CURRENT_AVERAGING);  // Moving average filter for CW input current
-  iavgWW = iavgWW * CURRENT_AVERAGING + ioutWW * (1.0f - CURRENT_AVERAGING);  // Moving average filter for WW input current
+  iavgCW = iavgCW * CURRENT_AVERAGING_FILTER + ioutCW * (1.0f - CURRENT_AVERAGING_FILTER);  // Moving average filter for CW input current
+  iavgWW = iavgWW * CURRENT_AVERAGING_FILTER + ioutWW * (1.0f - CURRENT_AVERAGING_FILTER);  // Moving average filter for WW input current
 
   errorCW = targetCW - iavgCW;  // Calculate CW-current error
   errorWW = targetWW - iavgWW;  // Calculate WW-current error
