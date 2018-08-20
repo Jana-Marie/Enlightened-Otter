@@ -19,6 +19,7 @@
 #include "stm32f3xx_hal.h"
 #include "init_functions.h"
 #include "main.h"
+#include <math.h>
 #include <string.h>
 #include "defines.h"
 
@@ -278,10 +279,13 @@ void boost_reg(void) {
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
   float target_temp, color_temp;
 
+  float gamma = 1.6;
+
   if (chan) color_temp = color;
   else if (!chan) color_temp = (1.0f - color);
 
-  target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
+  target_temp = pow(((brightness * color_temp) / 255), (1 / gamma)) * 255;
+  target_temp = CLAMP(target_temp, 0.0f, max_value);
 
   if (chan) targetWW = target_temp;
   else if (!chan) targetCW = target_temp;
