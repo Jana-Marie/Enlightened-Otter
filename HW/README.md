@@ -1,7 +1,7 @@
 - [ ] HW
 	- [ ] Move 18650 clips to fit battery
 	- dont fit the battery, move by 1-2mm
-	- [ ] Add pullup to NTC (LED)
+	- [x] Add pullup to NTC (LED)
 	- 10k
 	- [ ] Check USB footprint
 	- Part didnt fit footprint that well, already changed but not tested!
