@@ -77,6 +77,7 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void set_pwm(uint8_t timer, float duty);
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton);
 void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT);
+void set_brightness(uint8_t chan, float brightness, float color, float max_value);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
@@ -205,8 +206,8 @@ int main(void)
 
           if (colorBrightnessSwitch == 0) brightnessDelta = distanceDelta;          // if color/brightness switch is 0 then change brightness
           if (colorBrightnessSwitch == 1) colorProportion = distanceDelta / TOUCH_SCALE_DIVIDER; // if color/brightness switch is 1 then change the color
+        
         } else sliderCnt++;
-
         if (colorBrightnessSwitch == 0) distanceDelta = brightnessDelta;          // prevents jumps when switching between modes
         if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * TOUCH_SCALE_DIVIDER; // prevents jumps when switching between modes
 
@@ -214,23 +215,26 @@ int main(void)
       } else sliderCnt = 0;
       // calculate nex value with moving average filter, do this until target is reached
       if (colorProportionAvg != colorProportion) {              // smooth out color value until target
+        
         colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
 
-        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
-        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
+        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
+        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
       }
       if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
+        
         brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
 
-        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
-        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
+        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
+        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
       }
     } else if ( powState == 0) {                        // if lamp is turned "soft" off
       if (brightnessDeltaAvg != 0) {                    // calculate and set until target is reached
+
         brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER;  // moving average filter with fixed constants and fixed taget
 
-        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
-        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
+        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
+        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
       }
     }
 
@@ -286,6 +290,18 @@ void boost_reg(void) {
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
+}
+
+void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
+  float target_temp, color_temp;
+
+  if (chan) color_temp = color;
+  else if (!chan) color_temp = (1.0f - color);
+
+  target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
+
+  if (chan) targetWW = target_temp;
+  else if (!chan) targetCW = target_temp;
 }
 
 void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)

@@ -96,6 +96,9 @@
 
 #define UART_DMA_CHANNEL DMA1_Channel4
 
+#define WW 0
+#define CW 1
+
 // usefull functions
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define SCALE(value, high, max) MIN(MAX(((max) - (value)) / ((max) - (high)), 0.0), 1.0)
