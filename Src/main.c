@@ -162,11 +162,12 @@ int main(void)
   
   while (1)
   {
+    if (printCnt++ > 50) printCnt = 0;
 
     if (printCnt % 2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
     if ((printCnt + 1) % 2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
 
-    if (printCnt++ > 50) { // print only every n cycle
+    if (printCnt%5 == 0) { // print only every n cycle
 
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
@@ -176,8 +177,6 @@ int main(void)
       set_scope_channel(5, 0);
       set_scope_channel(6, colorProportion * 100.0f);
       console_scope();
-
-      printCnt = 0;
     }
 
     if (powState == 1) {      // if lamp is turned "soft" on
@@ -284,8 +283,7 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   if (chan) color_temp = color;
   else if (!chan) color_temp = (1.0f - color);
 
-  target_temp = pow(((brightness * color_temp) / 255), (1 / gamma)) * 255;
-  target_temp = CLAMP(target_temp, 0.0f, max_value);
+  target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
 
   if (chan) targetWW = target_temp;
   else if (!chan) targetCW = target_temp;
