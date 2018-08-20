@@ -5,6 +5,8 @@
 	- 10k
 	- [ ] Check USB footprint
 	- Part didnt fit footprint that well, already changed but not tested!
+	- [x] Remove VIN measurement
+	- not needed anymore
 	- [x] Add CC1,CC2 pulldown resistors
 	- Had only one and CC1/2 connected together, ofc that didn't work
 	- [ ] Check for analog design improvements
