@@ -184,15 +184,15 @@ int main(void)
         if (sliderCnt >= 5) { // "debounce" slider
 
           distanceDelta += sliderPos - oldDistance;             // calculate sliderPos delta
-          distanceDelta = CLAMP(distanceDelta, 0.0f, TOUCH_SCALE_DIVIDER);
+          distanceDelta = CLAMP(distanceDelta, 0.0f, MAX_CURRENT);
 
           if (colorBrightnessSwitch == 0) brightnessDelta = distanceDelta;          // if color/brightness switch is 0 then change brightness
-          if (colorBrightnessSwitch == 1) colorProportion = distanceDelta / TOUCH_SCALE_DIVIDER; // if color/brightness switch is 1 then change the color
+          if (colorBrightnessSwitch == 1) colorProportion = distanceDelta / MAX_CURRENT; // if color/brightness switch is 1 then change the color
 
         } else sliderCnt++;
 
         if (colorBrightnessSwitch == 0) distanceDelta = brightnessDelta;          // prevents jumps when switching between modes
-        if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * TOUCH_SCALE_DIVIDER; // prevents jumps when switching between modes
+        if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * MAX_CURRENT; // prevents jumps when switching between modes
 
         oldDistance = sliderPos;                                // set oldDistance to current sliderPos
       } else sliderCnt = 0;
@@ -201,23 +201,23 @@ int main(void)
 
         colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
 
-        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
-        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
+        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
       }
       if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
 
         brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
 
-        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
-        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
+        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
       }
     } else if ( powState == 0) {                        // if lamp is turned "soft" off
       if (brightnessDeltaAvg != 0) {                    // calculate and set until target is reached
 
         brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER;  // moving average filter with fixed constants and fixed taget
 
-        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
-        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, TOUCH_SCALE_DIVIDER);
+        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
       }
     }
 
