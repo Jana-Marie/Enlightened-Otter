@@ -9,7 +9,7 @@
 	- not needed anymore
 	- [x] Add CC1,CC2 pulldown resistors
 	- Had only one and CC1/2 connected together, ofc that didn't work
-	- [-] Check for analog design improvements
+	- [x] Check for analog design improvements
 	- Analog design seems to be okay by now, will check later again :3
 	- pushed something here and there, i guess its fine now
 	- [x] Gate pulldowns
