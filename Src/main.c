@@ -256,7 +256,7 @@ int main(void)
   }
 }
 
-void boost_reg() {
+void boost_reg(void) {
 
   /* VIN ADC not injected mode*/
 
