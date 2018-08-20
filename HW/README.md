@@ -3,7 +3,7 @@
 	- dont fit the battery, move by 1-2mm
 	- [x] Add pullup to NTC (LED)
 	- 10k
-	- [ ] Check USB footprint
+	- [x] Check USB footprint
 	- Part didnt fit footprint that well, already changed but not tested!
 	- [x] Remove VIN measurement
 	- not needed anymore
