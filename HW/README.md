@@ -13,17 +13,16 @@
 	- Analog design seems to be okay by now, will check later again :3
 	- [x] Gate pulldowns
 	- Gate driver has no pulldowns, unknown behaviour while not driven
-	- [ ] Reduce Boost inductance
+	- [x] Reduce Boost inductance
 	- 15uH is too high, 3.3uH is better, also increase dc-current, maybe use this inductor https://de.rs-online.com/web/p/drahtgewickelte-smd-induktivitaten/9236194/
 	- [ ] Change voltage regulator to 3.0V type
 	- Is still 3.3V type in schematic, 3.0V was used for testing
 	- [x] Divide Vin voltage divider resistance by 10
 	- ~~Resistance seems to be too high, measuring falsifies the result~~ measured to fast, meh! Is fixed now
-	- [ ] Add Mosfet to turn ESP off
+	- [x] Add Mosfet to turn ESP off
 	- ESP will be turned on all the time, add sleepmode and/or switched power 
-	- [ ] Check schematic symbols
-	- Mosfets and inductors have the wrong part numbers (mosfet has to be AO3400, inductor to be determined)
-	- Change ADC voltage divider values
+	- [x] Check schematic symbols
+	- Mosfets and inductors have the wrong part numbers (mosfet has to be DMN3404L-7, inductor to be determined)
 	- [ ] Export PCB design files to kicad and publish
 	- Also export Gerber?
 	- [x] Fix OTG mode
