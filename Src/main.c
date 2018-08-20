@@ -179,9 +179,9 @@ int main(void)
   while (1)
   {
 
-    if (printCnt%2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    if ((printCnt+1)%2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
-    
+    if (printCnt % 2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
+    if ((printCnt + 1) % 2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
+
     if (printCnt++ > 50) { // print only every n cycle
 
       set_scope_channel(0, iavgWW);
@@ -195,8 +195,8 @@ int main(void)
 
       printCnt = 0;
     }
-    
-    if (powState == 1){       // if lamp is turned "soft" on
+
+    if (powState == 1) {      // if lamp is turned "soft" on
       if ( sliderPos != 0) {  // check if slider is touched
         if (sliderCnt >= 5) { // "debounce" slider
 
@@ -209,42 +209,42 @@ int main(void)
 
         if (colorBrightnessSwitch == 0) distanceDelta = brightnessDelta;          // prevents jumps when switching between modes
         if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * 287.0f; // prevents jumps when switching between modes
-        
+
         oldDistance = sliderPos;                                // set oldDistance to current sliderPos
       } else sliderCnt = 0;
-                                                                // calculate nex value with moving average filter, do this until target is reached  
-      if (colorProportionAvg != colorProportion){               // smooth out color value until target
-          colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;  // moving average filter with fixed constants
-          
-          targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-          targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
-      }
-      if(brightnessDeltaAvg != brightnessDelta){                                  // smooth out brightness value until target
-          brightnessDeltaAvg = brightnessDeltaAvg * 0.9 + brightnessDelta * 0.1;  // moving average filter with fixed constants
+      // calculate nex value with moving average filter, do this until target is reached
+      if (colorProportionAvg != colorProportion) {              // smooth out color value until target
+        colorProportionAvg = colorProportionAvg * 0.95 + colorProportion * 0.05;  // moving average filter with fixed constants
 
-          targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
-          targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
-    } else if( powState == 0) {                         // if lamp is turned "soft" off
-      if(brightnessDeltaAvg != 0){                      // calculate and set until target is reached
+      if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
+        brightnessDeltaAvg = brightnessDeltaAvg * 0.9 + brightnessDelta * 0.1;  // moving average filter with fixed constants
+
+        targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
+        targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
+      }
+    } else if ( powState == 0) {                        // if lamp is turned "soft" off
+      if (brightnessDeltaAvg != 0) {                    // calculate and set until target is reached
         brightnessDeltaAvg = brightnessDeltaAvg * 0.9;  // moving average filter with fixed constants and fixed taget
 
         targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, 287.0f);
         targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, 287.0f);
       }
     }
-    
-    if (powStateHasChanged){                        // power button state maschine start if something has changed
-      if (powButton == 1 && powState == 0){         // if powerbutton is pressed and device is off, turn on and set "has changed flag"
+
+    if (powStateHasChanged) {                       // power button state maschine start if something has changed
+      if (powButton == 1 && powState == 0) {        // if powerbutton is pressed and device is off, turn on and set "has changed flag"
         powState = 1;
         powStateHasChanged = 0;
-      } else if (powButton == 1 && powState == 1){  // if powerbutton is pressed and device is on, turn off and set "has changed flag"
+      } else if (powButton == 1 && powState == 1) { // if powerbutton is pressed and device is on, turn off and set "has changed flag"
         powState = 0;
         powStateHasChanged = 0;
       }
     } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
-    
-    if (powState == 1){
+
+    if (powState == 1) {
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch); // set LED "Brightness"
       HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);       // set LED "Color"
       __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);
@@ -260,12 +260,12 @@ void boost_reg() {
 
   /* VIN ADC not injected mode*/
 
-  if(adcCnt++ >= 2014 && __HAL_ADC_GET_FLAG(&hadc1,ADC_FLAG_EOC)){
+  if (adcCnt++ >= 2014 && __HAL_ADC_GET_FLAG(&hadc1, ADC_FLAG_EOC)) {
     vin = (HAL_ADC_GetValue(&hadc1) * 2.2744f); //  1 / 4096.0f * 1000.0f * 3.0f / 0.475 * 1.475 = 2.2744
     HAL_ADC_Start(&hadc1);
     adcCnt = 0;
   }
-  
+
   /* Main current regulator */
   float ioutCW, ioutWW;
 
@@ -878,7 +878,7 @@ static void TIM2_Init(void)
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
   HAL_TIM_PWM_ConfigChannel(&htim2, &sConfigOC, TIM_CHANNEL_1);
-  
+
   HAL_TIM_MspPostInit(&htim2);
 }
 
