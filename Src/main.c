@@ -214,13 +214,13 @@ int main(void)
       } else sliderCnt = 0;
       // calculate nex value with moving average filter, do this until target is reached
       if (colorProportionAvg != colorProportion) {              // smooth out color value until target
-        colorProportionAvg = colorProportionAvg * COLOR_FADING_FILTER + colorProportion * (1.0f - COLOR_FADING_FILTER);  // moving average filter with fixed constants
+        colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
 
         targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
         targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
       }
       if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
-        brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER + brightnessDelta * (1.0f - BRIGHTNESS_FADING_FILTER);  // moving average filter with fixed constants
+        brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
 
         targetCW = CLAMP((brightnessDeltaAvg * colorProportionAvg), 0.0f, TOUCH_SCALE_DIVIDER);
         targetWW = CLAMP((brightnessDeltaAvg * (1.0f - colorProportionAvg)), 0.0f, TOUCH_SCALE_DIVIDER);
@@ -251,7 +251,7 @@ int main(void)
     } else {
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);    // clear LED "Brightness"
       HAL_GPIO_WritePin(GPIOA, LED_Color, 0);         // clear LED "Color"
-      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);         // clear LED "Power"
+      __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
     }
   }
 }
@@ -272,8 +272,8 @@ void boost_reg() {
   ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
-  iavgCW = iavgCW * CURRENT_AVERAGING_FILTER + ioutCW * (1.0f - CURRENT_AVERAGING_FILTER);  // Moving average filter for CW input current
-  iavgWW = iavgWW * CURRENT_AVERAGING_FILTER + ioutWW * (1.0f - CURRENT_AVERAGING_FILTER);  // Moving average filter for WW input current
+  iavgCW = FILT(iavgCW, ioutCW, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
+  iavgWW = FILT(iavgWW, ioutWW, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
 
   errorCW = targetCW - iavgCW;  // Calculate CW-current error
   errorWW = targetWW - iavgWW;  // Calculate WW-current error

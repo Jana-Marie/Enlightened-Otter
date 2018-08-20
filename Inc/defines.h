@@ -101,3 +101,4 @@
 #define SCALE(value, high, max) MIN(MAX(((max) - (value)) / ((max) - (high)), 0.0), 1.0)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
+#define FILT(a, b, c) ((a) * (c) + (b) * ((1.0f) - (c)))
