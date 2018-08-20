@@ -26,22 +26,22 @@ extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
 extern DMA_HandleTypeDef hdma_adc1;
 extern DMA_HandleTypeDef hdma_adc2;
- 
+
 extern COMP_HandleTypeDef hcomp2;
 extern COMP_HandleTypeDef hcomp4;
 extern COMP_HandleTypeDef hcomp6;
- 
+
 extern DAC_HandleTypeDef hdac1;
 extern DAC_HandleTypeDef hdac2;
- 
+
 extern HRTIM_HandleTypeDef hhrtim1;
- 
+
 extern I2C_HandleTypeDef hi2c1;
 extern DMA_HandleTypeDef hdma_i2c1_rx;
 extern DMA_HandleTypeDef hdma_i2c1_tx;
- 
+
 extern TIM_HandleTypeDef htim2;
- 
+
 extern TSC_HandleTypeDef htscs;        // Touch slider handle
 extern TSC_IOConfigTypeDef IoConfigs;
 
@@ -61,6 +61,7 @@ void set_pwm(uint8_t timer, float duty);
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton);
 void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT);
 void set_brightness(uint8_t chan, float brightness, float color, float max_value);
+
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
@@ -68,32 +69,18 @@ uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
-__IO int32_t sliderAcquisitionValue[3];                 // register that holds the acquired slider values
-__IO int32_t buttonAcquisitionValue[3];                 // register that holds the acquired button values
-__IO int32_t sliderOffsetValue[3] = {1945, 1934, 1134}; // offset values which needs to be subtracted from the acquired values
-__IO int32_t buttonOffsetValue[3] = {2120, 2433, 2058}; // Todo - make some kind of auto calibration
+int16_t sliderAcquisitionValue[3];                 // register that holds the acquired slider values
+int16_t buttonAcquisitionValue[3];                 // register that holds the acquired button values
+int16_t sliderOffsetValue[3] = {1945, 1934, 1134}; // offset values which needs to be subtracted from the acquired values
+int16_t buttonOffsetValue[3] = {2120, 2433, 2058}; // Todo - make some kind of auto calibration
 
 uint8_t IdxBankS = 0;       // IO indexer for the slider
 uint8_t IdxBankB = 0;       // IO indexer for the buttons
 uint8_t IdxBank = 0;
-uint16_t sliderPos = 0;     // current slider position
-uint8_t sliderIsTouched = 0;// 1 if slider is touched
-int16_t distanceDelta = 0;      // delta slider position
-int16_t brightnessDelta = 0;      // calculated brightness delta
-float brightnessDeltaAvg = 0;      // calculated brightness delta
-int16_t oldDistance = 0;   // old slider position
-float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
-float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
-
-uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
-uint8_t powButton = 1;        // power button value
-uint8_t powStateHasChanged = 1;        // power button value
-uint8_t powState = 1;
 
 float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f;  // Warmwhite target current in mA
 
-float cycleTime;            // time of one cycle
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
 float iavgCW, iavgWW, errorCW, errorWW, vin; // stores the average current
 float dutyCW = MIN_DUTY;    // cold white duty cycle
@@ -128,7 +115,6 @@ int main(void)
   DAC2_Init();
   TIM2_Init();
 
-
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
   HAL_COMP_Start(&hcomp6);
@@ -157,9 +143,22 @@ int main(void)
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
-  cycleTime = 1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT; // calculated cycle time
-  MagiekonstanteCycle = KI * cycleTime;                         // calculated Ki independent of cycle time
+  MagiekonstanteCycle = KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT); // calculated Ki independent of cycle time by multiplying it with the cycle time
 
+  uint16_t sliderPos = 0;     // current slider position
+  uint8_t sliderIsTouched = 0;// 1 if slider is touched
+  int16_t distanceDelta = 0;      // delta slider position
+  int16_t brightnessDelta = 0;      // calculated brightness delta
+  float brightnessDeltaAvg = 0;      // calculated brightness delta
+  int16_t oldDistance = 0;   // old slider position
+  float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
+  float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
+
+  uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
+  uint8_t powButton = 1;        // power button value
+  uint8_t powStateHasChanged = 1;        // power button value
+  uint8_t powState = 1;
+  
   while (1)
   {
 
