@@ -25,6 +25,8 @@
 	- [ ] Export PCB design files to kicad and publish
 	- Also export Gerber?
 	- [ ] Fix OTG mode
-		- Device enters not automatically OTG mode, can be done in software or with hardware IO. Problem: OTG/USB voltage is needed for the mosfet drivers. Thus USB has to be rpesent or OTG has 
+		- ~~Device enters not automatically OTG mode, can be done in software or with hardware IO. Problem: OTG/USB voltage is needed for the mosfet drivers. Thus USB has to be rpesent or OTG has 
 to be turned on. OTG being turned on means, that on USB power it can't know that it has to move abck to charger mode. Idea 1: use a diode behind the USB plug drive OTG mode from IO and set IO with VUSB 
--> meh Idea 2: move Vgatedriver to VMID, VMID has OTG capabilities
+-> meh Idea 2: move Vgatedriver to VMID, VMID has OTG capabilities~~
+		- VSupply of the Gate driver aro to be connected to the outputs of the boost converters. Circuitry gets more effizient when boost converter is running
+		- maybe check if there is a cheaper battery management IC as OTG is not needed anymore
