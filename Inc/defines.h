@@ -33,12 +33,11 @@
 
 #define CURRENT_AVERAGING_FILTER 0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 0.95f
-#define BRIGHTNESS_FADING_FILTER 0.90f
+#define BRIGHTNESS_FADING_FILTER 0.95f
 
 #define POWER_LED_BRIGHTNESS 64 // brightness of the power LED in off state (0-1024)
 
 #define MAX_CURRENT 400.0f 	// sets the divider for the touch scale
-
 
 // Automatic calculated Values, please use the variables above
 
