@@ -35,10 +35,10 @@
 #define COLOR_FADING_FILTER 0.95f
 #define BRIGHTNESS_FADING_FILTER 0.90f
 
-#define POWER_LED_BRIGHTNESS 16 // brightness of the power LED in off state (0-1024)
+#define POWER_LED_BRIGHTNESS 64 // brightness of the power LED in off state (0-1024)
 
-#define TOUCH_SCALE 22.2996515   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
-#define TOUCH_SCALE_DIVIDER 200.0f 	// sets the divider for the touch scale
+#define TOUCH_SCALE (22.2996515f*2.5f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
+#define TOUCH_SCALE_DIVIDER 400.0f 	// sets the divider for the touch scale
 
 // Automatic calculated Values, please use the variables above
 
