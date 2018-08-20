@@ -31,9 +31,14 @@
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.300f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
-#define CURRENT_AVERAGING 0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+#define CURRENT_AVERAGING_FILTER 0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+#define COLOR_FADING_FILTER 0.95f
+#define BRIGHTNESS_FADING_FILTER 0.90f
 
 #define POWER_LED_BRIGHTNESS 16 // brightness of the power LED in off state (0-1024)
+
+#define TOUCH_SCALE 22.2996515   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
+#define TOUCH_SCALE_DIVIDER 200.0f 	// sets the divider for the touch scale
 
 // Automatic calculated Values, please use the variables above
 
@@ -88,8 +93,6 @@
 #define ADC_IBAT  	0x91    //lsb 50mA +-2lsb
 #define ADC_REGN  	0xB1    //lsb 5mv +-2lsb
 #define ADC_TEMP_JC 0xC1 	//lsb 2degreeC +-2lsb
-
-#define TOUCH_SCALE 22.2996515   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
 
 #define UART_DMA_CHANNEL DMA1_Channel4
 
