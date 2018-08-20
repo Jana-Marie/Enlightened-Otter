@@ -15,7 +15,7 @@
 	- Gate driver has no pulldowns, unknown behaviour while not driven
 	- [x] Reduce Boost inductance
 	- 15uH is too high, 3.3uH is better, also increase dc-current, maybe use this inductor https://de.rs-online.com/web/p/drahtgewickelte-smd-induktivitaten/9236194/
-	- [ ] Change voltage regulator to 3.0V type
+	- [x] Change voltage regulator to 3.0V type
 	- Is still 3.3V type in schematic, 3.0V was used for testing
 	- [x] Divide Vin voltage divider resistance by 10
 	- ~~Resistance seems to be too high, measuring falsifies the result~~ measured to fast, meh! Is fixed now
