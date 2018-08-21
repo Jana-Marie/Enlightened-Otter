@@ -63,7 +63,9 @@ void set_pwm(uint8_t timer, float duty);
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton);
 void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT);
 void set_brightness(uint8_t chan, float brightness, float color, float max_value);
-
+void TSC_Task(void);
+void slider_task(int16_t sliderAcquisitionValue[3]);
+void button_task(int16_t buttonAcquisitionValue[3]);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
@@ -73,8 +75,8 @@ volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 
 int16_t sliderAcquisitionValue[3];                 // register that holds the acquired slider values
 int16_t buttonAcquisitionValue[3];                 // register that holds the acquired button values
-int16_t sliderOffsetValue[3] = {1945, 1934, 1134}; // offset values which needs to be subtracted from the acquired values
-int16_t buttonOffsetValue[3] = {2120, 2433, 2058}; // Todo - make some kind of auto calibration
+int16_t sliderOffsetValue[3] = {1153, 1978, 1962}; // offset values which needs to be subtracted from the acquired values
+int16_t buttonOffsetValue[3] = {2075, 2131, 2450}; // Todo - make some kind of auto calibration
 
 uint8_t IdxBankS = 0;       // IO indexer for the slider
 uint8_t IdxBankB = 0;       // IO indexer for the buttons
@@ -93,6 +95,16 @@ uint8_t print = 1;        // debugvalue for alternating reading of current / vol
 uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
 uint8_t sliderCnt = 0;
 uint16_t adcCnt = 0;
+
+  uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
+  uint8_t powButton = 1;        // power button value
+  uint8_t powStateHasChanged = 1;        // power button value
+  uint8_t powState = 1;
+
+
+  uint16_t sliderPos = 0;     // current slider position
+  uint8_t sliderIsTouched = 0;// 1 if slider is touched
+
 
 int main(void)
 {
@@ -135,8 +147,8 @@ int main(void)
 
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
-  //HAL_TSC_Start_IT(&htscb);
-  //HAL_TSC_Start_IT(&htscs);
+  HAL_TSC_Start_IT(&htscb);
+  HAL_TSC_Start_IT(&htscs);
 
   HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0); // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED_Color, 0);      // clear LED "Color"
@@ -147,8 +159,6 @@ int main(void)
 
   MagiekonstanteCycle = KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT); // calculated Ki independent of cycle time by multiplying it with the cycle time
 
-  uint16_t sliderPos = 0;     // current slider position
-  uint8_t sliderIsTouched = 0;// 1 if slider is touched
   int16_t distanceDelta = 0;      // delta slider position
   int16_t brightnessDelta = 0;      // calculated brightness delta
   float brightnessDeltaAvg = 0;      // calculated brightness delta
@@ -156,28 +166,25 @@ int main(void)
   float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
   float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 
-  uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
-  uint8_t powButton = 1;        // power button value
-  uint8_t powStateHasChanged = 1;        // power button value
-  uint8_t powState = 1;
 
   while (1)
   {
-    if (printCnt++ > 50) printCnt = 0;
+    if (printCnt++ > 250) printCnt = 0;
 
-    if (printCnt % 2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    if ((printCnt + 1) % 2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
+    //if (printCnt % 2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
+    //if ((printCnt + 1) % 2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
 
-    if (printCnt % 5 == 0) { // print only every n cycle
+    if (printCnt % 250 == 0) { // print only every n cycle
 
-      set_scope_channel(0, iavgWW);
-      set_scope_channel(1, iavgCW);
-      set_scope_channel(2, targetWW);
-      set_scope_channel(3, targetCW);
-      set_scope_channel(4, 0);
-      set_scope_channel(5, 0);
-      set_scope_channel(6, colorProportion * 100.0f);
+      set_scope_channel(0, sliderPos);
+      set_scope_channel(1, sliderAcquisitionValue[0]);
+      set_scope_channel(2, sliderAcquisitionValue[1]);
+      set_scope_channel(3, sliderAcquisitionValue[2]);
+      set_scope_channel(4, buttonAcquisitionValue[0]);
+      set_scope_channel(5, buttonAcquisitionValue[1]);
+      set_scope_channel(6, buttonAcquisitionValue[2]);
       console_scope();
+      HAL_Delay(5);
     }
 
     if (powState == 1) {      // if lamp is turned "soft" on
@@ -246,6 +253,57 @@ int main(void)
   }
 }
 
+void TSC_Task(void){
+
+  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
+  {
+
+    sliderAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] - sliderOffsetValue[IdxBank];
+
+    slider_task(sliderAcquisitionValue);
+
+    HAL_TSC_IOConfig(&htscb, &IoConfigb);
+    HAL_TSC_IODischarge(&htscb, ENABLE);
+    __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+    HAL_TSC_Start_IT(&htscb);
+  }
+  else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  {
+    buttonAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    buttonAcquisitionValue[IdxBank] = buttonAcquisitionValue[IdxBank] - buttonOffsetValue[IdxBank];
+    
+    button_task(buttonAcquisitionValue);
+
+    HAL_TSC_IOConfig(&htscs, &IoConfigs);
+    HAL_TSC_IODischarge(&htscs, ENABLE);
+    __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+    HAL_TSC_Start_IT(&htscs);
+  }
+
+  switch (IdxBank)
+  {
+  case 0:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
+    IdxBank = 1;
+    break;
+  case 1:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
+    IdxBank = 2;
+    break;
+  case 2:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
+    IdxBank = 0;
+    break;
+  default:
+    break;
+  }
+
+}
+
 void boost_reg(void) {
   /* Main current regulator */
   float ioutCW, ioutWW;
@@ -277,61 +335,50 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
 
-  if (chan)       targetWW = gammaTable[(int)target_temp];
-  else if (!chan) targetCW = gammaTable[(int)target_temp];
+  //if (chan)       targetWW = gammaTable[(int)target_temp];
+  //else if (!chan) targetCW = gammaTable[(int)target_temp];
+  if (chan)       targetWW = target_temp;
+  else if (!chan) targetCW = target_temp;
 }
 
-void HAL_TSC_ConvCpltCallback(TSC_HandleTypeDef* htsc)
-{
+void button_task(int16_t buttonAcquisitionValue[3]){
+    int16_t buttonThr = -1200;
 
-  HAL_GPIO_TogglePin(GPIOA, LED_Color); //debug
-
-  HAL_TSC_IODischarge(&htscb, ENABLE);
-  HAL_TSC_IODischarge(&htscs, ENABLE);
-
-  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
-  {
-    sliderAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-    sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] - sliderOffsetValue[IdxBank];
-  }
-  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
-  {
-    buttonAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-    buttonAcquisitionValue[IdxBank] = buttonAcquisitionValue[IdxBank] - buttonOffsetValue[IdxBank];
-  }
-
-  switch (IdxBank)
-  {
-  case 0:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
-    IdxBankB = 1;
-    break;
-  case 1:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
-    IdxBankB = 2;
-    break;
-  case 2:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
-    IdxBankB = 0;
-    break;
-  default:
-    break;
-  }
-
-  HAL_TSC_IOConfig(&htscb, &IoConfigb);
-  HAL_TSC_IOConfig(&htscs, &IoConfigs);
-
-  HAL_TSC_Start_IT(&htscb);
-  HAL_TSC_Start_IT(&htscs);
+  if (buttonAcquisitionValue[1] < buttonThr) colorBrightnessSwitch = 0;
+  else if (buttonAcquisitionValue[2] < buttonThr) colorBrightnessSwitch = 1;
+  else;
+  if (buttonAcquisitionValue[0] < buttonThr) powButton = 1;
+  else powButton = 0;
 }
 
+void slider_task(int16_t sliderAcquisitionValue[3]){
 
+  if (IdxBank == 2) sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] * 2;
+
+  sliderAcquisitionValue[IdxBank] = CLAMP(sliderAcquisitionValue[IdxBank], -2000, 0);
+
+  int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
+  int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
+  int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
+
+  if      (x < y && x < z && y < z) sliderPos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+  else if (x < y && x < z && y > z) sliderPos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+  else if (z < y && z < x && x < y) sliderPos = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+  else if (z < y && z < x && x > y) sliderPos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+  else if (y < x && y < z && z < x) sliderPos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+  else if (y < x && y < z && z > x) sliderPos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
+
+  if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
+    sliderPos = 0;
+    sliderIsTouched = 0;
+  } else {
+    sliderIsTouched = 1;
+  }
+}
+/*
 void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton) {
 
-  int16_t buttonThr = -900;
+  int16_t buttonThr = -1200;
 
   switch (IdxBankB)
   {
@@ -434,6 +481,7 @@ void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT) {
     }
   }
 }
+*/
 
 static void enable_OTG(void) {
   configure_RT(CHG_CTRL16, DISABLE_UUG);
