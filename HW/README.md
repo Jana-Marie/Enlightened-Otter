@@ -1,3 +1,19 @@
+### Changelog HW 1.1:
+
+- Fixed tha battery clip position
+- Gate drivers are now powered by the boost converters, thus they are bootstrapping themselfes
+- VIN measurement is not needed anymore, hardware removed
+- Added mosfet to power rail of ESP
+- Fixed USB Footprint
+- Added pullup to NTC
+- Added Gate pulldowns
+- Added USB pulldowns
+- Fixed Schematic symbols and values
+
+
+
+### Todo list
+
 - [ ] HW
 	- [x] Move 18650 clips to fit battery
 	- dont fit the battery, move by 1-2mm
