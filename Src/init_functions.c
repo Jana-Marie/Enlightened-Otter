@@ -120,12 +120,12 @@ void ADC1_Init(void)
   multimode.TwoSamplingDelay  = ADC_TWOSAMPLINGDELAY_1CYCLE;
   HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
 
-  sConfig.Channel = ADC_CHANNEL_12;
-  sConfig.Rank = 1;
-  sConfig.SingleDiff = ADC_SINGLE_ENDED;
-  sConfig.SamplingTime = ADC_SAMPLETIME_601CYCLES_5;
-  sConfig.OffsetNumber = ADC_OFFSET_NONE;
-  sConfig.Offset = 0;
+  sConfig.Channel       = ADC_CHANNEL_12;
+  sConfig.Rank          = 1;
+  sConfig.SingleDiff    = ADC_SINGLE_ENDED;
+  sConfig.SamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
+  sConfig.OffsetNumber  = ADC_OFFSET_NONE;
+  sConfig.Offset        = 0;
   HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
   /* Run the ADC calibration in single-ended mode */
