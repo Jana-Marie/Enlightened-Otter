@@ -15,6 +15,7 @@
 ### Todo list
 
 - [ ] HW
+	- [ ] Add bootstrap diodes to start the gate drivers
 	- [x] Move 18650 clips to fit battery
 	- dont fit the battery, move by 1-2mm
 	- [x] Add pullup to NTC (LED)
