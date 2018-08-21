@@ -169,23 +169,26 @@ int main(void)
 
   while (1)
   {
+    //targetCW += 0.5;
+    //if(targetCW >= 400.0f) targetCW = 0;
+
     if (printCnt % 250 == 0) { // print only every n cycle
 
       set_scope_channel(0, iavgCW);
       set_scope_channel(1, iavgWW);
-      set_scope_channel(2, powState);
+      set_scope_channel(2, sliderPos);
       set_scope_channel(3, distanceDelta);
-      set_scope_channel(4, colorBrightnessSwitch);
+      set_scope_channel(4, oldDistance);
       set_scope_channel(5, colorProportion*100.0f);
       set_scope_channel(6, brightnessDeltaAvg);
       console_scope();
       HAL_Delay(5);
       printCnt = 0;
     }
-
+    
     if (powState == 1) {      // if lamp is turned "soft" on
       if ( sliderPos != 0) {  // check if slider is touched
-        if (sliderCnt >= 20) { // "debounce" slider
+        if (sliderCnt >= 5) { // "debounce" slider
 
           //if (ABS(sliderPos - oldDistance) > 50) sliderPos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
 
@@ -246,6 +249,7 @@ int main(void)
       HAL_GPIO_WritePin(GPIOA, LED_Color, 0);         // clear LED "Color"
       __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
     }
+    
   }
 }
 
@@ -364,7 +368,7 @@ void slider_task(int16_t sliderAcquisitionValue[3]){
   else if (y < x && y < z && z < x) sliderPos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
   else if (y < x && y < z && z > x) sliderPos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
-  if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
+  if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -200) {
     sliderPos = 0;
     sliderIsTouched = 0;
   } else {
