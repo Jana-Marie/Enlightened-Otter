@@ -25,7 +25,7 @@
 void SystemClock_Config(void);
 void GPIO_Init(void);
 void DMA_Init(void);
-void ADC1_Init(void);
+//void ADC1_Init(void);
 void ADC2_Init(void);
 void COMP2_Init(void);
 void COMP4_Init(void);
