@@ -184,6 +184,8 @@ int main(void)
       if ( sliderPos != 0) {  // check if slider is touched
         if (sliderCnt >= 5) { // "debounce" slider
 
+          if (ab(sliderPos - oldDistance) > 50) sliderPos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
+
           distanceDelta += sliderPos - oldDistance;             // calculate sliderPos delta
           distanceDelta = CLAMP(distanceDelta, 0.0f, MAX_CURRENT);
 
