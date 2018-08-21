@@ -24,9 +24,9 @@
 #include "defines.h"
 #include "gamma.h"
 
-extern ADC_HandleTypeDef hadc1;
+//extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
-extern DMA_HandleTypeDef hdma_adc1;
+//extern DMA_HandleTypeDef hdma_adc1;
 extern DMA_HandleTypeDef hdma_adc2;
 
 extern COMP_HandleTypeDef hcomp2;
@@ -84,7 +84,7 @@ float targetCW = 0.0f;  // Coldwhite target current in mA
 float targetWW = 0.0f;  // Warmwhite target current in mA
 
 float MagiekonstanteCycle;  // Ki constant, independent of cycle time
-float iavgCW, iavgWW, errorCW, errorWW, vin; // stores the average current
+float iavgCW, iavgWW, errorCW, errorWW; // stores the average current
 float dutyCW = MIN_DUTY;    // cold white duty cycle
 float dutyWW = MIN_DUTY;    // warm white duty cycle
 
@@ -104,7 +104,7 @@ int main(void)
 
   GPIO_Init();
   DMA_Init();
-  ADC1_Init();
+  //ADC1_Init();
   ADC2_Init();
   COMP2_Init();
   COMP4_Init();
@@ -174,7 +174,7 @@ int main(void)
       set_scope_channel(1, iavgCW);
       set_scope_channel(2, targetWW);
       set_scope_channel(3, targetCW);
-      set_scope_channel(4, vin);
+      set_scope_channel(4, 0);
       set_scope_channel(5, 0);
       set_scope_channel(6, colorProportion * 100.0f);
       console_scope();
@@ -245,15 +245,6 @@ int main(void)
 }
 
 void boost_reg(void) {
-
-  /* VIN ADC not injected mode*/
-
-  if (adcCnt++ >= 2014 && __HAL_ADC_GET_FLAG(&hadc1, ADC_FLAG_EOC)) {
-    vin = (HAL_ADC_GetValue(&hadc1) * 2.2744f); //  1 / 4096.0f * 1000.0f * 3.0f / 0.475 * 1.475 = 2.2744
-    HAL_ADC_Start(&hadc1);
-    adcCnt = 0;
-  }
-
   /* Main current regulator */
   float ioutCW, ioutWW;
 
@@ -279,12 +270,12 @@ void boost_reg(void) {
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
   float target_temp, color_temp;
 
-  if (chan) color_temp = color;
+  if (chan)       color_temp = color;
   else if (!chan) color_temp = (1.0f - color);
 
   target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
 
-  if (chan) targetWW = gammaTable[(int)target_temp];
+  if (chan)       targetWW = gammaTable[(int)target_temp];
   else if (!chan) targetCW = gammaTable[(int)target_temp];
 }
 
