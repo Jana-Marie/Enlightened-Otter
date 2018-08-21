@@ -293,7 +293,7 @@ void ADC1_2_IRQHandler(void)
   /* USER CODE END ADC1_2_IRQn 1 */
 }
 
-void TSCx_EXTI_IRQHandler(void)
+void EXTI2_TSC_IRQHandler(void)
 {
   HAL_GPIO_TogglePin(GPIOA, LED_Color); //debug
 

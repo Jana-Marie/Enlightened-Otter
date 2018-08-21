@@ -54,6 +54,7 @@
 
 #define CHG_CTRL1 				0x01	// 
 #define ENABLE_OTG_MASK 		0x11	// enables OTG, should be on by default
+#define DISABLE_OTG_MASK 		0x10	// disables OTG, should be on by default
 #define ENABLE_STAT_LED_MASK 	0x10	// Turn on status LED (default)
 #define DISABLE_STAT_LED_MASK 	0x00	// turn off status LED
 
@@ -106,3 +107,4 @@
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #define FILT(a, b, c) ((a) * (c) + (b) * ((1.0f) - (c)))
+#define ABS(x) ((x)<0 ? -(x) : (x))

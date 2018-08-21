@@ -97,7 +97,7 @@ void ADC1_Init(void)
 
   hadc1.Instance = ADC1;
 
-  // std ADC config 
+  // std ADC config
   hadc1.Init.ClockPrescaler         = ADC_CLOCK_ASYNC_DIV1;
   hadc1.Init.Resolution             = ADC_RESOLUTION_12B;
   hadc1.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
@@ -115,7 +115,7 @@ void ADC1_Init(void)
   hadc1.Init.Overrun                = ADC_OVR_DATA_OVERWRITTEN;
   HAL_ADC_Init(&hadc1);
 
-  // Disable DMA mode 
+  // Disable DMA mode
   multimode.DMAAccessMode     = ADC_DMAACCESSMODE_DISABLED;
   multimode.Mode              = ADC_MODE_INDEPENDENT;
   multimode.TwoSamplingDelay  = ADC_TWOSAMPLINGDELAY_1CYCLE;
@@ -129,10 +129,10 @@ void ADC1_Init(void)
   sConfig.Offset        = 0;
   HAL_ADC_ConfigChannel(&hadc1, &sConfig);
 
-  // Run the ADC calibration in single-ended mode 
+  // Run the ADC calibration in single-ended mode
   HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
 
-  // Enable End of Injected Conversion interrupt 
+  // Enable End of Injected Conversion interrupt
   //__HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_EOC);
   HAL_ADC_Start(&hadc1);
 }
@@ -517,6 +517,8 @@ void DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
   HAL_NVIC_SetPriority(ADC1_2_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
+  //HAL_NVIC_SetPriority(TSCx_EXTI_IRQn, 1, 0);
+  //HAL_NVIC_EnableIRQ(TSCx_EXTI_IRQn);
 }
 
 void GPIO_Init(void)
