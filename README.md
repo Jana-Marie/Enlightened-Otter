@@ -18,6 +18,11 @@ and flash it via Ozone or st-utils
 
 `st-flash --reset write build/*.bin 0x8000000`
 
+or OpenOCD
+
+`openocd -f interface/jlink.cfg -f board/stm32f334discovery.cfg -c "program otter.bin reset exit 0x08000000"` (not tested)
+
+
 ## Images
 
 ![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_1.jpeg)
