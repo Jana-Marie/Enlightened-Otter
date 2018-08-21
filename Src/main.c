@@ -159,7 +159,7 @@ int main(void)
   uint8_t powButton = 1;        // power button value
   uint8_t powStateHasChanged = 1;        // power button value
   uint8_t powState = 1;
-  
+
   while (1)
   {
     if (printCnt++ > 50) printCnt = 0;
@@ -167,7 +167,7 @@ int main(void)
     if (printCnt % 2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
     if ((printCnt + 1) % 2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
 
-    if (printCnt%5 == 0) { // print only every n cycle
+    if (printCnt % 5 == 0) { // print only every n cycle
 
       set_scope_channel(0, iavgWW);
       set_scope_channel(1, iavgCW);
