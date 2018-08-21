@@ -169,29 +169,25 @@ int main(void)
 
   while (1)
   {
-    if (printCnt++ > 250) printCnt = 0;
-
-    //if (printCnt % 2 == 0 ) primitive_TSC_slider_task(&sliderPos, &sliderIsTouched); // do the tsc tasks every now and then
-    //if ((printCnt + 1) % 2 == 0 ) primitive_TSC_button_task(&colorBrightnessSwitch, &powButton);
-
     if (printCnt % 250 == 0) { // print only every n cycle
 
-      set_scope_channel(0, sliderPos);
-      set_scope_channel(1, sliderAcquisitionValue[0]);
-      set_scope_channel(2, sliderAcquisitionValue[1]);
-      set_scope_channel(3, sliderAcquisitionValue[2]);
-      set_scope_channel(4, buttonAcquisitionValue[0]);
-      set_scope_channel(5, buttonAcquisitionValue[1]);
-      set_scope_channel(6, buttonAcquisitionValue[2]);
+      set_scope_channel(0, iavgCW);
+      set_scope_channel(1, iavgWW);
+      set_scope_channel(2, powState);
+      set_scope_channel(3, distanceDelta);
+      set_scope_channel(4, colorBrightnessSwitch);
+      set_scope_channel(5, colorProportion*100.0f);
+      set_scope_channel(6, brightnessDeltaAvg);
       console_scope();
       HAL_Delay(5);
+      printCnt = 0;
     }
 
     if (powState == 1) {      // if lamp is turned "soft" on
       if ( sliderPos != 0) {  // check if slider is touched
-        if (sliderCnt >= 5) { // "debounce" slider
+        if (sliderCnt >= 20) { // "debounce" slider
 
-          if (ABS(sliderPos - oldDistance) > 50) sliderPos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
+          //if (ABS(sliderPos - oldDistance) > 50) sliderPos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
 
           distanceDelta += sliderPos - oldDistance;             // calculate sliderPos delta
           distanceDelta = CLAMP(distanceDelta, 0.0f, MAX_CURRENT);
@@ -357,9 +353,9 @@ void slider_task(int16_t sliderAcquisitionValue[3]){
 
   sliderAcquisitionValue[IdxBank] = CLAMP(sliderAcquisitionValue[IdxBank], -2000, 0);
 
-  int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
-  int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
-  int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
+  int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
+  int16_t y = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
+  int16_t z = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
 
   if      (x < y && x < z && y < z) sliderPos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
   else if (x < y && x < z && y > z) sliderPos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
@@ -375,113 +371,6 @@ void slider_task(int16_t sliderAcquisitionValue[3]){
     sliderIsTouched = 1;
   }
 }
-/*
-void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton) {
-
-  int16_t buttonThr = -1200;
-
-  switch (IdxBankB)
-  {
-  case 0:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
-    IdxBankB = 1;
-    break;
-  case 1:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
-    IdxBankB = 2;
-    break;
-  case 2:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
-    IdxBankB = 0;
-    break;
-  default:
-    break;
-  }
-
-  HAL_TSC_IOConfig(&htscb, &IoConfigb);
-  HAL_TSC_IODischarge(&htscb, ENABLE);
-  HAL_TSC_Start(&htscb);
-
-  while (HAL_TSC_GetState(&htscb) == HAL_TSC_STATE_BUSY)
-  {
-    //FIXME INTERRUPT
-  }
-
-  __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
-
-  if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
-  {
-    buttonAcquisitionValue[IdxBankB] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-    buttonAcquisitionValue[IdxBankB] = buttonAcquisitionValue[IdxBankB] - buttonOffsetValue[IdxBankB];
-
-    if (buttonAcquisitionValue[0] < buttonThr) *colorBrightnessSwitch = 0;
-    else if (buttonAcquisitionValue[1] < buttonThr)  *colorBrightnessSwitch = 1;
-    else;
-    if (buttonAcquisitionValue[2] < buttonThr) *powerButton = 1;
-    else *powerButton = 0;
-  }
-}
-
-void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT) {
-
-  switch (IdxBankS)
-  {
-  case 0:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
-    IdxBankS = 1;
-    break;
-  case 1:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
-    IdxBankS = 2;
-    break;
-  case 2:
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
-    IdxBankS = 0;
-    break;
-  default:
-    break;
-  }
-
-  HAL_TSC_IOConfig(&htscs, &IoConfigs);
-  HAL_TSC_IODischarge(&htscs, ENABLE);
-  HAL_TSC_Start(&htscs);
-
-  while (HAL_TSC_GetState(&htscs) == HAL_TSC_STATE_BUSY)
-  {
-    //FIXME ADD INTERRUPT
-  }
-
-  __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
-
-  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
-  {
-    sliderAcquisitionValue[IdxBankS] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-    sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] - sliderOffsetValue[IdxBankS];
-
-    if (IdxBankS == 2) sliderAcquisitionValue[IdxBankS] = sliderAcquisitionValue[IdxBankS] * 2;
-
-    sliderAcquisitionValue[IdxBankS] = CLAMP(sliderAcquisitionValue[IdxBankS], -2000, 0);
-
-    int16_t z = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
-    int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
-    int16_t y = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
-
-    if      (x < y && x < z && y < z) *sPos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-    else if (x < y && x < z && y > z) *sPos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-    else if (z < y && z < x && x < y) *sPos = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-    else if (z < y && z < x && x > y) *sPos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-    else if (y < x && y < z && z < x) *sPos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-    else if (y < x && y < z && z > x) *sPos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
-
-    if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -100) {
-      *sPos = 0;
-      *isT = 0;
-    } else {
-      *isT = 1;
-    }
-  }
-}
-*/
 
 static void enable_OTG(void) {
   configure_RT(CHG_CTRL16, DISABLE_UUG);
