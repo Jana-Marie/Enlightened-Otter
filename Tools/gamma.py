@@ -2,10 +2,10 @@
 import math
 
 gamma       = 1.6
-outputRange = 1
+outputRange = 500
 steps       = 1000
 
-print("float gamma[] = { // generated gamma correction table from Tools/gamma.py gamma value used: %.1f resolution: %.5f " % (gamma,outputRange/steps),end='')
+print("float gammaTable[] = { // generated gamma correction table from Tools/gamma.py gamma value used: %.1f resolution: %.5f " % (gamma,outputRange/steps),end='')
 
 for i in range (0,steps,1):
 
@@ -13,7 +13,7 @@ for i in range (0,steps,1):
     print(",",end='')
   if((i & 15) == 0):
     print()
-  print("\t%.4f" % round((math.pow(i / steps, gamma) * steps + 0.5)/steps*outputRange,4),end='')
+  print("\t%.2f" % round((math.pow(i / steps, gamma) * steps + 0.5)/steps*outputRange,2),end='')
 
 print(" };")
 exit()
