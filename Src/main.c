@@ -184,7 +184,7 @@ int main(void)
       if ( sliderPos != 0) {  // check if slider is touched
         if (sliderCnt >= 5) { // "debounce" slider
 
-          if (ab(sliderPos - oldDistance) > 50) sliderPos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
+          if (ABS(sliderPos - oldDistance) > 50) sliderPos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
 
           distanceDelta += sliderPos - oldDistance;             // calculate sliderPos delta
           distanceDelta = CLAMP(distanceDelta, 0.0f, MAX_CURRENT);
@@ -438,6 +438,11 @@ void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT) {
 static void enable_OTG(void) {
   configure_RT(CHG_CTRL16, DISABLE_UUG);
   configure_RT(CHG_CTRL1, ENABLE_OTG_MASK);
+}
+
+static void disable_OTG(void) {
+  configure_RT(CHG_CTRL16, ENABLE_UUG);
+  configure_RT(CHG_CTRL1, DISABLE_OTG_MASK);
 }
 
 uint16_t read_RT_ADC(void) {

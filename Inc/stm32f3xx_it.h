@@ -60,7 +60,7 @@ void DMA1_Channel3_IRQHandler(void);
 void DMA1_Channel4_IRQHandler(void);
 void DMA1_Channel5_IRQHandler(void);
 void DMA1_Channel6_IRQHandler(void);
-void TSCx_EXTI_IRQHandler(void);
+void EXTI2_TSC_IRQHandler(void);
 
 
 #ifdef __cplusplus
