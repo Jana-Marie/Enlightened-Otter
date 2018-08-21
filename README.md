@@ -20,7 +20,7 @@ and flash it via Ozone or st-utils
 
 or OpenOCD
 
-`openocd -f interface/jlink.cfg -f board/stm32f334discovery.cfg -c "program otter.bin reset exit 0x08000000"` (not tested)
+`openocd -f interface/jlink.cfg -f board/stm32f334discovery.cfg -c "init reset init program otter.bin reset run exit 0x08000000" -c shutdown` (not tested)
 
 
 ## Images
