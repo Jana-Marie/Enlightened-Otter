@@ -89,7 +89,7 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
- void ADC1_Init(void)
+void ADC1_Init(void)
 {
   ADC_MultiModeTypeDef multimode;
   ADC_ChannelConfTypeDef sConfig;
@@ -136,7 +136,7 @@ void SystemClock_Config(void)
   HAL_ADC_Start(&hadc1);
 }
 
- void ADC2_Init(void)
+void ADC2_Init(void)
 {
   ADC_MultiModeTypeDef MultiModeConfig;
   ADC_InjectionConfTypeDef InjectionConfig;
@@ -210,7 +210,7 @@ void SystemClock_Config(void)
   __HAL_ADC_ENABLE_IT(&hadc2, ADC_IT_JEOC);
 }
 
- void COMP2_Init(void)
+void COMP2_Init(void)
 {
 
   hcomp2.Instance = COMP2;
@@ -225,7 +225,7 @@ void SystemClock_Config(void)
   HAL_COMP_Init(&hcomp2);
 }
 
- void COMP4_Init(void)
+void COMP4_Init(void)
 {
 
   hcomp4.Instance = COMP4;
@@ -240,7 +240,7 @@ void SystemClock_Config(void)
   HAL_COMP_Init(&hcomp4);
 }
 
- void COMP6_Init(void)
+void COMP6_Init(void)
 {
 
   hcomp6.Instance = COMP6;
@@ -255,7 +255,7 @@ void SystemClock_Config(void)
   HAL_COMP_Init(&hcomp6);
 }
 
- void DAC1_Init(void)
+void DAC1_Init(void)
 {
 
   DAC_ChannelConfTypeDef sConfig;
@@ -270,7 +270,7 @@ void SystemClock_Config(void)
   HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2);
 }
 
- void DAC2_Init(void)
+void DAC2_Init(void)
 {
 
   DAC_ChannelConfTypeDef sConfig;
@@ -285,7 +285,7 @@ void SystemClock_Config(void)
   HAL_DAC_ConfigChannel(&hdac2, &sConfig, DAC_CHANNEL_1);
 }
 
- void HRTIM1_Init(void)
+void HRTIM1_Init(void)
 {
 
   HRTIM_FaultCfgTypeDef pFaultCfg;
@@ -385,7 +385,7 @@ void SystemClock_Config(void)
 
 }
 
- void TIM2_Init(void)
+void TIM2_Init(void)
 {
 
   TIM_MasterConfigTypeDef sMasterConfig;
@@ -412,7 +412,7 @@ void SystemClock_Config(void)
   HAL_TIM_MspPostInit(&htim2);
 }
 
- void I2C1_Init(void)
+void I2C1_Init(void)
 {
 
   hi2c1.Instance = I2C1;
@@ -434,7 +434,7 @@ void SystemClock_Config(void)
 
 }
 
- void TSC_Init(void)
+void TSC_Init(void)
 {
 
   htscs.Instance = TSC;
@@ -482,7 +482,7 @@ void SystemClock_Config(void)
   HAL_TSC_IOConfig(&htscb, &IoConfigb);
 }
 
- void USART1_UART_Init(void)
+void USART1_UART_Init(void)
 {
 
   huart1.Instance = USART1;
@@ -497,7 +497,7 @@ void SystemClock_Config(void)
   HAL_UART_Init(&huart1);
 }
 
- void DMA_Init(void)
+void DMA_Init(void)
 {
   __HAL_RCC_DMA1_CLK_ENABLE();
 
@@ -517,7 +517,7 @@ void SystemClock_Config(void)
   HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
 }
 
- void GPIO_Init(void)
+void GPIO_Init(void)
 {
 
   GPIO_InitTypeDef GPIO_InitStruct;
@@ -538,7 +538,7 @@ void SystemClock_Config(void)
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 }
 
- void start_HRTIM1(void) {
+void start_HRTIM1(void) {
   /* Enable HRTIM timers */
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);
