@@ -52,20 +52,17 @@ or OpenOCD
 ### Current state:
 
 HW is flashable, both bosst converter work properly up to a current of ~250mA, current regulation works on both boost converters (+-0.5-1.5mA), RT9466 seems to do its job, does not work properly on batteries (5V gate driver power supply is missing, need to fix OTG), LED outputs and Touch inputs work, FLT_1 is always on
-Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine.
+Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine. Gamma correcture is applied
 
 HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
+- [ ] get rid of flicker at 0.5-2.5mA 
 - [ ] temperature calculation
-- [ ] gamma correction
-	- [x] write tool to generate gamma correction curve
-	- [x] Implement it
-	- [ ] Test/debug it
 - [ ] make the code more Timer/Interrupt based
 	- [x] HRTIM
-	- [ ] HRTIM FLT
+	- [x] HRTIM FLT
 	- [x] ADC
 	- [x] TSC
 	- [x] I2C/UART
@@ -79,6 +76,10 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### Done:
 
+- [x] gamma correction
+	- [x] write tool to generate gamma correction curve
+	- [x] Implement it
+	- [x] Test/debug it
 - [x] Fix the HRTIM FLT1 line
 - [x] Test Injected ADC
 	- [x] ADC tested and seems to work just fine
