@@ -149,7 +149,6 @@ int main(void)
 
   HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0); // clear LED "Brightness"
   HAL_GPIO_WritePin(GPIOA, LED_Color, 0);      // clear LED "Color"
-  //HAL_GPIO_WritePin(GPIOA, LED_Power, 1);      // clear LED "Power"
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
@@ -162,15 +161,9 @@ int main(void)
   int16_t oldDistance = 0;   // old slider position
   float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
   float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
-/*
-__HAL_HRTIM_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
-__HAL_HRTIM_MASTER_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
-__HAL_HRTIM_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
-  */
+
   while (1)
   {
-    //targetCW += 0.5;
-    //if(targetCW >= 400.0f) targetCW = 0;
 
     if (printCnt % 250 == 0) { // print only every n cycle
 
