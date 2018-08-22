@@ -48,8 +48,8 @@ UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart1_tx;
 
-extern targetWW;
-extern targetCW;
+extern float targetWW;
+extern float targetCW;
 
 void SystemClock_Config(void)
 {
