@@ -221,7 +221,7 @@ void COMP2_Init(void)
   hcomp2.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output            = HRTIM_FAULT_1;
-  hcomp2.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
+  hcomp2.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
   hcomp2.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp2.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp2);
@@ -236,7 +236,7 @@ void COMP4_Init(void)
   hcomp4.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output            = HRTIM_FAULT_1;
-  hcomp4.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
+  hcomp4.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
   hcomp4.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp4.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp4);
@@ -251,7 +251,7 @@ void COMP6_Init(void)
   hcomp6.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output            = HRTIM_FAULT_1;
-  hcomp6.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
+  hcomp6.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
   hcomp6.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp6.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp6);
@@ -308,8 +308,8 @@ void HRTIM1_Init(void)
 
   /* Select internal fault source (FLT_1) */
   pFaultCfg.Source    = HRTIM_FAULTSOURCE_INTERNAL;
-  pFaultCfg.Polarity  = HRTIM_FAULTPOLARITY_LOW;
-  pFaultCfg.Filter    = HRTIM_FAULTFILTER_NONE;
+  pFaultCfg.Polarity  = HRTIM_FAULTPOLARITY_HIGH;
+  pFaultCfg.Filter    = HRTIM_FAULTFILTER_10;
   pFaultCfg.Lock      = HRTIM_FAULTLOCK_READWRITE;
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg);
 
@@ -356,7 +356,7 @@ void HRTIM1_Init(void)
   pOutputCfg.ResetSource            = HRTIM_OUTPUTRESET_TIMCMP1;
   pOutputCfg.IdleMode               = HRTIM_OUTPUTIDLEMODE_NONE;
   pOutputCfg.IdleLevel              = HRTIM_OUTPUTIDLELEVEL_INACTIVE;
-  pOutputCfg.FaultLevel             = HRTIM_OUTPUTFAULTLEVEL_NONE;
+  pOutputCfg.FaultLevel             = HRTIM_OUTPUTFAULTLEVEL_INACTIVE;
   pOutputCfg.ChopperModeEnable      = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
   pOutputCfg.BurstModeEntryDelayed  = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
 
@@ -543,6 +543,11 @@ void GPIO_Init(void)
 }
 
 void start_HRTIM1(void) {
+
+  __HAL_HRTIM_CLEAR_IT(&hhrtim1, HRTIM_IT_FLT1);
+  __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT1);
+  __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT1);
+
   /* Enable HRTIM timers */
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);

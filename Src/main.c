@@ -165,8 +165,11 @@ int main(void)
   int16_t oldDistance = 0;   // old slider position
   float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
   float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
-
-
+/*
+__HAL_HRTIM_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
+__HAL_HRTIM_MASTER_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
+__HAL_HRTIM_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
+  */
   while (1)
   {
     //targetCW += 0.5;
@@ -176,11 +179,11 @@ int main(void)
 
       set_scope_channel(0, iavgCW);
       set_scope_channel(1, iavgWW);
-      set_scope_channel(2, sliderPos);
-      set_scope_channel(3, distanceDelta);
-      set_scope_channel(4, oldDistance);
-      set_scope_channel(5, colorProportion * 100.0f);
-      set_scope_channel(6, brightnessDeltaAvg);
+      set_scope_channel(2, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_IT_FLT1));
+      set_scope_channel(3, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_FLAG_FLT1));      
+      set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp2)>>30);
+      set_scope_channel(5, HAL_COMP_GetOutputLevel(&hcomp4)>>30);
+      set_scope_channel(6, HAL_COMP_GetOutputLevel(&hcomp6)>>30);
       console_scope();
       HAL_Delay(5);
       printCnt = 0;

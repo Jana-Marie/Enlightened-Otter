@@ -23,7 +23,6 @@
 #define BUTTON_THRESHOLD -1200	// sets the threshold at which a button press has to be triggered
 #define SLIDER_THRESHOLD -400	// sets the threshold at which the slider reports a value
 
-
 // values to be tested to determine the most efficient boost converter frequency
 // 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
 
@@ -35,7 +34,7 @@
 #define MAX_DUTY 0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
-#define OVERCURRENT 0.300f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
+#define OVERCURRENT 0.1f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
 #define CURRENT_AVERAGING_FILTER 	0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
@@ -51,8 +50,8 @@
 #define VDDA 				3.0f 	// Vref = VDDA = Analog power supply
 #define CURRENT_PRESCALER	1.0f 	// set the divisor for the current input
 #define VOLTAGE_PRESCALER	7.47f	//set the divisor for the voltage input
-#define FAULT_CURRENT		4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
-#define FAULT_VOLTAGE		4096*(((OVERVOLTAGE-0.7f)/VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
+#define FAULT_CURRENT		(int)((4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA))) 	// calculates the value the DAC for the Overcurrent protection has to be set to
+#define FAULT_VOLTAGE		(int)(4096*(((OVERVOLTAGE-0.7f)/VOLTAGE_PRESCALER)/VDDA)) 	// calculates the value the DAC for the Overvoltage protection has to be set to
 #define HRTIM_PERIOD 		(int)(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
 
 // ############################################################# //
