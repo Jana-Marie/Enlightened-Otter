@@ -235,7 +235,7 @@ void COMP4_Init(void)
   /* CMP4 config, input IWW and DAC1 channel 2, output HRTIM fault line 1 */
   hcomp4.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp4.Init.Output            = HRTIM_FAULT_1;
+  hcomp4.Init.Output            = HRTIM_FAULT_2;
   hcomp4.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
   hcomp4.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp4.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
@@ -250,7 +250,7 @@ void COMP6_Init(void)
   /* CMP6 config, input VREG and DAC2 channel 1, output HRTIM fault line 1 */
   hcomp6.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
-  hcomp6.Init.Output            = HRTIM_FAULT_1;
+  hcomp6.Init.Output            = HRTIM_FAULT_3;
   hcomp6.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
   hcomp6.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp6.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
