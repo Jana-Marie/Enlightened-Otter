@@ -102,7 +102,7 @@ uint8_t powState = 1;
 
 uint16_t sliderPos = 0;     // current slider position
 uint8_t sliderIsTouched = 0;// 1 if slider is touched
-
+float vtemp;
 
 int main(void)
 {
@@ -253,6 +253,7 @@ void boost_reg(void) {
 
   ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
+  vtemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1) / 4096.0f * 3.0f;
 
   iavgCW = FILT(iavgCW, ioutCW, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   iavgWW = FILT(iavgWW, ioutWW, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
