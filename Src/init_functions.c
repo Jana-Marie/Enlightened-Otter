@@ -309,11 +309,16 @@ void HRTIM1_Init(void)
   /* Select internal fault source (FLT_1) */
   pFaultCfg.Source    = HRTIM_FAULTSOURCE_INTERNAL;
   pFaultCfg.Polarity  = HRTIM_FAULTPOLARITY_HIGH;
-  pFaultCfg.Filter    = HRTIM_FAULTFILTER_10;
+  pFaultCfg.Filter    = HRTIM_FAULTFILTER_NONE;
   pFaultCfg.Lock      = HRTIM_FAULTLOCK_READWRITE;
+
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
+
+  HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_2, &pFaultCfg);
+
+  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_2, HRTIM_FAULTMODECTL_ENABLED);
 
   /* Set the frequency and period */
   pTimeBaseCfg.Period             = HRTIM_PERIOD;
@@ -338,7 +343,7 @@ void HRTIM1_Init(void)
   pTimerCfg.ResetUpdate           = HRTIM_TIMUPDATEONRESET_DISABLED;
   pTimerCfg.InterruptRequests     = HRTIM_TIM_IT_REP;
   pTimerCfg.PushPull              = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1;
+  pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT2;
   pTimerCfg.FaultLock             = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion     = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
@@ -547,6 +552,10 @@ void start_HRTIM1(void) {
   __HAL_HRTIM_CLEAR_IT(&hhrtim1, HRTIM_IT_FLT1);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT1);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT1);
+
+  __HAL_HRTIM_CLEAR_IT(&hhrtim1, HRTIM_IT_FLT2);
+  __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT2);
+  __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT2);
 
   /* Enable HRTIM timers */
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);

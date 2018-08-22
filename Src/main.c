@@ -24,9 +24,7 @@
 #include "defines.h"
 #include "gamma.h"
 
-//extern ADC_HandleTypeDef hadc1;
 extern ADC_HandleTypeDef hadc2;
-//extern DMA_HandleTypeDef hdma_adc1;
 extern DMA_HandleTypeDef hdma_adc2;
 
 extern COMP_HandleTypeDef hcomp2;
@@ -116,7 +114,6 @@ int main(void)
 
   GPIO_Init();
   DMA_Init();
-  //ADC1_Init();
   ADC2_Init();
   COMP2_Init();
   COMP4_Init();
@@ -179,8 +176,8 @@ __HAL_HRTIM_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
 
       set_scope_channel(0, iavgCW);
       set_scope_channel(1, iavgWW);
-      set_scope_channel(2, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_IT_FLT1));
-      set_scope_channel(3, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_FLAG_FLT1));      
+      set_scope_channel(2, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_IT_FLT2));
+      set_scope_channel(3, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_FLAG_FLT2));      
       set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp2)>>30);
       set_scope_channel(5, HAL_COMP_GetOutputLevel(&hcomp4)>>30);
       set_scope_channel(6, HAL_COMP_GetOutputLevel(&hcomp6)>>30);
@@ -240,6 +237,7 @@ __HAL_HRTIM_CLEAR_FLAG(&hhrtim1,HRTIM_FLAG_FLT1);
       } else if (powButton == 1 && powState == 1) { // if powerbutton is pressed and device is on, turn off and set "has changed flag"
         powState = 0;
         powStateHasChanged = 0;
+        start_HRTIM1();                             // for now lets reset the flt state in the power off state
       }
     } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
 
