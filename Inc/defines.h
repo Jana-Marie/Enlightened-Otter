@@ -18,6 +18,12 @@
 
 #define SCOPE_CHANNELS 	7 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
 
+#define MAX_CURRENT 400.0f 	// sets the maximum current
+
+#define BUTTON_THRESHOLD -1200	// sets the threshold at which a button press has to be triggered
+#define SLIDER_THRESHOLD -400	// sets the threshold at which the slider reports a value
+
+
 // values to be tested to determine the most efficient boost converter frequency
 // 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
 
@@ -31,14 +37,13 @@
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.300f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
-#define CURRENT_AVERAGING_FILTER 0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
-#define COLOR_FADING_FILTER 0.95f
-#define BRIGHTNESS_FADING_FILTER 0.95f
+#define CURRENT_AVERAGING_FILTER 	0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+#define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
+#define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
 
-#define POWER_LED_BRIGHTNESS 64 // brightness of the power LED in off state (0-1024)
+#define POWER_LED_BRIGHTNESS 64	// brightness of the power LED in off state (0-1024)
 
-#define MAX_CURRENT 400.0f 	// sets the divider for the touch scale
-
+// ############################################################# //
 // Automatic calculated Values, please use the variables above
 
 #define TOUCH_SCALE ((MAX_CURRENT/200.0f)*22.2996515f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
@@ -49,6 +54,9 @@
 #define FAULT_CURRENT		4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overcurrent protection has to be set to
 #define FAULT_VOLTAGE		4096*(((OVERVOLTAGE-0.7f)/VOLTAGE_PRESCALER)/VDDA) 	// calculates the value the DAC for the Overvoltage protection has to be set to
 #define HRTIM_PERIOD 		(int)(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
+
+// ############################################################# //
+// I2C registers
 
 #define RT_ADDRESS 			(0x53 << 1)	// std i2c address for the rt9466
 
@@ -73,7 +81,7 @@
 #define DISABLE_JEITA 	0x00	// Disable JEITA charger profile, idk maybe we dont want this
 #define ENABLE_JEITA 	0x10	// Enable it again
 
-#define CHG_STAT 		0x42		// Contains all the status bits
+#define CHG_STAT 		0x42	// Contains all the status bits
 // [7:6] 00 ready; 01 charge in progress; 10 charge done; 11 fault
 // 5 	 0 precharge; 1 fastcharge
 // 4	 0 no trickle charge; 1 trickle charge
@@ -96,12 +104,17 @@
 #define ADC_REGN  	0xB1    //lsb 5mv +-2lsb
 #define ADC_TEMP_JC 0xC1 	//lsb 2degreeC +-2lsb
 
+// ############################################################# //
+// Misc
+
 #define UART_DMA_CHANNEL DMA1_Channel4
 
 #define WW 0
 #define CW 1
 
+// ############################################################# //
 // usefull functions
+
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define SCALE(value, high, max) MIN(MAX(((max) - (value)) / ((max) - (high)), 0.0), 1.0)
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
