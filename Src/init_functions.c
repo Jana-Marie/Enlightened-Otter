@@ -320,6 +320,10 @@ void HRTIM1_Init(void)
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_2, HRTIM_FAULTMODECTL_ENABLED);
 
+  HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_3, &pFaultCfg);
+
+  HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
+
   /* Set the frequency and period */
   pTimeBaseCfg.Period             = HRTIM_PERIOD;
   pTimeBaseCfg.RepetitionCounter  = REG_CNT;
@@ -343,7 +347,7 @@ void HRTIM1_Init(void)
   pTimerCfg.ResetUpdate           = HRTIM_TIMUPDATEONRESET_DISABLED;
   pTimerCfg.InterruptRequests     = HRTIM_TIM_IT_REP;
   pTimerCfg.PushPull              = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT2;
+  pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT2 |  HRTIM_TIMFAULTENABLE_FAULT3;
   pTimerCfg.FaultLock             = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion     = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;

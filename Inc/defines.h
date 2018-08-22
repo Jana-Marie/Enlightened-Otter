@@ -34,7 +34,7 @@
 #define MAX_DUTY 0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
-#define OVERCURRENT 0.1f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
+#define OVERCURRENT 0.55f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
 #define CURRENT_AVERAGING_FILTER 	0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
