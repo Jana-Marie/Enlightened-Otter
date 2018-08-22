@@ -54,18 +54,16 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
-- [ ] Test Injected ADC
-	- [x] ADC tested and seems to work just fine
-	- [x] Add moving average filter to smooth out ADC values
-	- [x] Add JEOC Interrupt
-	- [ ] current,voltage,temperature calculation
-- [ ] Fix/write TSC controller
-	- [x] Add second TSC bank
-	- [ ] Make it interrupt based
-		- [x] write code
-		- [ ] Test that
+- [ ] temperature calculation
 - [ ] Fix the HRTIM FLT1 line
 - [ ] make the code more Timer/Interrupt based
+	- [x] HRTIM
+	- [ ] HRTIM FLT
+	- [x] ADC
+	- [x] TSC
+	- [x] I2C/UART
+	- [x] Regulator
+	- [ ] UI
 - [ ] get rid of global variables
 - [ ] HW
 	-  See HW/README.md
@@ -74,7 +72,16 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### Done:
 
-
+- [x] Test Injected ADC
+	- [x] ADC tested and seems to work just fine
+	- [x] Add moving average filter to smooth out ADC values
+	- [x] Add JEOC Interrupt
+- [x] current calculation
+- [x] Fix/write TSC controller
+	- [x] Add second TSC bank
+	- [x] Make it interrupt based
+		- [x] write code
+		- [x] Test that
 - [x] Fix I2C timing/Interrupt issue
 - [x] Get HRTIM to run
 - [x] Get the LED's to light up
