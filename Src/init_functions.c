@@ -48,6 +48,9 @@ UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart1_tx;
 
+extern targetWW;
+extern targetCW;
+
 void SystemClock_Config(void)
 {
 
@@ -560,6 +563,9 @@ void start_HRTIM1(void) {
   __HAL_HRTIM_CLEAR_IT(&hhrtim1, HRTIM_IT_FLT2);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT2);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1,HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT2);
+
+  targetCW = 0.0f;
+  targetWW = 0.0f;
 
   /* Enable HRTIM timers */
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
