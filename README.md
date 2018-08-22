@@ -63,7 +63,6 @@ HW regulates after boot while main loop is basically empty \o/
 	- [x] write tool to generate gamma correction curve
 	- [x] Implement it
 	- [ ] Test/debug it
-- [ ] Fix the HRTIM FLT1 line
 - [ ] make the code more Timer/Interrupt based
 	- [x] HRTIM
 	- [ ] HRTIM FLT
@@ -80,6 +79,7 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### Done:
 
+- [x] Fix the HRTIM FLT1 line
 - [x] Test Injected ADC
 	- [x] ADC tested and seems to work just fine
 	- [x] Add moving average filter to smooth out ADC values
