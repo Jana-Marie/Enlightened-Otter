@@ -96,14 +96,14 @@ uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
 uint8_t sliderCnt = 0;
 uint16_t adcCnt = 0;
 
-  uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
-  uint8_t powButton = 1;        // power button value
-  uint8_t powStateHasChanged = 1;        // power button value
-  uint8_t powState = 1;
+uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
+uint8_t powButton = 1;        // power button value
+uint8_t powStateHasChanged = 1;        // power button value
+uint8_t powState = 1;
 
 
-  uint16_t sliderPos = 0;     // current slider position
-  uint8_t sliderIsTouched = 0;// 1 if slider is touched
+uint16_t sliderPos = 0;     // current slider position
+uint8_t sliderIsTouched = 0;// 1 if slider is touched
 
 
 int main(void)
@@ -179,13 +179,13 @@ int main(void)
       set_scope_channel(2, sliderPos);
       set_scope_channel(3, distanceDelta);
       set_scope_channel(4, oldDistance);
-      set_scope_channel(5, colorProportion*100.0f);
+      set_scope_channel(5, colorProportion * 100.0f);
       set_scope_channel(6, brightnessDeltaAvg);
       console_scope();
       HAL_Delay(5);
       printCnt = 0;
     }
-    
+
     if (powState == 1) {      // if lamp is turned "soft" on
       if ( sliderPos != 0) {  // check if slider is touched
         if (sliderCnt >= 5) { // "debounce" slider
@@ -249,60 +249,10 @@ int main(void)
       HAL_GPIO_WritePin(GPIOA, LED_Color, 0);         // clear LED "Color"
       __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
     }
-    
+
   }
 }
 
-void TSC_Task(void){
-
-  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
-  {
-
-    sliderAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-    sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] - sliderOffsetValue[IdxBank];
-
-    slider_task(sliderAcquisitionValue);
-
-    HAL_TSC_IOConfig(&htscb, &IoConfigb);
-    HAL_TSC_IODischarge(&htscb, ENABLE);
-    __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
-    HAL_TSC_Start_IT(&htscb);
-  }
-  else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
-  {
-    buttonAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-    buttonAcquisitionValue[IdxBank] = buttonAcquisitionValue[IdxBank] - buttonOffsetValue[IdxBank];
-    
-    button_task(buttonAcquisitionValue);
-
-    HAL_TSC_IOConfig(&htscs, &IoConfigs);
-    HAL_TSC_IODischarge(&htscs, ENABLE);
-    __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
-    HAL_TSC_Start_IT(&htscs);
-  }
-
-  switch (IdxBank)
-  {
-  case 0:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
-    IdxBank = 1;
-    break;
-  case 1:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
-    IdxBank = 2;
-    break;
-  case 2:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
-    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
-    IdxBank = 0;
-    break;
-  default:
-    break;
-  }
-
-}
 
 void boost_reg(void) {
   /* Main current regulator */
@@ -341,18 +291,65 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   else if (!chan) targetCW = target_temp;
 }
 
-void button_task(int16_t buttonAcquisitionValue[3]){
-    int16_t buttonThr = -1200;
+void TSC_Task(void) {
 
-  if (buttonAcquisitionValue[1] < buttonThr) colorBrightnessSwitch = 0;
-  else if (buttonAcquisitionValue[2] < buttonThr) colorBrightnessSwitch = 1;
+  if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
+  {
+
+    sliderAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] - sliderOffsetValue[IdxBank];
+
+    slider_task(sliderAcquisitionValue);
+
+    HAL_TSC_IOConfig(&htscb, &IoConfigb);
+    HAL_TSC_IODischarge(&htscb, ENABLE);
+    __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+    HAL_TSC_Start_IT(&htscb);
+  }
+  else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  {
+    buttonAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    buttonAcquisitionValue[IdxBank] = buttonAcquisitionValue[IdxBank] - buttonOffsetValue[IdxBank];
+
+    button_task(buttonAcquisitionValue);
+
+    HAL_TSC_IOConfig(&htscs, &IoConfigs);
+    HAL_TSC_IODischarge(&htscs, ENABLE);
+    __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+    HAL_TSC_Start_IT(&htscs);
+  }
+
+  switch (IdxBank)
+  {
+  case 0:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
+    IdxBank = 1;
+    break;
+  case 1:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
+    IdxBank = 2;
+    break;
+  case 2:
+    IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
+    IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
+    IdxBank = 0;
+    break;
+  default:
+    break;
+  }
+}
+
+void button_task(int16_t buttonAcquisitionValue[3]) {
+  if (buttonAcquisitionValue[1] < BUTTON_THRESHOLD) colorBrightnessSwitch = 0;
+  else if (buttonAcquisitionValue[2] < BUTTON_THRESHOLD) colorBrightnessSwitch = 1;
   else;
-  if (buttonAcquisitionValue[0] < buttonThr) powButton = 1;
+  if (buttonAcquisitionValue[0] < BUTTON_THRESHOLD) powButton = 1;
   else powButton = 0;
 }
 
-void slider_task(int16_t sliderAcquisitionValue[3]){
-
+void slider_task(int16_t sliderAcquisitionValue[3]) {
   if (IdxBank == 2) sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] * 2;
 
   sliderAcquisitionValue[IdxBank] = CLAMP(sliderAcquisitionValue[IdxBank], -2000, 0);
@@ -368,7 +365,7 @@ void slider_task(int16_t sliderAcquisitionValue[3]){
   else if (y < x && y < z && z < x) sliderPos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
   else if (y < x && y < z && z > x) sliderPos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
-  if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > -200) {
+  if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > SLIDER_THRESHOLD) {
     sliderPos = 0;
     sliderIsTouched = 0;
   } else {
