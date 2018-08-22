@@ -55,6 +55,10 @@ HW regulates after boot while main loop is basically empty \o/
 ### To do:
 
 - [ ] temperature calculation
+- [ ] gamma correction
+	- [x] write tool to generate gamma correction curve
+	- [x] Implement it
+	- [ ] Test/debug it
 - [ ] Fix the HRTIM FLT1 line
 - [ ] make the code more Timer/Interrupt based
 	- [x] HRTIM
