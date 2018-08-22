@@ -278,7 +278,7 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
 
-  if (chan)       targetWW = gammaTable[(int)(target_temp*2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
+  if (chan) targetWW = gammaTable[(int)(target_temp*2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
   else if (!chan) targetCW = gammaTable[(int)(target_temp*2)];
 }
 
