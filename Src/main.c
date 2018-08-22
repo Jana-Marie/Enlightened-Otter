@@ -169,11 +169,11 @@ int main(void)
 
       set_scope_channel(0, iavgCW);
       set_scope_channel(1, iavgWW);
-      set_scope_channel(2, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_IT_FLT2));
-      set_scope_channel(3, __HAL_HRTIM_GET_FLAG(&hhrtim1,HRTIM_FLAG_FLT2));      
-      set_scope_channel(4, HAL_COMP_GetOutputLevel(&hcomp2)>>30);
-      set_scope_channel(5, HAL_COMP_GetOutputLevel(&hcomp4)>>30);
-      set_scope_channel(6, HAL_COMP_GetOutputLevel(&hcomp6)>>30);
+      set_scope_channel(2, targetCW);
+      set_scope_channel(3, targetWW);      
+      set_scope_channel(4, (int)targetCW);
+      set_scope_channel(5, (int)targetWW);
+      set_scope_channel(6, brightnessDeltaAvg);
       console_scope();
       HAL_Delay(5);
       printCnt = 0;
@@ -247,7 +247,6 @@ int main(void)
   }
 }
 
-
 void boost_reg(void) {
   /* Main current regulator */
   float ioutCW, ioutWW;
@@ -279,10 +278,8 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
 
-  //if (chan)       targetWW = gammaTable[(int)target_temp];
-  //else if (!chan) targetCW = gammaTable[(int)target_temp];
-  if (chan)       targetWW = target_temp;
-  else if (!chan) targetCW = target_temp;
+  if (chan)       targetWW = gammaTable[(int)(target_temp*2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
+  else if (!chan) targetCW = gammaTable[(int)(target_temp*2)];
 }
 
 void TSC_Task(void) {
