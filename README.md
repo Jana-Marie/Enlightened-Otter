@@ -43,6 +43,10 @@ or OpenOCD
 
 [![LED 1](https://img.youtube.com/vi/DC_eAY72nbw/0.jpg)](https://youtu.be/DC_eAY72nbw)
 
+## Known Bugs
+
+- Touch does not work when licked (tested by @NiklasFauth)
+
 ## Planning
 
 ### Current state:
