@@ -22,7 +22,7 @@ struct touch_button_t {
   int16_t offsetValue[3]; // Todo - make some kind of auto calibration = {2075, 2131, 2450}
   uint8_t CBSwitch;       // color or brightness switch = 0
   uint8_t state;
-  uint8_t hasChanged;        // power button value = 1
+  uint8_t isReleased;        // power button value = 1
 
 };
 

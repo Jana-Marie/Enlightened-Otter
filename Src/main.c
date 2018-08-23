@@ -48,17 +48,17 @@ extern TSC_IOConfigTypeDef IoConfigb;
 
 extern UART_HandleTypeDef huart1;
 
+void slider_task(void);
+void button_task(void);
+void UI_task(void);
+void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 void enable_OTG(void);
 void disable_OTG(void);
-uint16_t read_RT_ADC(void);
 void set_pwm(uint8_t timer, float duty);
 void set_brightness(uint8_t chan, float brightness, float color, float max_value);
-void TSC_task(void);
-void slider_task(void);
-void button_task(void);
-void UI_task(void);
+uint16_t read_RT_ADC(void);
 
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
@@ -68,28 +68,15 @@ volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}};
-
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
-
 struct UI_t ui;
-
 float vtemp;
-
-
-float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
-uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
-uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
-uint16_t adcCnt = 0;
-
-
+uint8_t printCnt = 0;     // debugvalue can be removed later
 
 int main(void)
 {
   HAL_Init();
   SystemClock_Config();
-
-  set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
-  set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
   GPIO_Init();
   DMA_Init();
@@ -125,7 +112,6 @@ int main(void)
 
   while (1)
   {
-
     if (printCnt++ % 250 == 0) { // print only every n cycle
 
       set_scope_channel(0, r.CW.iavg);
@@ -155,10 +141,10 @@ void boost_reg(void) {
   r.CW.error = r.CW.target - r.CW.iavg;  // Calculate CW-current error
   r.WW.error = r.WW.target - r.WW.iavg;  // Calculate WW-current error
 
-  r.CW.duty += (r.Magiekonstante * r.CW.error);  // Simple I regulator for CW current
+  r.CW.duty += (r.Magiekonstante * r.CW.error);     // Simple I regulator for CW current
   r.CW.duty = CLAMP(r.CW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-  r.WW.duty += (r.Magiekonstante * r.WW.error);  // Simple I regulator for WW current
+  r.WW.duty += (r.Magiekonstante * r.WW.error);     // Simple I regulator for WW current
   r.WW.duty = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
@@ -168,13 +154,13 @@ void boost_reg(void) {
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
   float target_tmp, color_tmp;
 
-  if (chan)       color_tmp = color;
-  else if (!chan) color_tmp = (1.0f - color);
+  if (chan)       color_tmp = color;          // set color temperature multiplicator from 0-1 for WW
+  else if (!chan) color_tmp = (1.0f - color); // and 1-0 fow CW
 
-  target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);
+  target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp
 
-  if (chan) r.WW.target = gammaTable[(int)(target_tmp * 2)];        // gamma correction array position needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
-  else if (!chan) r.CW.target = gammaTable[(int)(target_tmp * 2)];
+  if (chan) r.WW.target = gammaTable[(int)(target_tmp * 2)];        // apply gamma corection - gamma correction array position
+  else if (!chan) r.CW.target = gammaTable[(int)(target_tmp * 2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
 }
 
 void TSC_task(void) {
@@ -229,22 +215,22 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
 
-  if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0;
+  if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0;       // switch color or brightness selector
   else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
-  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;
+  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;  // if the power button is pressed set to 1
   else _powButton = 0;
 
-  if (t.button.hasChanged) {                       // power button state maschine start if something has changed
-    if (_powButton == 1 && t.button.state == 0) {        // if powerbutton is pressed and device is off, turn on and set "has changed flag"
+  if (t.button.isReleased) {                       // power button state maschine start if button was released, waiting for the next press
+    if (_powButton == 1 && t.button.state == 0) {  // if powerbutton is pressed and device is off, turn on and reset "is released flag"
       t.button.state = 1;
-      t.button.hasChanged = 0;
-    } else if (_powButton == 1 && t.button.state == 1) { // if powerbutton is pressed and device is on, turn off and set "has changed flag"
+      t.button.isReleased = 0;
+    } else if (_powButton == 1 && t.button.state == 1) { // if powerbutton is pressed and device is on, turn off and reset "is released flag"
       t.button.state = 0;
-      t.button.hasChanged = 0;
+      t.button.isReleased = 0;
       start_HRTIM1();                             // for now lets reset the flt state in the power off state
     }
-  } else if (!t.button.hasChanged && _powButton == 0) t.button.hasChanged = 1; // else clear flag
+  } else if (!t.button.isReleased && _powButton == 0) t.button.isReleased = 1; // set isReleased flag if powerbutton was released
 
   UI_task();
 }
@@ -276,11 +262,12 @@ void slider_task(void) {
 void UI_task(void) {
   float _enable = 1.0f;
 
-  if (t.button.state == 1) {  // if lamp is turned "soft" on
-    if (t.slider.pos != 0) {  // check if slider is touched
+  if (t.button.state) {  // if lamp is turned "soft" on
+    if (t.slider.isTouched) {  // check if slider is touched
       if (ui.debounce >= 5) {   // "debounce" slider
 
         //if (ABS(t.slider.pos - ui.distanceOld) > 50) t.slider.pos = ui.distanceOld; // sliding over the end of the slider causes it to "jump", this should prevent that
+
         ui.distance += t.slider.pos - ui.distanceOld;             // calculate t.slider.pos delta
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);
 
@@ -344,6 +331,22 @@ uint16_t read_RT_ADC(void) {
   return _tmp_data;
 }
 
+void set_pwm(uint8_t timer, float duty) {
+
+  /* Clamp duty cycle values */
+  if (duty < MIN_DUTY) duty = MIN_DUTY;
+  if (duty > MAX_DUTY) duty = MAX_DUTY;
+
+  /* Set registers according to duty cycle */
+  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
+  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
+  HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
+  HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
+  HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
+  HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
+}
+
+
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val) {
   ch_buf[ch] = val;
@@ -374,22 +377,6 @@ void console_scope(void) {
   huart1.gState = HAL_UART_STATE_READY;
 }
 #endif
-
-void set_pwm(uint8_t timer, float duty) {
-
-  /* Clamp duty cycle values */
-  if (duty < MIN_DUTY) duty = MIN_DUTY;
-  if (duty > MAX_DUTY) duty = MAX_DUTY;
-
-  /* Set registers according to duty cycle */
-  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
-  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
-  HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
-  HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
-  HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
-  HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
-}
-
 
 void _Error_Handler(char * file, int line)
 {
