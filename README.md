@@ -68,6 +68,7 @@ HW regulates after boot while main loop is basically empty \o/
 ### Done:
 
 - [x] get rid of global variables
+	- moved them into structs
 - [x] make the code more Timer/Interrupt based
 	- [x] HRTIM
 	- [x] HRTIM FLT
