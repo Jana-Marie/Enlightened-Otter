@@ -71,8 +71,7 @@ uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
-
-struct touch_t t = {0, {{0, 0, 0}, {1153, 1978, 1962}, 0, 1}, {{0, 0, 0}, {1153, 1978, 1962}, 0, 0}}; //very ugly
+struct touch_t t = {.slider.offsetValue = {1153, 1978, 1962},.button.offsetValue = {2075, 2131, 2450}};
 
 struct reg_t r;
 
