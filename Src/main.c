@@ -261,7 +261,7 @@ void slider_task(void) {
 }
 
 void UI_task(void) {
-  float _enable = 1.0f;
+  uint8_t _enable = 1;
 
   if (t.button.state) {  // if lamp is turned "soft" on
     if (t.slider.isTouched) {  // check if slider is touched
@@ -282,17 +282,18 @@ void UI_task(void) {
 
       ui.distanceOld = t.slider.pos;                                // set ui.distanceOld to current t.slider.pos
     } else ui.debounce = 0;
-  } else if ( t.button.state == 0 && ui.brightnessAvg != 0) _enable = 0.0f;
+  } else if ( t.button.state == 0 && ui.brightnessAvg != 0) _enable = 0;
 
-  if (ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) {       // smooth out color value until target
-
-    ui.brightnessAvg *= _enable;  // turn brightness on or off
+  if ((ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) && _enable) {       // smooth out color value until target
 
     ui.colorAvg = FILT(ui.colorAvg, ui.color, COLOR_FADING_FILTER);      // moving average filter with fixed constants
     ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightness, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
 
     set_brightness(CHAN_CW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);
     set_brightness(CHAN_WW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);
+  } else {
+    set_brightness(CHAN_CW, 0.0f, ui.colorAvg, MAX_CURRENT);
+    set_brightness(CHAN_WW, 0.0f, ui.colorAvg, MAX_CURRENT);
   }
 }
 
