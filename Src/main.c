@@ -76,7 +76,6 @@ int main(void)
 {
   HAL_Init();
   SystemClock_Config();
-
   GPIO_Init();
   DMA_Init();
   ADC2_Init();
@@ -105,6 +104,9 @@ int main(void)
   start_HRTIM1(); // start HRTIM and enable outputs
 
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers needs to be done, otherwise power failure
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
   HAL_TSC_Start_IT(&htscb);
   HAL_TSC_Start_IT(&htscs);
