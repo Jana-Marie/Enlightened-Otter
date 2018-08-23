@@ -55,3 +55,13 @@ struct reg_t {
 };
 
 // UI
+
+struct UI_t {
+  int16_t distance;      // delta slider position
+  int16_t distanceOld;
+  float brightness;      // calculated brightness delta
+  float brightnessAvg;      // calculated brightness delta
+  float color;  // a value from 0.0f to 1.0f defining the current color porportions
+  float colorAvg;  // a value from 0.0f to 1.0f defining the current color porportions
+  uint8_t debounce;
+};
