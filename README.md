@@ -60,15 +60,6 @@ HW regulates after boot while main loop is basically empty \o/
 
 - [ ] get rid of flicker at 0.5-2.5mA 
 - [ ] temperature calculation
-- [ ] make the code more Timer/Interrupt based
-	- [x] HRTIM
-	- [x] HRTIM FLT
-	- [x] ADC
-	- [x] TSC
-	- [x] I2C/UART
-	- [x] Regulator
-	- [ ] UI
-- [ ] get rid of global variables
 - [ ] HW
 	-  See HW/README.md
 - [ ] find MPP
@@ -76,6 +67,15 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### Done:
 
+- [x] get rid of global variables
+- [x] make the code more Timer/Interrupt based
+	- [x] HRTIM
+	- [x] HRTIM FLT
+	- [x] ADC
+	- [x] TSC
+	- [x] I2C/UART
+	- [x] Regulator
+	- [x] UI
 - [x] gamma correction
 	- [x] write tool to generate gamma correction curve
 	- [x] Implement it
