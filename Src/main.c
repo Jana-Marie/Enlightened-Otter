@@ -23,6 +23,7 @@
 #include <string.h>
 #include "defines.h"
 #include "gamma.h"
+#include "variables.h"
 
 extern ADC_HandleTypeDef hadc2;
 extern DMA_HandleTypeDef hdma_adc2;
@@ -58,12 +59,11 @@ static void enable_OTG(void);
 uint16_t read_RT_ADC(void);
 
 void set_pwm(uint8_t timer, float duty);
-void primitive_TSC_button_task(uint8_t *colorBrightnessSwitch, uint8_t *powerButton);
-void primitive_TSC_slider_task(uint16_t *sPos, uint8_t *isT);
 void set_brightness(uint8_t chan, float brightness, float color, float max_value);
 void TSC_Task(void);
-void slider_task(int16_t sliderAcquisitionValue[3]);
-void button_task(int16_t buttonAcquisitionValue[3]);
+void slider_task();
+void button_task();
+void UI_Task(void);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
@@ -71,22 +71,10 @@ uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
-int16_t sliderAcquisitionValue[3];                 // register that holds the acquired slider values
-int16_t buttonAcquisitionValue[3];                 // register that holds the acquired button values
-int16_t sliderOffsetValue[3] = {1153, 1978, 1962}; // offset values which needs to be subtracted from the acquired values
-int16_t buttonOffsetValue[3] = {2075, 2131, 2450}; // Todo - make some kind of auto calibration
 
-uint8_t IdxBankS = 0;       // IO indexer for the slider
-uint8_t IdxBankB = 0;       // IO indexer for the buttons
-uint8_t IdxBank = 0;
+struct touch_t t = {0, {{0, 0, 0}, {1153, 1978, 1962}, 0, 1}, {{0, 0, 0}, {1153, 1978, 1962}, 0, 0}}; //very ugly
 
-float targetCW = 0.0f;  // Coldwhite target current in mA
-float targetWW = 0.0f;  // Warmwhite target current in mA
-
-float MagiekonstanteCycle;  // Ki constant, independent of cycle time
-float iavgCW, iavgWW, errorCW, errorWW; // stores the average current
-float dutyCW = MIN_DUTY;    // cold white duty cycle
-float dutyWW = MIN_DUTY;    // warm white duty cycle
+struct reg_t r;
 
 float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
 uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
@@ -94,15 +82,16 @@ uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
 uint8_t sliderCnt = 0;
 uint16_t adcCnt = 0;
 
-uint8_t colorBrightnessSwitch = 0;       // color or brightness switch
-uint8_t powButton = 1;        // power button value
 uint8_t powStateHasChanged = 1;        // power button value
 uint8_t powState = 1;
-
-
-uint16_t sliderPos = 0;     // current slider position
-uint8_t sliderIsTouched = 0;// 1 if slider is touched
 float vtemp;
+
+int16_t distanceDelta = 0;      // delta slider position
+int16_t brightnessDelta = 0;      // calculated brightness delta
+float brightnessDeltaAvg = 0;      // calculated brightness delta
+int16_t oldDistance = 0;   // old slider position
+float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
+float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
 
 int main(void)
 {
@@ -153,90 +142,28 @@ int main(void)
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
-  MagiekonstanteCycle = KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT); // calculated Ki independent of cycle time by multiplying it with the cycle time
-
-  int16_t distanceDelta = 0;      // delta slider position
-  int16_t brightnessDelta = 0;      // calculated brightness delta
-  float brightnessDeltaAvg = 0;      // calculated brightness delta
-  int16_t oldDistance = 0;   // old slider position
-  float colorProportion = 0;  // a value from 0.0f to 1.0f defining the current color porportions
-  float colorProportionAvg = 0;  // a value from 0.0f to 1.0f defining the current color porportions
+  r.Magiekonstante = KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT); // calculated Ki independent of cycle time by multiplying it with the cycle time
 
   while (1)
   {
 
     if (printCnt % 250 == 0) { // print only every n cycle
 
-      set_scope_channel(0, iavgCW);
-      set_scope_channel(1, iavgWW);
-      set_scope_channel(2, targetCW);
-      set_scope_channel(3, targetWW);
-      set_scope_channel(4, (int)targetCW);
-      set_scope_channel(5, (int)targetWW);
+      set_scope_channel(0, r.CW.iavg);
+      set_scope_channel(1, r.WW.iavg);
+      set_scope_channel(2, r.CW.target);
+      set_scope_channel(3, r.WW.target);
+      set_scope_channel(4, (int)r.CW.target);
+      set_scope_channel(5, (int)r.WW.target);
       set_scope_channel(6, brightnessDeltaAvg);
       console_scope();
       HAL_Delay(5);
       printCnt = 0;
     }
 
-    if (powState == 1) {      // if lamp is turned "soft" on
-      if ( sliderPos != 0) {  // check if slider is touched
-        if (sliderCnt >= 5) { // "debounce" slider
-
-          //if (ABS(sliderPos - oldDistance) > 50) sliderPos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
-
-          distanceDelta += sliderPos - oldDistance;             // calculate sliderPos delta
-          distanceDelta = CLAMP(distanceDelta, 0.0f, MAX_CURRENT);
-
-          if (colorBrightnessSwitch == 0) brightnessDelta = distanceDelta;          // if color/brightness switch is 0 then change brightness
-          if (colorBrightnessSwitch == 1) colorProportion = distanceDelta / MAX_CURRENT; // if color/brightness switch is 1 then change the color
-
-        } else sliderCnt++;
-
-        if (colorBrightnessSwitch == 0) distanceDelta = brightnessDelta;          // prevents jumps when switching between modes
-        if (colorBrightnessSwitch == 1) distanceDelta = colorProportion * MAX_CURRENT; // prevents jumps when switching between modes
-
-        oldDistance = sliderPos;                                // set oldDistance to current sliderPos
-      } else sliderCnt = 0;
-      // calculate nex value with moving average filter, do this until target is reached
-      if (colorProportionAvg != colorProportion) {              // smooth out color value until target
-
-        colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
-
-        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-      }
-      if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
-
-        brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
-
-        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-      }
-    } else if ( powState == 0) {                        // if lamp is turned "soft" off
-      if (brightnessDeltaAvg != 0) {                    // calculate and set until target is reached
-
-        brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER;  // moving average filter with fixed constants and fixed taget
-
-        set_brightness(CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-        set_brightness(WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-      }
-    }
-
-    if (powStateHasChanged) {                       // power button state maschine start if something has changed
-      if (powButton == 1 && powState == 0) {        // if powerbutton is pressed and device is off, turn on and set "has changed flag"
-        powState = 1;
-        powStateHasChanged = 0;
-      } else if (powButton == 1 && powState == 1) { // if powerbutton is pressed and device is on, turn off and set "has changed flag"
-        powState = 0;
-        powStateHasChanged = 0;
-        start_HRTIM1();                             // for now lets reset the flt state in the power off state
-      }
-    } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
-
     if (powState == 1) {
-      HAL_GPIO_WritePin(GPIOA, LED_Brightness, !colorBrightnessSwitch); // set LED "Brightness"
-      HAL_GPIO_WritePin(GPIOA, LED_Color, colorBrightnessSwitch);       // set LED "Color"
+      HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
+      HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
       __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);
     } else {
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);    // clear LED "Brightness"
@@ -249,26 +176,24 @@ int main(void)
 
 void boost_reg(void) {
   /* Main current regulator */
-  float ioutCW, ioutWW;
-
-  ioutCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
-  ioutWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
+  r.CW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
+  r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
   vtemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1) / 4096.0f * 3.0f;
 
-  iavgCW = FILT(iavgCW, ioutCW, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
-  iavgWW = FILT(iavgWW, ioutWW, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
+  r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
+  r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
 
-  errorCW = targetCW - iavgCW;  // Calculate CW-current error
-  errorWW = targetWW - iavgWW;  // Calculate WW-current error
+  r.CW.error = r.CW.target - r.CW.iavg;  // Calculate CW-current error
+  r.WW.error = r.WW.target - r.WW.iavg;  // Calculate WW-current error
 
-  dutyCW += (MagiekonstanteCycle * errorCW);  // Simple I regulator for CW current
-  dutyCW = CLAMP(dutyCW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+  r.CW.duty += (r.Magiekonstante * r.CW.error);  // Simple I regulator for CW current
+  r.CW.duty = CLAMP(r.CW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-  dutyWW += (MagiekonstanteCycle * errorWW);  // Simple I regulator for WW current
-  dutyWW = CLAMP(dutyWW, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+  r.WW.duty += (r.Magiekonstante * r.WW.error);  // Simple I regulator for WW current
+  r.WW.duty = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-  set_pwm(HRTIM_TIMERINDEX_TIMER_D, dutyCW);  // Update CW duty cycle
-  set_pwm(HRTIM_TIMERINDEX_TIMER_C, dutyWW);  // Update WW duty cycle
+  set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
+  set_pwm(HRTIM_TIMERINDEX_TIMER_C, r.WW.duty);  // Update WW duty cycle
 }
 
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
@@ -279,8 +204,8 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
 
-  if (chan) targetWW = gammaTable[(int)(target_temp * 2)];        // gamma correction array position needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
-  else if (!chan) targetCW = gammaTable[(int)(target_temp * 2)];
+  if (chan) r.WW.target = gammaTable[(int)(target_temp * 2)];        // gamma correction array position needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
+  else if (!chan) r.CW.target = gammaTable[(int)(target_temp * 2)];
 }
 
 void TSC_Task(void) {
@@ -288,22 +213,21 @@ void TSC_Task(void) {
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
 
-    sliderAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-    sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] - sliderOffsetValue[IdxBank];
+    t.slider.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
 
-    slider_task(sliderAcquisitionValue);
+    slider_task();
 
     HAL_TSC_IOConfig(&htscb, &IoConfigb);
     HAL_TSC_IODischarge(&htscb, ENABLE);
     __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE));
     HAL_TSC_Start_IT(&htscb);
-  }
-  else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
+  } else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
-    buttonAcquisitionValue[IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-    buttonAcquisitionValue[IdxBank] = buttonAcquisitionValue[IdxBank] - buttonOffsetValue[IdxBank];
+    t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
 
-    button_task(buttonAcquisitionValue);
+    button_task();
 
     HAL_TSC_IOConfig(&htscs, &IoConfigs);
     HAL_TSC_IODischarge(&htscs, ENABLE);
@@ -311,57 +235,118 @@ void TSC_Task(void) {
     HAL_TSC_Start_IT(&htscs);
   }
 
-  switch (IdxBank)
+  switch (t.IdxBank)
   {
   case 0:
     IoConfigb.ChannelIOs = TSC_GROUP5_IO2;
     IoConfigs.ChannelIOs = TSC_GROUP1_IO1;
-    IdxBank = 1;
+    t.IdxBank = 1;
     break;
   case 1:
     IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
     IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
-    IdxBank = 2;
+    t.IdxBank = 2;
     break;
   case 2:
     IoConfigb.ChannelIOs = TSC_GROUP5_IO4;
     IoConfigs.ChannelIOs = TSC_GROUP1_IO3;
-    IdxBank = 0;
+    t.IdxBank = 0;
     break;
   default:
     break;
   }
 }
 
-void button_task(int16_t buttonAcquisitionValue[3]) {
-  if (buttonAcquisitionValue[1] < BUTTON_THRESHOLD) colorBrightnessSwitch = 0;
-  else if (buttonAcquisitionValue[2] < BUTTON_THRESHOLD) colorBrightnessSwitch = 1;
+void button_task() {
+  uint8_t powButton;
+
+  if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0;
+  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
-  if (buttonAcquisitionValue[0] < BUTTON_THRESHOLD) powButton = 1;
+  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) powButton = 1;
   else powButton = 0;
+
+  if (powStateHasChanged) {                       // power button state maschine start if something has changed
+    if (powButton == 1 && powState == 0) {        // if powerbutton is pressed and device is off, turn on and set "has changed flag"
+      powState = 1;
+      powStateHasChanged = 0;
+    } else if (powButton == 1 && powState == 1) { // if powerbutton is pressed and device is on, turn off and set "has changed flag"
+      powState = 0;
+      powStateHasChanged = 0;
+      start_HRTIM1();                             // for now lets reset the flt state in the power off state
+    }
+  } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
+
+  UI_Task();
 }
 
-void slider_task(int16_t sliderAcquisitionValue[3]) {
-  if (IdxBank == 2) sliderAcquisitionValue[IdxBank] = sliderAcquisitionValue[IdxBank] * 2;
+void slider_task() {
+  if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;
 
-  sliderAcquisitionValue[IdxBank] = CLAMP(sliderAcquisitionValue[IdxBank], -2000, 0);
+  t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);
 
-  int16_t x = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[1]) / 2) - sliderAcquisitionValue[2];
-  int16_t y = ((sliderAcquisitionValue[0] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[1];
-  int16_t z = ((sliderAcquisitionValue[1] + sliderAcquisitionValue[2]) / 2) - sliderAcquisitionValue[0];
+  int16_t x = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[1]) / 2) - t.slider.acquisitionValue[2];
+  int16_t y = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[1];
+  int16_t z = ((t.slider.acquisitionValue[1] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[0];
 
-  if      (x < y && x < z && y < z) sliderPos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-  else if (x < y && x < z && y > z) sliderPos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-  else if (z < y && z < x && x < y) sliderPos = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-  else if (z < y && z < x && x > y) sliderPos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-  else if (y < x && y < z && z < x) sliderPos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-  else if (y < x && y < z && z > x) sliderPos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
+  if      (x < y && x < z && y < z) t.slider.pos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+  else if (x < y && x < z && y > z) t.slider.pos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+  else if (z < y && z < x && x < y) t.slider.pos = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+  else if (z < y && z < x && x > y) t.slider.pos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+  else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+  else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
-  if (MIN(MIN(sliderAcquisitionValue[0], sliderAcquisitionValue[1]), sliderAcquisitionValue[2]) > SLIDER_THRESHOLD) {
-    sliderPos = 0;
-    sliderIsTouched = 0;
-  } else {
-    sliderIsTouched = 1;
+  if (MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]) > SLIDER_THRESHOLD) {
+    t.slider.pos = 0;
+    t.slider.isTouched = 0;
+  } else t.slider.isTouched = 1;
+
+  UI_Task();
+}
+
+void UI_Task(void) {
+  if (powState == 1) {      // if lamp is turned "soft" on
+    if ( t.slider.pos != 0) {  // check if slider is touched
+      if (sliderCnt >= 5) { // "debounce" slider
+
+        //if (ABS(t.slider.pos - oldDistance) > 50) t.slider.pos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
+
+        distanceDelta += t.slider.pos - oldDistance;             // calculate t.slider.pos delta
+        distanceDelta = CLAMP(distanceDelta, 0.0f, MAX_CURRENT);
+
+        if (t.button.CBSwitch == 0) brightnessDelta = distanceDelta;          // if color/brightness switch is 0 then change brightness
+        if (t.button.CBSwitch == 1) colorProportion = distanceDelta / MAX_CURRENT; // if color/brightness switch is 1 then change the color
+
+      } else sliderCnt++;
+
+      if (t.button.CBSwitch == 0) distanceDelta = brightnessDelta;          // prevents jumps when switching between modes
+      if (t.button.CBSwitch == 1) distanceDelta = colorProportion * MAX_CURRENT; // prevents jumps when switching between modes
+
+      oldDistance = t.slider.pos;                                // set oldDistance to current t.slider.pos
+    } else sliderCnt = 0;
+    // calculate nex value with moving average filter, do this until target is reached
+    if (colorProportionAvg != colorProportion) {              // smooth out color value until target
+
+      colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
+
+      set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+      set_brightness(CHAN_WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+    }
+    if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
+
+      brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
+
+      set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+      set_brightness(CHAN_WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+    }
+  } else if ( powState == 0) {                        // if lamp is turned "soft" off
+    if (brightnessDeltaAvg != 0) {                    // calculate and set until target is reached
+
+      brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER;  // moving average filter with fixed constants and fixed taget
+
+      set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+      set_brightness(CHAN_WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+    }
   }
 }
 
