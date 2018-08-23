@@ -170,7 +170,7 @@ int main(void)
       set_scope_channel(0, iavgCW);
       set_scope_channel(1, iavgWW);
       set_scope_channel(2, targetCW);
-      set_scope_channel(3, targetWW);      
+      set_scope_channel(3, targetWW);
       set_scope_channel(4, (int)targetCW);
       set_scope_channel(5, (int)targetWW);
       set_scope_channel(6, brightnessDeltaAvg);
@@ -279,8 +279,8 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_temp = CLAMP((brightness * color_temp), 0.0f, max_value);
 
-  if (chan) targetWW = gammaTable[(int)(target_temp*2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
-  else if (!chan) targetCW = gammaTable[(int)(target_temp*2)];
+  if (chan) targetWW = gammaTable[(int)(target_temp * 2)];        // gamma correction array position needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
+  else if (!chan) targetCW = gammaTable[(int)(target_temp * 2)];
 }
 
 void TSC_Task(void) {
@@ -295,7 +295,7 @@ void TSC_Task(void) {
 
     HAL_TSC_IOConfig(&htscb, &IoConfigb);
     HAL_TSC_IODischarge(&htscb, ENABLE);
-    __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+    __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE));
     HAL_TSC_Start_IT(&htscb);
   }
   else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
@@ -307,7 +307,7 @@ void TSC_Task(void) {
 
     HAL_TSC_IOConfig(&htscs, &IoConfigs);
     HAL_TSC_IODischarge(&htscs, ENABLE);
-    __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE)); //idk why were doing this here
+    __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE));
     HAL_TSC_Start_IT(&htscs);
   }
 
