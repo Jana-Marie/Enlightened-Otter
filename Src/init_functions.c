@@ -17,6 +17,7 @@
 */
 
 #include "init_functions.h"
+#include "variables.h"
 
 ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc2;
@@ -48,8 +49,7 @@ UART_HandleTypeDef huart1;
 DMA_HandleTypeDef hdma_usart1_rx;
 DMA_HandleTypeDef hdma_usart1_tx;
 
-extern float targetWW;
-extern float targetCW;
+extern struct reg_t r;
 
 void SystemClock_Config(void)
 {
@@ -404,6 +404,7 @@ void TSC_Init(void)
 
   htscs.Instance = TSC;
 
+  // TSC slider common config
   htscs.Init.CTPulseHighLength        = TSC_CTPH_1CYCLE;
   htscs.Init.CTPulseLowLength         = TSC_CTPL_1CYCLE;
   htscs.Init.SpreadSpectrum           = ENABLE;
@@ -421,6 +422,7 @@ void TSC_Init(void)
 
   htscb.Instance = TSC;
 
+  // TSC button common config
   htscb.Init.CTPulseHighLength        = TSC_CTPH_1CYCLE;
   htscb.Init.CTPulseLowLength         = TSC_CTPL_1CYCLE;
   htscb.Init.SpreadSpectrum           = ENABLE;
@@ -436,11 +438,13 @@ void TSC_Init(void)
   htscb.Init.SamplingIOs              = 0;
   HAL_TSC_Init(&htscb);
 
+  // TSC slider IO config
   IoConfigs.ChannelIOs  = TSC_GROUP1_IO1; // Start with the first channel
   IoConfigs.SamplingIOs = TSC_GROUP1_IO4;
   IoConfigs.ShieldIOs   = 0;
   HAL_TSC_IOConfig(&htscs, &IoConfigs);
 
+  // TSC button IO config
   IoConfigb.ChannelIOs  = TSC_GROUP5_IO2; // Start with the first channel
   IoConfigb.SamplingIOs = TSC_GROUP5_IO1;
   IoConfigb.ShieldIOs   = 0;
@@ -505,6 +509,7 @@ void GPIO_Init(void)
 
 void start_HRTIM1(void) {
 
+  // Clear all fault flags and reset target values, start_HRTIM1() clears also faults
   __HAL_HRTIM_CLEAR_IT(&hhrtim1, HRTIM_IT_FLT1);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT1);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT1);
@@ -513,8 +518,8 @@ void start_HRTIM1(void) {
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT2);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT2);
 
-  targetCW = 0.0f;
-  targetWW = 0.0f;
+  r.CW.target = 0.0f;
+  r.WW.target = 0.0f;
 
   // Enable HRTIM timers
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);

@@ -108,8 +108,8 @@
 
 #define UART_DMA_CHANNEL DMA1_Channel4
 
-#define WW 0
-#define CW 1
+#define CHAN_WW 0
+#define CHAN_CW 1
 
 // ############################################################# //
 // usefull functions
