@@ -16,11 +16,11 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "stm32f3xx_hal.h"
-#include "init_functions.h"
-#include "main.h"
 #include <math.h>
 #include <string.h>
+#include "main.h"
+#include "stm32f3xx_hal.h"
+#include "init_functions.h"
 #include "defines.h"
 #include "gamma.h"
 #include "variables.h"
