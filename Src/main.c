@@ -138,6 +138,7 @@ int main(void)
       console_scope();
       HAL_Delay(5);
       printCnt = 0;
+      LED_task();
     }
   }
 }
@@ -273,7 +274,6 @@ void slider_task(void) {
 }
 
 void UI_task(void) {
-
   float _enable = 1.0f;
 
   if (t.button.state == 1) {  // if lamp is turned "soft" on
