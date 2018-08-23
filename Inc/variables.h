@@ -16,11 +16,14 @@
 * this program.  If not, see < http : //www.gnu.org/licenses/>.
 */
 
+// TOUCH
 struct touch_button_t {
   int16_t acquisitionValue[3];                 // register that holds the acquired button values
   int16_t offsetValue[3]; // Todo - make some kind of auto calibration = {2075, 2131, 2450}
   uint8_t CBSwitch;       // color or brightness switch = 0
+  uint8_t state;
   uint8_t hasChanged;        // power button value = 1
+
 };
 
 struct touch_slider_t {
@@ -36,6 +39,7 @@ struct touch_t {
   struct touch_button_t button;
 };
 
+// REGULATOR
 struct reg_val_t {
   float target;  // Coldwhite target current in mA
   float iavg;
@@ -49,3 +53,5 @@ struct reg_t {
   struct reg_val_t WW;
   struct reg_val_t CW;
 };
+
+// UI
