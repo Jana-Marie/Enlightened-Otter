@@ -119,9 +119,9 @@ int main(void)
       set_scope_channel(1, r.WW.iavg);
       set_scope_channel(2, r.CW.target);
       set_scope_channel(3, r.WW.target);
-      set_scope_channel(4, (int)r.CW.target);
-      set_scope_channel(5, (int)r.WW.target);
-      set_scope_channel(6, ui.brightnessAvg);
+      set_scope_channel(4, 0);
+      set_scope_channel(5, 0);
+      set_scope_channel(6, ntc_calc(vtemp)); // f(x) = 0.096081461085562x^2 - 4.76256993467882x + 132.372469902458
       console_scope();
       HAL_Delay(5);
       printCnt = 0;
@@ -134,7 +134,7 @@ void boost_reg(void) {
   /* Main current regulator */
   r.CW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
-  vtemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1) / 4096.0f * 3.0f;
+  vtemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
@@ -266,8 +266,6 @@ void UI_task(void) {
   if (t.button.state) {  // if lamp is turned "soft" on
     if (t.slider.isTouched) {  // check if slider is touched
       if (ui.debounce >= 5) {   // "debounce" slider
-
-        //if (ABS(t.slider.pos - ui.distanceOld) > 50) t.slider.pos = ui.distanceOld; // sliding over the end of the slider causes it to "jump", this should prevent that
 
         ui.distance += t.slider.pos - ui.distanceOld;             // calculate t.slider.pos delta
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);
