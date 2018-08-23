@@ -320,11 +320,11 @@ void UI_Task(void) {
     } else sliderCnt = 0;
   } else if ( t.button.state == 0 && brightnessDeltaAvg != 0) _enable = 0.0f;
 
-  brightnessDelta *= _enable;
+  if (colorProportionAvg != colorProportion || brightnessDeltaAvg != brightnessDelta) {       // smooth out color value until target
 
-  if (colorProportionAvg != colorProportion || brightnessDeltaAvg != brightnessDelta) {              // smooth out color value until target
+    brightnessDeltaAvg *= _enable;  // turn brightness on or off
 
-    colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
+    colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER);      // moving average filter with fixed constants
     brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
 
     set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
