@@ -120,21 +120,10 @@ int main(void)
   RT_Init();      // mainly sets ILIM
   start_HRTIM1(); // start HRTIM and enable outputs
 
-  HAL_TSC_IODischarge(&htscb, ENABLE);
-  HAL_TSC_IODischarge(&htscs, ENABLE);
-
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
   HAL_TSC_Start_IT(&htscb);
   HAL_TSC_Start_IT(&htscs);
-
-  HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0); // clear LED "Brightness"
-  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);      // clear LED "Color"
-
-  set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers
-  set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
-
-  r.Magiekonstante = KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT); // calculated Ki independent of cycle time by multiplying it with the cycle time
 
   while (1)
   {
