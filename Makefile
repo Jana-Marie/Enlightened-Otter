@@ -51,6 +51,7 @@ C_SOURCES =  \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_cortex.c \
 Src/main.c \
 Src/init_functions.c \
+Src/utils.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_gpio.c \
 Drivers/STM32F3xx_HAL_Driver/Src/stm32f3xx_hal_uart_ex.c \

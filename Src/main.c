@@ -24,6 +24,7 @@
 #include "defines.h"
 #include "gamma.h"
 #include "variables.h"
+#include "utils.h"
 
 extern ADC_HandleTypeDef hadc2;
 
@@ -54,17 +55,15 @@ void UI_task(void);
 void TSC_task(void);
 void LED_task(void);
 void boost_reg();
-void enable_OTG(void);
-void disable_OTG(void);
-void set_pwm(uint8_t timer, float duty);
-void set_brightness(uint8_t chan, float brightness, float color, float max_value);
-uint16_t read_RT_ADC(void);
+extern void enable_OTG(void);
+extern void disable_OTG(void);
+extern void set_pwm(uint8_t timer, float duty);
+extern void set_brightness(uint8_t chan, float brightness, float color, float max_value);
+extern uint16_t read_RT_ADC(void);
 
 #if defined(SCOPE_CHANNELS)
-void set_scope_channel(uint8_t ch, int16_t val);
-void console_scope();
-uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
-volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
+extern void set_scope_channel(uint8_t ch, int16_t val);
+extern void console_scope();
 #endif
 
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}};
@@ -306,77 +305,6 @@ void LED_task(void) {
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
   }
 }
-
-void enable_OTG(void) {
-  configure_RT(CHG_CTRL16, DISABLE_UUG);
-  configure_RT(CHG_CTRL1, ENABLE_OTG_MASK);
-}
-
-void disable_OTG(void) {
-  configure_RT(CHG_CTRL16, ENABLE_UUG);
-  configure_RT(CHG_CTRL1, DISABLE_OTG_MASK);
-}
-
-uint16_t read_RT_ADC(void) {
-  uint8_t _ADC_H, _ADC_L;
-  uint8_t _tmp_data_H = ADC_DATA_H;
-  uint8_t _tmp_data_L = ADC_DATA_L;
-
-  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_H, sizeof(_tmp_data_H), 500);
-  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_H, 1, 500);
-  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_L, sizeof(_tmp_data_L), 500);
-  HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_L, 1, 500);
-
-  uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
-  return _tmp_data;
-}
-
-void set_pwm(uint8_t timer, float duty) {
-
-  /* Clamp duty cycle values */
-  if (duty < MIN_DUTY) duty = MIN_DUTY;
-  if (duty > MAX_DUTY) duty = MAX_DUTY;
-
-  /* Set registers according to duty cycle */
-  HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
-  HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
-  HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
-  HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
-  HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
-  HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
-}
-
-
-#if defined(SCOPE_CHANNELS)
-void set_scope_channel(uint8_t ch, int16_t val) {
-  ch_buf[ch] = val;
-}
-
-void console_scope(void) {
-  memset(uart_buf, 0, sizeof(uart_buf));
-
-#if (SCOPE_CHANNELS == 1)
-  sprintf((char*)uart_buf, "%i\n\r", ch_buf[0]);
-#elif (SCOPE_CHANNELS == 2)
-  sprintf((char*)uart_buf, "%i\t%i\n\r", ch_buf[0], ch_buf[1]);
-#elif (SCOPE_CHANNELS == 3)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2]);
-#elif (SCOPE_CHANNELS == 4)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3]);
-#elif (SCOPE_CHANNELS == 5)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4]);
-#elif (SCOPE_CHANNELS == 6)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5]);
-#elif (SCOPE_CHANNELS == 7)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6]);
-#elif (SCOPE_CHANNELS == 8)
-  sprintf((char*)uart_buf, "%i\t%i\t%i\t%i\t%i\t%i\t%i\t%i\n\r", ch_buf[0], ch_buf[1], ch_buf[2], ch_buf[3], ch_buf[4], ch_buf[5], ch_buf[6], ch_buf[7]);
-#endif
-
-  HAL_UART_Transmit_DMA(&huart1, (uint8_t *)uart_buf, strlen((char*)uart_buf));
-  huart1.gState = HAL_UART_STATE_READY;
-}
-#endif
 
 void _Error_Handler(char * file, int line)
 {
