@@ -1,20 +1,20 @@
 /*
- * Enlighted-Otter  -  Stm32f334 based mobile worklight.
- * Copyright (C) 2018 Jan Henrik Hemsing
- *
- * This program is free software: you can redistribute it and/or modify it
- * under the terms of the GNU General Public License as published by the Free
- * Software Foundation, either version 3 of the License, or (at your option)
- * any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT
- * ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or
- * FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
- * more details.
- *
- * You should have received a copy of the GNU General Public License along with
- * this program.  If not, see <http://www.gnu.org/licenses/>.
- */
+* Enlighted - Otter  -  Stm32f334 based mobile worklight.
+* Copyright (C) 2018 Jan Henrik Hemsing
+*
+* This program is free software: you can redistribute it and / or modify it
+* under the terms of the GNU General Public License as published by the Free
+* Software Foundation, either version 3 of the License, or (at your option)
+* any later version.
+*
+* This program is distributed in the hope that it will be useful, but WITHOUT
+* ANY WARRANTY; without even the implied warranty of  MERCHANTABILITY or
+* FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for
+* more details.
+*
+* You should have received a copy of the GNU General Public License along with
+* this program.  If not, see < http : //www.gnu.org/licenses/>.
+*/
 
 #include "init_functions.h"
 
@@ -92,55 +92,6 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/*
-void ADC1_Init(void)
-{
-  ADC_MultiModeTypeDef multimode;
-  ADC_ChannelConfTypeDef sConfig;
-
-  hadc1.Instance = ADC1;
-
-  // std ADC config
-  hadc1.Init.ClockPrescaler         = ADC_CLOCK_ASYNC_DIV1;
-  hadc1.Init.Resolution             = ADC_RESOLUTION_12B;
-  hadc1.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.ScanConvMode           = DISABLE;
-  hadc1.Init.ContinuousConvMode     = DISABLE;
-  hadc1.Init.DiscontinuousConvMode  = DISABLE;
-  hadc1.Init.ExternalTrigConvEdge   = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc1.Init.ExternalTrigConv       = ADC_SOFTWARE_START;
-  hadc1.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion        = 1;
-  hadc1.Init.NbrOfDiscConversion    = 1;
-  hadc1.Init.DMAContinuousRequests  = DISABLE;
-  hadc1.Init.EOCSelection           = ADC_EOC_SINGLE_CONV;
-  hadc1.Init.LowPowerAutoWait       = DISABLE;
-  hadc1.Init.Overrun                = ADC_OVR_DATA_OVERWRITTEN;
-  HAL_ADC_Init(&hadc1);
-
-  // Disable DMA mode
-  multimode.DMAAccessMode     = ADC_DMAACCESSMODE_DISABLED;
-  multimode.Mode              = ADC_MODE_INDEPENDENT;
-  multimode.TwoSamplingDelay  = ADC_TWOSAMPLINGDELAY_1CYCLE;
-  HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
-
-  sConfig.Channel       = ADC_CHANNEL_12;
-  sConfig.Rank          = 1;
-  sConfig.SingleDiff    = ADC_SINGLE_ENDED;
-  sConfig.SamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
-  sConfig.OffsetNumber  = ADC_OFFSET_NONE;
-  sConfig.Offset        = 0;
-  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
-
-  // Run the ADC calibration in single-ended mode
-  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
-
-  // Enable End of Injected Conversion interrupt
-  //__HAL_ADC_ENABLE_IT(&hadc1, ADC_IT_EOC);
-  HAL_ADC_Start(&hadc1);
-}
-*/
-
 void ADC2_Init(void)
 {
   ADC_MultiModeTypeDef MultiModeConfig;
@@ -148,7 +99,7 @@ void ADC2_Init(void)
 
   hadc2.Instance = ADC2;
 
-  /* std ADC config */
+  // std ADC config
   hadc2.Init.ClockPrescaler         = ADC_CLOCK_ASYNC_DIV1;
   hadc2.Init.Resolution             = ADC_RESOLUTION_12B;
   hadc2.Init.DataAlign              = ADC_DATAALIGN_RIGHT;
@@ -166,13 +117,13 @@ void ADC2_Init(void)
   hadc2.Init.Overrun                = ADC_OVR_DATA_OVERWRITTEN;
   HAL_ADC_Init(&hadc2);
 
-  /* Disable DMA mode */
+  // Disable DMA mode
   MultiModeConfig.DMAAccessMode     = ADC_DMAACCESSMODE_DISABLED;
   MultiModeConfig.Mode              = ADC_MODE_INDEPENDENT;
   MultiModeConfig.TwoSamplingDelay  = ADC_TWOSAMPLINGDELAY_1CYCLE;
   HAL_ADCEx_MultiModeConfigChannel(&hadc2, &MultiModeConfig);
 
-  /* Discontinuous injected mode: 1st injected conversion for NTC on Ch12 */
+  // Discontinuous injected mode: 1st injected conversion for NTC on Ch12
   InjectionConfig.InjectedChannel               = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank                  = ADC_INJECTED_RANK_1;
   InjectionConfig.InjectedSamplingTime          = ADC_SAMPLETIME_601CYCLES_5;
@@ -187,31 +138,31 @@ void ADC2_Init(void)
   InjectionConfig.ExternalTrigInjecConvEdge     = ADC_EXTERNALTRIGINJECCONV_EDGE_RISING;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
-  /* Configure the 2nd injected conversion for ICW on Ch1 */
+  // Configure the 2nd injected conversion for ICW on Ch1
   InjectionConfig.InjectedChannel       = ADC_CHANNEL_1;
   InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_2;
   InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
-  /* Configure the 2nd injected conversion for IWW on Ch2 */
+  // Configure the 2nd injected conversion for IWW on Ch2
   InjectionConfig.InjectedChannel       = ADC_CHANNEL_2;
   InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_3;
   InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
-  /* Configure the 2nd injected conversion for VBAT on Ch3 */
+  // Configure the 2nd injected conversion for VBAT on Ch3
   InjectionConfig.InjectedChannel       = ADC_CHANNEL_3;
   InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_4;
   InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
-  /* Run the ADC calibration in single-ended mode */
+  // Run the ADC calibration in single-ended mode
   HAL_ADCEx_Calibration_Start(&hadc2, ADC_SINGLE_ENDED);
 
-  /* Start ADC2 Injected Conversions */
+  // Start ADC2 Injected Conversions
   HAL_ADCEx_InjectedStart(&hadc2);
 
-  /* Enable End of Injected Conversion interrupt */
+  // Enable End of Injected Conversion interrupt
   __HAL_ADC_ENABLE_IT(&hadc2, ADC_IT_JEOC);
 }
 
@@ -220,7 +171,7 @@ void COMP2_Init(void)
 
   hcomp2.Instance = COMP2;
 
-  /* CMP2 config, input ICW and DAC1 channel 2, output HRTIM fault line 1 */
+  // CMP2 config, input ICW and DAC1 channel 2, output HRTIM fault line 1
   hcomp2.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output            = HRTIM_FAULT_1;
@@ -235,7 +186,7 @@ void COMP4_Init(void)
 
   hcomp4.Instance = COMP4;
 
-  /* CMP4 config, input IWW and DAC1 channel 2, output HRTIM fault line 1 */
+  // CMP4 config, input IWW and DAC1 channel 2, output HRTIM fault line 1
   hcomp4.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output            = HRTIM_FAULT_2;
@@ -250,7 +201,7 @@ void COMP6_Init(void)
 
   hcomp6.Instance = COMP6;
 
-  /* CMP6 config, input VREG and DAC2 channel 1, output HRTIM fault line 1 */
+  // CMP6 config, input VREG and DAC2 channel 1, output HRTIM fault line 1
   hcomp6.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output            = HRTIM_FAULT_3;
@@ -265,11 +216,11 @@ void DAC1_Init(void)
 
   DAC_ChannelConfTypeDef sConfig;
 
-  /* std DAC config, no changes needed */
+  // std DAC config, no changes needed
   hdac1.Instance = DAC1;
   HAL_DAC_Init(&hdac1);
 
-  /* DAC not routed to output */
+  // DAC not routed to output
   sConfig.DAC_Trigger       = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputSwitch  = DAC_OUTPUTSWITCH_DISABLE;
   HAL_DAC_ConfigChannel(&hdac1, &sConfig, DAC_CHANNEL_2);
@@ -280,11 +231,11 @@ void DAC2_Init(void)
 
   DAC_ChannelConfTypeDef sConfig;
 
-  /* std DAC config, no changes needed */
+  // std DAC config, no changes needed
   hdac2.Instance = DAC2;
   HAL_DAC_Init(&hdac2);
 
-  /* DAC not routed to output */
+  // DAC not routed to output
   sConfig.DAC_Trigger       = DAC_TRIGGER_NONE;
   sConfig.DAC_OutputSwitch  = DAC_OUTPUTSWITCH_DISABLE;
   HAL_DAC_ConfigChannel(&hdac2, &sConfig, DAC_CHANNEL_1);
@@ -302,14 +253,14 @@ void HRTIM1_Init(void)
 
   hhrtim1.Instance = HRTIM1;
 
-  /* HRTIM initialised with no Interrupt and synchronisation */
+  // HRTIM initialised with no Interrupt and synchronisation
   hhrtim1.Init.HRTIMInterruptResquests  = HRTIM_IT_NONE;
   hhrtim1.Init.SyncOptions              = HRTIM_SYNCOPTION_NONE;
   HAL_HRTIM_Init(&hhrtim1);
 
   HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1);
 
-  /* Select internal fault source (FLT_1) */
+  // Select internal fault source (FLT_1)
   pFaultCfg.Source    = HRTIM_FAULTSOURCE_INTERNAL;
   pFaultCfg.Polarity  = HRTIM_FAULTPOLARITY_HIGH;
   pFaultCfg.Filter    = HRTIM_FAULTFILTER_NONE;
@@ -327,14 +278,14 @@ void HRTIM1_Init(void)
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
 
-  /* Set the frequency and period */
+  // Set the frequency and period
   pTimeBaseCfg.Period             = HRTIM_PERIOD;
   pTimeBaseCfg.RepetitionCounter  = REG_CNT;
   pTimeBaseCfg.PrescalerRatio     = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode               = HRTIM_MODE_CONTINUOUS;
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg);
 
-  /* main timer config, mostly std. with no DMA */
+  // main timer config, mostly std. with no DMA
   pTimerCfg.DMARequests           = HRTIM_MASTER_DMA_NONE;
   pTimerCfg.DMASrcAddress         = 0x0000;
   pTimerCfg.DMADstAddress         = 0x0000;
@@ -362,7 +313,7 @@ void HRTIM1_Init(void)
 
   HAL_HRTIM_WaveformTimerConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimerCfg);
 
-  /* set output and fault behavioral for HRTIM Timer C & D */
+  // set output and fault behavioral for HRTIM Timer C & D
   pOutputCfg.Polarity               = HRTIM_OUTPUTPOLARITY_HIGH;
   pOutputCfg.SetSource              = HRTIM_OUTPUTSET_TIMPER;
   pOutputCfg.ResetSource            = HRTIM_OUTPUTRESET_TIMCMP1;
@@ -380,7 +331,7 @@ void HRTIM1_Init(void)
 
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg);
 
-  /* settings for the injected ADC */
+  // settings for the injected ADC
   compare_config.AutoDelayedMode    = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
   compare_config.CompareValue       = HRTIM_PERIOD / 10 * 8.5;
@@ -390,7 +341,7 @@ void HRTIM1_Init(void)
   adc_trigger_config.UpdateSource = HRTIM_ADCTRIGGERUPDATE_TIMER_C;
   HAL_HRTIM_ADCTriggerConfig(&hhrtim1, HRTIM_ADCTRIGGER_2, &adc_trigger_config);
 
-  /* std. config for Timer C & D */
+  // std. config for Timer C & D
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg);
 
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimeBaseCfg);
@@ -431,7 +382,7 @@ void I2C1_Init(void)
 
   hi2c1.Instance = I2C1;
 
-  /* I2C Master config */
+  // I2C Master config
   hi2c1.Init.Timing           = 0x2000090E;
   hi2c1.Init.OwnAddress1      = 0;
   hi2c1.Init.AddressingMode   = I2C_ADDRESSINGMODE_7BIT;
@@ -485,12 +436,12 @@ void TSC_Init(void)
   htscb.Init.SamplingIOs              = 0;
   HAL_TSC_Init(&htscb);
 
-  IoConfigs.ChannelIOs  = TSC_GROUP1_IO1; /* Start with the first channel */
+  IoConfigs.ChannelIOs  = TSC_GROUP1_IO1; // Start with the first channel
   IoConfigs.SamplingIOs = TSC_GROUP1_IO4;
   IoConfigs.ShieldIOs   = 0;
   HAL_TSC_IOConfig(&htscs, &IoConfigs);
 
-  IoConfigb.ChannelIOs  = TSC_GROUP5_IO2; /* Start with the first channel */
+  IoConfigb.ChannelIOs  = TSC_GROUP5_IO2; // Start with the first channel
   IoConfigb.SamplingIOs = TSC_GROUP5_IO1;
   IoConfigb.ShieldIOs   = 0;
   HAL_TSC_IOConfig(&htscb, &IoConfigb);
@@ -501,7 +452,7 @@ void USART1_UART_Init(void)
 
   huart1.Instance = USART1;
 
-  /* UART master config */
+  // UART master config
   huart1.Init.BaudRate    = 115200;
   huart1.Init.WordLength  = UART_WORDLENGTH_8B;
   huart1.Init.StopBits    = UART_STOPBITS_1;
@@ -529,8 +480,6 @@ void DMA_Init(void)
   HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
   HAL_NVIC_SetPriority(ADC1_2_IRQn, 1, 0);
   HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
-  //HAL_NVIC_SetPriority(TSCx_EXTI_IRQn, 1, 0);
-  //HAL_NVIC_EnableIRQ(TSCx_EXTI_IRQn);
 }
 
 void GPIO_Init(void)
@@ -538,15 +487,15 @@ void GPIO_Init(void)
 
   GPIO_InitTypeDef GPIO_InitStruct;
 
-  /* Enable GPIO Bank clocks */
+  // Enable GPIO Bank clocks
   __HAL_RCC_GPIOF_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
-  /* Set output state to LOW */
+  // Set output state to LOW
   HAL_GPIO_WritePin(GPIOA, LED_Brightness | LED_Color | LED_Power, GPIO_PIN_RESET);
 
-  /* Change pin mode to output */
+  // Change pin mode to output
   GPIO_InitStruct.Pin   = LED_Brightness | LED_Color | LED_Power;
   GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull  = GPIO_NOPULL;
@@ -567,12 +516,12 @@ void start_HRTIM1(void) {
   targetCW = 0.0f;
   targetWW = 0.0f;
 
-  /* Enable HRTIM timers */
+  // Enable HRTIM timers
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_D);
 
-  /* Enable outputs */
+  // Enable outputs
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
@@ -580,7 +529,7 @@ void start_HRTIM1(void) {
 }
 
 void RT_Init(void) {
-  /* Configure the RT9466, set currents to maximum */
+  // Configure the RT9466, set currents to maximum
   configure_RT(CHG_CTRL2, IINLIM_MASK);
   configure_RT(CHG_CTRL3, SET_ILIM_3A);
 }
