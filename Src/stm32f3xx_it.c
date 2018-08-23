@@ -53,7 +53,7 @@ extern TSC_HandleTypeDef htscs;
 extern TSC_HandleTypeDef htscb;
 
 extern void boost_reg(void);
-extern void TSC_Task(void);
+extern void TSC_task(void);
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */
@@ -297,7 +297,7 @@ void ADC1_2_IRQHandler(void)
 void EXTI2_TSC_IRQHandler(void)
 {
 
-  TSC_Task();
+  TSC_task();
 
   HAL_TSC_IRQHandler(&htscs);
   HAL_TSC_IRQHandler(&htscb);
