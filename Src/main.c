@@ -26,7 +26,6 @@
 #include "variables.h"
 
 extern ADC_HandleTypeDef hadc2;
-extern DMA_HandleTypeDef hdma_adc2;
 
 extern COMP_HandleTypeDef hcomp2;
 extern COMP_HandleTypeDef hcomp4;
@@ -38,8 +37,6 @@ extern DAC_HandleTypeDef hdac2;
 extern HRTIM_HandleTypeDef hhrtim1;
 
 extern I2C_HandleTypeDef hi2c1;
-extern DMA_HandleTypeDef hdma_i2c1_rx;
-extern DMA_HandleTypeDef hdma_i2c1_tx;
 
 extern TIM_HandleTypeDef htim2;
 
@@ -50,20 +47,18 @@ extern TSC_HandleTypeDef htscb;        // Touch button handle
 extern TSC_IOConfigTypeDef IoConfigb;
 
 extern UART_HandleTypeDef huart1;
-extern DMA_HandleTypeDef hdma_usart1_rx;
-extern DMA_HandleTypeDef hdma_usart1_tx;
 
-extern void boost_reg();
-static void enable_OTG(void);
-
+void boost_reg();
+void enable_OTG(void);
+void disable_OTG(void);
 uint16_t read_RT_ADC(void);
-
 void set_pwm(uint8_t timer, float duty);
 void set_brightness(uint8_t chan, float brightness, float color, float max_value);
 void TSC_Task(void);
-void slider_task();
-void button_task();
+void slider_task(void);
+void button_task(void);
 void UI_Task(void);
+
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
@@ -71,9 +66,9 @@ uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif
 
-struct touch_t t = {.slider.offsetValue = {1153, 1978, 1962},.button.offsetValue = {2075, 2131, 2450}};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}};
 
-struct reg_t r;
+struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 
 float _v, _i, _w, _wAvg;  // debugvalues to find matching boost frequency will be removed later
 uint8_t print = 1;        // debugvalue for alternating reading of current / voltage
@@ -81,8 +76,6 @@ uint8_t printCnt = 0;     // debugvalue for delay reading of current / voltage
 uint8_t sliderCnt = 0;
 uint16_t adcCnt = 0;
 
-uint8_t powStateHasChanged = 1;        // power button value
-uint8_t powState = 1;
 float vtemp;
 
 int16_t distanceDelta = 0;      // delta slider position
@@ -160,7 +153,7 @@ int main(void)
       printCnt = 0;
     }
 
-    if (powState == 1) {
+    if (t.button.state == 1) {
       HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
       HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
       __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);
@@ -256,30 +249,30 @@ void TSC_Task(void) {
   }
 }
 
-void button_task() {
-  uint8_t powButton;
+void button_task(void) {
+  uint8_t _powButton;
 
   if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0;
   else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
-  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) powButton = 1;
-  else powButton = 0;
+  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;
+  else _powButton = 0;
 
-  if (powStateHasChanged) {                       // power button state maschine start if something has changed
-    if (powButton == 1 && powState == 0) {        // if powerbutton is pressed and device is off, turn on and set "has changed flag"
-      powState = 1;
-      powStateHasChanged = 0;
-    } else if (powButton == 1 && powState == 1) { // if powerbutton is pressed and device is on, turn off and set "has changed flag"
-      powState = 0;
-      powStateHasChanged = 0;
+  if (t.button.hasChanged) {                       // power button state maschine start if something has changed
+    if (_powButton == 1 && t.button.state == 0) {        // if powerbutton is pressed and device is off, turn on and set "has changed flag"
+      t.button.state = 1;
+      t.button.hasChanged = 0;
+    } else if (_powButton == 1 && t.button.state == 1) { // if powerbutton is pressed and device is on, turn off and set "has changed flag"
+      t.button.state = 0;
+      t.button.hasChanged = 0;
       start_HRTIM1();                             // for now lets reset the flt state in the power off state
     }
-  } else if (!powStateHasChanged && powButton == 0) powStateHasChanged = 1; // else clear flag
+  } else if (!t.button.hasChanged && _powButton == 0) t.button.hasChanged = 1; // else clear flag
 
   UI_Task();
 }
 
-void slider_task() {
+void slider_task(void) {
   if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;
 
   t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);
@@ -304,12 +297,14 @@ void slider_task() {
 }
 
 void UI_Task(void) {
-  if (powState == 1) {      // if lamp is turned "soft" on
-    if ( t.slider.pos != 0) {  // check if slider is touched
-      if (sliderCnt >= 5) { // "debounce" slider
+
+  float _enable = 1.0f
+
+  if (t.button.state == 1) {  // if lamp is turned "soft" on
+    if (t.slider.pos != 0) {  // check if slider is touched
+      if (sliderCnt >= 5) {   // "debounce" slider
 
         //if (ABS(t.slider.pos - oldDistance) > 50) t.slider.pos = oldDistance; // sliding over the end of the slider causes it to "jump", this should prevent that
-
         distanceDelta += t.slider.pos - oldDistance;             // calculate t.slider.pos delta
         distanceDelta = CLAMP(distanceDelta, 0.0f, MAX_CURRENT);
 
@@ -323,38 +318,26 @@ void UI_Task(void) {
 
       oldDistance = t.slider.pos;                                // set oldDistance to current t.slider.pos
     } else sliderCnt = 0;
-    // calculate nex value with moving average filter, do this until target is reached
-    if (colorProportionAvg != colorProportion) {              // smooth out color value until target
+  } else if ( t.button.state == 0 && brightnessDeltaAvg != 0) _enable = 0.0f;
 
-      colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
+  brightnessDelta *= _enable;
 
-      set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-      set_brightness(CHAN_WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-    }
-    if (brightnessDeltaAvg != brightnessDelta) {                                // smooth out brightness value until target
+  if (colorProportionAvg != colorProportion || brightnessDeltaAvg != brightnessDelta) {              // smooth out color value until target
 
-      brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
+    colorProportionAvg = FILT(colorProportionAvg, colorProportion, COLOR_FADING_FILTER); // moving average filter with fixed constants
+    brightnessDeltaAvg = FILT(brightnessDeltaAvg, brightnessDelta, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
 
-      set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-      set_brightness(CHAN_WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-    }
-  } else if ( powState == 0) {                        // if lamp is turned "soft" off
-    if (brightnessDeltaAvg != 0) {                    // calculate and set until target is reached
-
-      brightnessDeltaAvg = brightnessDeltaAvg * BRIGHTNESS_FADING_FILTER;  // moving average filter with fixed constants and fixed taget
-
-      set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-      set_brightness(CHAN_WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
-    }
+    set_brightness(CHAN_CW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
+    set_brightness(CHAN_WW, brightnessDeltaAvg, colorProportionAvg, MAX_CURRENT);
   }
 }
 
-static void enable_OTG(void) {
+void enable_OTG(void) {
   configure_RT(CHG_CTRL16, DISABLE_UUG);
   configure_RT(CHG_CTRL1, ENABLE_OTG_MASK);
 }
 
-static void disable_OTG(void) {
+void disable_OTG(void) {
   configure_RT(CHG_CTRL16, ENABLE_UUG);
   configure_RT(CHG_CTRL1, DISABLE_OTG_MASK);
 }
