@@ -15,7 +15,7 @@
  * You should have received a copy of the GNU General Public License along with
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 #include "utils.h"
 #include "ntc.h"
 
@@ -58,13 +58,13 @@ void set_pwm(uint8_t timer, float duty) {
 	HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
 }
 
-float ntc_calc(uint16_t adc_value){
- 
-  int16_t p1,p2;
-  p1 = NTC_table[(adc_value >> 7)];
-  p2 = NTC_table[(adc_value >> 7)+1];
- 
-  return (p1 - ( (p1-p2) * (adc_value & 0x007F) ) / 128.0f ) / 2.0f;
+float ntc_calc(uint16_t adc_value) {
+
+	int16_t p1, p2;
+	p1 = NTC_table[(adc_value >> 7)];
+	p2 = NTC_table[(adc_value >> 7) + 1];
+
+	return (p1 - ( (p1 - p2) * (adc_value & 0x007F) ) / 128.0f ) / 2.0f;
 }
 
 #if defined(SCOPE_CHANNELS)
