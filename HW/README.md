@@ -9,14 +9,19 @@
 - Added Gate pulldowns
 - Added USB pulldowns
 - Fixed Schematic symbols and values
+- Increased Gate resistors
+- Added Bootstrap diodes
 
 
 
 ### Todo list
 
-- [ ] HW
-	- [ ] Add bootstrap diodes to start the gate drivers
-	- [ ] Increase Gate resistor to at least 56 Ohm and maybe add gate capacitor
+- [ ] HW 1.2
+
+
+- [x] HW 1.1
+	- [x] Add bootstrap diodes to start the gate drivers
+	- [x] Increase Gate resistor to at least 56 Ohm and maybe add gate capacitor
 	- [x] Move 18650 clips to fit battery
 	- dont fit the battery, move by 1-2mm
 	- [x] Add pullup to NTC (LED)
