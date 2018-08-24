@@ -18,21 +18,44 @@
 
 $fn=200;
 
-rotate([180,0,0])
+rotate([180,0,180])
 translate([0,0,-20])
 insert(31,35,21.6,0,28);
 
+/*
+translate([-26.5,-43,5])
+linear_extrude(height = 10, center = true, convexity = 10)
+   import (file = "outfile.dxf");
+*/
 module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
     difference(){
         union(){
             translate([0,0,0])
             cylinder(d=diameter,h=height);
+                            
             translate([0,0,-lowerHeight+1.6])
             cylinder(d=lowerDiameter,h=height);
+            
+            hull(){
+                translate([0,0,height])
+                cylinder(d=lowerDiameter,h=3);
+                
+                rotate([0,0,18])
+                translate([0,-36.5,height+1.5])
+                cube([18,5,3],center=true);
+            }
+            hull(){
+                translate([0,0,height])
+                cylinder(d=lowerDiameter,h=3);
+                
+                rotate([0,0,-18])
+                translate([0,-36.5,height+1.5])
+                cube([18,5,3],center=true);
+            }
         }union(){
             translate([0,0,-2])
             translate([0,0,-lowerHeight-0.01])
-            thread(26,16,3.2-0.6,3.2,0.5); // Club Mate
+            thread(26,16,3.2-0.6,3.2,0.8); // Club Mate
             cylinder(d=outerBottleDiameter,h=lowerHeight+0.01);
             translate([0,0,10])
             cylinder(d=outerBottleDiameter-4,h=15);
