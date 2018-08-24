@@ -32,6 +32,7 @@ module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
         }union(){
             translate([0,0,-2])
             translate([0,0,-lowerHeight-0.01])
+            thread(26,16,3.2-0.6,3.2,0.5); // Club Mate
             cylinder(d=outerBottleDiameter,h=lowerHeight+0.01);
             translate([0,0,10])
             cylinder(d=outerBottleDiameter-4,h=15);
