@@ -28,8 +28,8 @@
 
 #define HRTIM_FREQUENCY_KHZ 		600.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
 #define REG_CNT 					254	 	// sets the number of HRTIM passes to the next controller pass
-#define KI 							0.0005f 	// sets the KI constant for the current regulator - do not change unless you know what you're doing
-#define KP							0.0001f
+#define KI 							0.0006f 	// sets the KI constant for the current regulator - do not change unless you know what you're doing
+#define KP							0.00001f
 #define CURRENT_AVERAGING_FILTER 	0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 
 #define MIN_DUTY 0.002f // sets the minimum duty cycle that the regulation can reach, can be left at 0.002
