@@ -144,6 +144,17 @@ ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffuncti
 
 CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
 
+
+# CFLAGS += -Wfloat-conversion 
+CFLAGS += -fsingle-precision-constant 
+# CFLAGS += -ffast-math 
+CFLAGS += -ffinite-math-only 
+CFLAGS += -fno-trapping-math 
+CFLAGS += -fno-signaling-nans 
+CFLAGS += -fno-rounding-math 
+CFLAGS += -fno-signed-zeros 
+CFLAGS += -fno-math-errno
+
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2
 endif

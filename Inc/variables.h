@@ -44,6 +44,7 @@ struct reg_val_t {
   float target;  // Coldwhite target current in mA
   float iavg;
   float error;
+  float errorSum;
   float duty;
   float iout;
 };

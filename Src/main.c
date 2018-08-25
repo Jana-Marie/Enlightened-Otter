@@ -111,45 +111,62 @@ int main(void)
   HAL_TSC_Start_IT(&htscb);
   HAL_TSC_Start_IT(&htscs);
 
+  r.CW.target = 0.0f;
+  r.WW.target = 0.0f;
+
+  int newOtter = 0;
+
   while (1)
   {
-    if (printCnt++ % 250 == 0) { // print only every n cycle
 
-      set_scope_channel(0, r.CW.iavg);
-      set_scope_channel(1, r.WW.iavg);
-      set_scope_channel(2, r.CW.target);
-      set_scope_channel(3, r.WW.target);
-      set_scope_channel(4, 0);
-      set_scope_channel(5, 0);
-      set_scope_channel(6, ntc_calc(vtemp)); // f(x) = 0.096081461085562x^2 - 4.76256993467882x + 132.372469902458
+    r.CW.target += 0.1f;
+    if(r.CW.target > 400.0f) r.CW.target = 0.0f;
+
+    if (printCnt++ % 250 == 0) { // print only every n cycle
+      newOtter++;
+      set_scope_channel(0, r.CW.duty*1000.0f);
+      set_scope_channel(1, r.CW.iavg);
+      set_scope_channel(2, r.CW.iout);
+      set_scope_channel(3, r.CW.error);
+      set_scope_channel(4, r.CW.target);
+      //set_scope_channel(5, r.WW.error);
+      //et_scope_channel(6, ntc_calc(vtemp));
       console_scope();
-      HAL_Delay(5);
+      HAL_Delay(25);
       printCnt = 0;
       LED_task();
-    }
+      }
   }
 }
 
+
 void boost_reg(void) {
+
   /* Main current regulator */
   r.CW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
   vtemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
 
+
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
-
+  /*
   r.CW.error = r.CW.target - r.CW.iavg;  // Calculate CW-current error
   r.WW.error = r.WW.target - r.WW.iavg;  // Calculate WW-current error
 
-  r.CW.duty += (r.Magiekonstante * r.CW.error);     // Simple I regulator for CW current
-  r.CW.duty = CLAMP(r.CW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+  r.CW.errorSum += (r.Magiekonstante * r.CW.error);     // Simple I regulator for CW current
+  r.CW.errorSum = CLAMP(r.CW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-  r.WW.duty += (r.Magiekonstante * r.WW.error);     // Simple I regulator for WW current
-  r.WW.duty = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+  r.WW.errorSum += (r.Magiekonstante * r.WW.error);     // Simple I regulator for WW current
+  r.WW.errorSum = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
+  r.CW.duty = r.CW.errorSum + (r.CW.error * KP);
+  r.WW.duty = r.WW.errorSum + (r.WW.error * KP);
+  */
+  r.CW.duty = (0.0000390587f * pow( r.CW.iavg,3) - 0.028896f * pow( r.CW.iavg,2) + 7.449155f * r.CW.iavg + 60.310044f)/1000.0f;
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, r.WW.duty);  // Update WW duty cycle
+  
 }
 
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
@@ -161,7 +178,7 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp
 
   if (chan) r.WW.target = gammaTable[(int)(target_tmp * 2)];        // apply gamma corection - gamma correction array position
-  else if (!chan) r.CW.target = gammaTable[(int)(target_tmp * 2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
+  //else if (!chan) r.CW.target = gammaTable[(int)(target_tmp * 2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
 }
 
 void TSC_task(void) {

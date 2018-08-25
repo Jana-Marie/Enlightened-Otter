@@ -283,6 +283,7 @@ void HRTIM1_Init(void)
   pTimeBaseCfg.RepetitionCounter  = REG_CNT;
   pTimeBaseCfg.PrescalerRatio     = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode               = HRTIM_MODE_CONTINUOUS;
+
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_MASTER, &pTimeBaseCfg);
 
   // main timer config, mostly std. with no DMA

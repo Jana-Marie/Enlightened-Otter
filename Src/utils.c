@@ -50,12 +50,12 @@ void set_pwm(uint8_t timer, float duty) {
 	if (duty > MAX_DUTY) duty = MAX_DUTY;
 
 	/* Set registers according to duty cycle */
-	HRTIM1->sTimerxRegs[timer].CMP1xR = HRTIM_PERIOD * duty;
-	HRTIM1->sTimerxRegs[timer].CMP2xR = HRTIM_PERIOD - (HRTIM_PERIOD * duty);
-	HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
-	HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
-	HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
-	HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
+	HRTIM1->sTimerxRegs[timer].CMP1xR = (uint16_t)(HRTIM_PERIOD * duty);
+	HRTIM1->sTimerxRegs[timer].CMP2xR = (uint16_t)HRTIM_PERIOD - (HRTIM_PERIOD * duty);
+	//HRTIM1->sTimerxRegs[timer].SETx1R = HRTIM_SET1R_PER;
+	//HRTIM1->sTimerxRegs[timer].RSTx1R = HRTIM_RST1R_CMP1;
+	//HRTIM1->sTimerxRegs[timer].SETx2R = HRTIM_SET2R_CMP2;
+	//HRTIM1->sTimerxRegs[timer].RSTx2R = HRTIM_RST2R_PER;
 }
 
 float ntc_calc(uint16_t adc_value) {
