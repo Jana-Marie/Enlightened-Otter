@@ -29,22 +29,22 @@ module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
             cylinder(d=diameter,h=height);
                             
             translate([0,0,-lowerHeight+1.6])
-            #cylinder(d=lowerDiameter,h=height-1.6);
+            cylinder(d=lowerDiameter,h=height);
             
             hull(){
-                translate([0,0,height-1.5-1.6])
+                translate([0,0,height-1.5])
                 cylinder(d=lowerDiameter,h=3);
                 
                 rotate([0,0,18])
-                translate([0,-36.5,height-1.6])
+                translate([0,-36.5,height])
                 cube([18,5,3],center=true);
             }
             hull(){
-                translate([0,0,height-1.5-1.6])
+                translate([0,0,height-1.5])
                 cylinder(d=lowerDiameter,h=3);
                 
                 rotate([0,0,-18])
-                translate([0,-36.5,height-1.6])
+                translate([0,-36.5,height])
                 cube([18,5,3],center=true);
             }
         }union(){
