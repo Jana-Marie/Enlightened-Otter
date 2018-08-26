@@ -25,6 +25,9 @@ or OpenOCD
 
 ## Images
 
+![Battery 1](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_tisch.jpeg)
+![Battery 2](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_werkstatt.jpeg)
+
 ![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_1.jpeg)
 ![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_2.jpeg)
 ![Bottom View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_3.jpeg)
@@ -60,15 +63,22 @@ HW regulates after boot while main loop is basically empty \o/
 ### To do:
 
 - [ ] Overtemp protection
-- [ ] 3D Design
+- [ ] "Mobile handling"
+	- [ ] Touch is not that responsive
+	- [ ] Battery low alarm/turnoff
+- [ ] Test I2C - broken?
+- [ ] Rewrite regulation, seems to be flickering
+- [ ] Make user Interface more responsive
 - [ ] HW
 	-  See HW/README.md
 - [ ] Order new PCB
 - [ ] find MPP
+- [ ] Make it more efficient
 - [ ] Find more to do's
 
 ### Done:
 
+- [x] 3D Design
 - [x] get rid of flicker at 0.5-2.5mA 
 - [x] temperature calculation
 - [x] get rid of global variables
