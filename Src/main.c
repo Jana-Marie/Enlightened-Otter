@@ -71,6 +71,8 @@ struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f
 struct UI_t ui;
 float vtemp;
 uint8_t printCnt = 0;     // debugvalue can be removed later
+uint8_t stateCnt = 0;
+
 
 int main(void)
 {
@@ -119,8 +121,8 @@ int main(void)
       set_scope_channel(1, r.WW.iavg);
       set_scope_channel(2, r.CW.target);
       set_scope_channel(3, r.WW.target);
-      set_scope_channel(4, 0);
-      set_scope_channel(5, 0);
+      set_scope_channel(4, t.button.state);
+      set_scope_channel(5, stateCnt);
       set_scope_channel(6, ntc_calc(vtemp)); // f(x) = 0.096081461085562x^2 - 4.76256993467882x + 132.372469902458
       console_scope();
       HAL_Delay(5);
@@ -222,6 +224,15 @@ void button_task(void) {
   if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;  // if the power button is pressed set to 1
   else _powButton = 0;
 
+  if(_powButton){
+    stateCnt++;
+    if(stateCnt > 100){
+      configure_RT(CHG_CTRL2,TURNOFF_MASK);
+    }
+  } else {
+    stateCnt = 0;
+  }
+
   if (t.button.isReleased) {                       // power button state maschine start if button was released, waiting for the next press
     if (_powButton == 1 && t.button.state == 0) {  // if powerbutton is pressed and device is off, turn on and reset "is released flag"
       t.button.state = 1;
@@ -283,7 +294,6 @@ void UI_task(void) {
   } else if ( t.button.state == 0 && ui.brightnessAvg != 0) _enable = 0;
 
   if ((ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) && _enable) {       // smooth out color value until target
-
     ui.colorAvg = FILT(ui.colorAvg, ui.color, COLOR_FADING_FILTER);      // moving average filter with fixed constants
     ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightness, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
 
