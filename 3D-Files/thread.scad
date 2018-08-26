@@ -22,11 +22,6 @@ rotate([180,0,180])
 translate([0,0,-20])
 insert(31,35,21.6,0,28);
 
-/*
-translate([-26.5,-43,5])
-linear_extrude(height = 10, center = true, convexity = 10)
-   import (file = "outfile.dxf");
-*/
 module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
     difference(){
         union(){
@@ -34,22 +29,22 @@ module insert(diameter,lowerDiameter,height,lowerHeight,outerBottleDiameter) {
             cylinder(d=diameter,h=height);
                             
             translate([0,0,-lowerHeight+1.6])
-            cylinder(d=lowerDiameter,h=height);
+            #cylinder(d=lowerDiameter,h=height-1.6);
             
             hull(){
-                translate([0,0,height])
+                translate([0,0,height-1.5-1.6])
                 cylinder(d=lowerDiameter,h=3);
                 
                 rotate([0,0,18])
-                translate([0,-36.5,height+1.5])
+                translate([0,-36.5,height-1.6])
                 cube([18,5,3],center=true);
             }
             hull(){
-                translate([0,0,height])
+                translate([0,0,height-1.5-1.6])
                 cylinder(d=lowerDiameter,h=3);
                 
                 rotate([0,0,-18])
-                translate([0,-36.5,height+1.5])
+                translate([0,-36.5,height-1.6])
                 cube([18,5,3],center=true);
             }
         }union(){
@@ -69,7 +64,7 @@ module thread(diameter,height,thickness,pitch,depth){
     angle = 40;
     difference(){
         union(){
-         #cylinder(d=diameter,h=height);   
+         cylinder(d=diameter,h=height);   
          for(i = [0:1:(res*((height-thickness)/pitch))]){
              hull(){
                  block(i,diameter,height,thickness,pitch,depth,res);
