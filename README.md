@@ -36,7 +36,7 @@ or OpenOCD
 
 #### On a Bottle
 
-![Bottom View](https://twitter.com/JanHenrikH/status/1033489392109797377)
+[Finished Prototype](https://twitter.com/JanHenrikH/status/1033489392109797377)
 
 #### Boost converter operation
 
