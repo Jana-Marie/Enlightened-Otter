@@ -20,8 +20,8 @@
 
 #define MAX_CURRENT 350.0f 	// sets the maximum current - warning, because of gamma correction 
 
-#define BUTTON_THRESHOLD -1200	// sets the threshold at which a button press has to be triggered
-#define SLIDER_THRESHOLD -400	// sets the threshold at which the slider reports a value
+#define BUTTON_THRESHOLD -900	// sets the threshold at which a button press has to be triggered
+#define SLIDER_THRESHOLD -200	// sets the threshold at which the slider reports a value
 
 // values to be tested to determine the most efficient boost converter frequency
 // 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
