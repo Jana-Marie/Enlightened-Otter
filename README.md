@@ -34,6 +34,10 @@ or OpenOCD
 
 ## Videos
 
+#### On a Bottle
+
+[Finished Prototype](https://twitter.com/JanHenrikH/status/1033489392109797377)
+
 #### Boost converter operation
 
 [![Boost 1](https://img.youtube.com/vi/A-QjU9mWTO4/0.jpg)](https://youtu.be/A-QjU9mWTO4)
@@ -54,8 +58,10 @@ or OpenOCD
 
 ### Current state:
 
-HW is flashable, both bosst converter work properly up to a current of ~350mA, current regulation works on both boost converters (+-0.5-1.5mA), RT9466 seems to do its job, does ~not~ work properly on 
-batteries ~(5V gate driver power supply is missing, need to fix OTG)~, LED outputs and Touch inputs work, ~FLT_1 is always on~
+PCB V1.1 is ordered.
+
+HW is flashable, both bosst converter work properly up to a current of ~350mA, current regulation works on both boost converters (+-0.5-1.5mA), RT9466 seems to do its job, does work properly on 
+batteries, LED outputs and Touch inputs work, has correct fault handling.
 Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine. Gamma correcture is applied
 
 HW regulates after boot while main loop is basically empty \o/
@@ -71,13 +77,13 @@ HW regulates after boot while main loop is basically empty \o/
 - [ ] Make user Interface more responsive
 - [ ] HW
 	-  See HW/README.md
-- [ ] Order new PCB
 - [ ] find MPP
 - [ ] Make it more efficient
 - [ ] Find more to do's
 
 ### Done:
 
+- [x] Order new PCB
 - [x] 3D Design
 - [x] get rid of flicker at 0.5-2.5mA 
 - [x] temperature calculation
