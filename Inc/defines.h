@@ -37,7 +37,7 @@
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
 
-#define POWER_LED_BRIGHTNESS 64	// brightness of the power LED in off state (0-1024)
+#define POWER_LED_BRIGHTNESS 64		// brightness of the power LED in off state (0-1024)
 
 #define TURNOFF_TIME 		130		// sets the time to count to before turning off 
 #define BUTTON_THRESHOLD 	-900	// sets the threshold at which a button press has to be triggered
