@@ -20,9 +20,6 @@
 
 #define MAX_CURRENT 350.0f 	// sets the maximum current - warning, because of gamma correction 
 
-#define BUTTON_THRESHOLD -900	// sets the threshold at which a button press has to be triggered
-#define SLIDER_THRESHOLD -200	// sets the threshold at which the slider reports a value
-
 // values to be tested to determine the most efficient boost converter frequency
 // 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
 
@@ -30,8 +27,8 @@
 #define REG_CNT 			254	 	// sets the number of HRTIM passes to the next controller pass
 #define KI 					0.012f 	// sets the KI constant for the current regulator - do not change unless you know what you're doing
 
-#define MIN_DUTY 0.002f // sets the minimum duty cycle that the regulation can reach, can be left at 0.002
-#define MAX_DUTY 0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
+#define MIN_DUTY 	0.002f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
+#define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.8f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
@@ -41,6 +38,10 @@
 #define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
 
 #define POWER_LED_BRIGHTNESS 64	// brightness of the power LED in off state (0-1024)
+
+#define TURNOFF_TIME 		130		// sets the time to count to before turning off 
+#define BUTTON_THRESHOLD 	-900	// sets the threshold at which a button press has to be triggered
+#define SLIDER_THRESHOLD 	-200	// sets the threshold at which the slider reports a value
 
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
