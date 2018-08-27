@@ -22,6 +22,7 @@ struct touch_button_t {
   int16_t offsetValue[3]; // Todo - make some kind of auto calibration = {2075, 2131, 2450}
   uint8_t CBSwitch;       // color or brightness switch = 0
   uint8_t state;
+  uint16_t isTouchedTime;   
   uint8_t isReleased;        // power button value = 1
 
 };
@@ -54,8 +55,18 @@ struct reg_t {
   struct reg_val_t CW;
 };
 
-// UI
+// STATUS
 
+struct status_t {
+  uint16_t ledTemp;
+  uint16_t vIn;
+  uint16_t iIn;
+  uint16_t vBat;
+  uint16_t iBat;
+  uint16_t batTemp;
+};
+
+// UI
 struct UI_t {
   int16_t distance;      // delta slider position
   int16_t distanceOld;
