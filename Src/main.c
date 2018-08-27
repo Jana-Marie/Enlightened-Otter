@@ -55,24 +55,12 @@ void UI_task(void);
 void TSC_task(void);
 void LED_task(void);
 void boost_reg();
-extern void enable_OTG(void);
-extern void disable_OTG(void);
-extern void set_pwm(uint8_t timer, float duty);
-extern void set_brightness(uint8_t chan, float brightness, float color, float max_value);
-extern uint16_t read_RT_ADC(void);
-
-#if defined(SCOPE_CHANNELS)
-extern void set_scope_channel(uint8_t ch, int16_t val);
-extern void console_scope();
-#endif
 
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui;
-float vtemp;
+struct status_t stat;
 uint8_t printCnt = 0;     // debugvalue can be removed later
-uint8_t stateCnt = 0;
-
 
 int main(void)
 {
@@ -102,7 +90,7 @@ int main(void)
   HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);  // set the current for the COMP2,4 to trigger FLT_1
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);  // set the voltage for the COMP6 to trigger FLT_1
 
-  RT_Init();      // mainly sets ILIM
+  RT_Init();      // initialize the RT9466, mainly sets ILIM
   start_HRTIM1(); // start HRTIM and enable outputs
 
   HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
@@ -110,8 +98,8 @@ int main(void)
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers needs to be done, otherwise power failure
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
 
-  HAL_TSC_Start_IT(&htscb);
-  HAL_TSC_Start_IT(&htscs);
+  HAL_TSC_Start_IT(&htscb);   // start the touch button controller
+  HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
 
   while (1)
   {
@@ -122,21 +110,24 @@ int main(void)
       set_scope_channel(2, r.CW.target);
       set_scope_channel(3, r.WW.target);
       set_scope_channel(4, t.button.state);
-      set_scope_channel(5, stateCnt);
-      set_scope_channel(6, ntc_calc(vtemp)); // f(x) = 0.096081461085562x^2 - 4.76256993467882x + 132.372469902458
+      set_scope_channel(5, t.button.isTouchedTime);
+      set_scope_channel(6, ntc_calc(stat.ledTemp));
       console_scope();
       HAL_Delay(5);
       printCnt = 0;
-      LED_task();
+      LED_task(); // should be moved to other task
     }
   }
 }
 
 void boost_reg(void) {
-  /* Main current regulator */
+  // Main current regulator
   r.CW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
-  vtemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+
+  // todoo move into sensor task
+  stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
+  stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
@@ -224,14 +215,10 @@ void button_task(void) {
   if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;  // if the power button is pressed set to 1
   else _powButton = 0;
 
-  if(_powButton){
-    stateCnt++;
-    if(stateCnt > 100){
-      configure_RT(CHG_CTRL2,TURNOFF_MASK);
-    }
-  } else {
-    stateCnt = 0;
-  }
+  if (_powButton) {
+    t.button.isTouchedTime++;
+    if (t.button.isTouchedTime > TURNOFF_TIME) configure_RT(CHG_CTRL2, TURNOFF_MASK);
+  } else t.button.isTouchedTime = 0;
 
   if (t.button.isReleased) {                       // power button state maschine start if button was released, waiting for the next press
     if (_powButton == 1 && t.button.state == 0) {  // if powerbutton is pressed and device is off, turn on and reset "is released flag"
