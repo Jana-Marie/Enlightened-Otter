@@ -148,10 +148,10 @@ void boost_reg(void) {
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
   float target_tmp, color_tmp;
 
-  if (chan)       color_tmp = color;          // set color temperature multiplicator from 0-1 for WW
-  else if (!chan) color_tmp = (1.0f - color); // and 1-0 fow CW
+  if (chan)       color_tmp = color;          // set color temperature multiplicator from 0 to 1 for WW
+  else if (!chan) color_tmp = (1.0f - color); // and from 1 to 0 for CW
 
-  target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp
+  target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
   if (chan) r.WW.target = gammaTable[(int)(target_tmp * 2)];        // apply gamma corection - gamma correction array position
   else if (!chan) r.CW.target = gammaTable[(int)(target_tmp * 2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
@@ -209,25 +209,27 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
 
-  if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0;       // switch color or brightness selector
+  if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
   else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
-  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;  // if the power button is pressed set to 1
+  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
   else _powButton = 0;
 
-  if (_powButton) {
-    t.button.isTouchedTime++;
-    if (t.button.isTouchedTime > TURNOFF_TIME) configure_RT(CHG_CTRL2, TURNOFF_MASK);
-  } else t.button.isTouchedTime = 0;
+  // "hard" Off state maschine
+  if (_powButton) {           // check if power button is pressed
+    t.button.isTouchedTime++; // increase counter if so
+    if (t.button.isTouchedTime > TURNOFF_TIME) configure_RT(CHG_CTRL2, TURNOFF_MASK); // when the counter target is reached, turn off via richtek "shipping" mode
+  } else t.button.isTouchedTime = 0;  // if power button is released, reset counter
 
+  // power button state maschine
   if (t.button.isReleased) {                       // power button state maschine start if button was released, waiting for the next press
     if (_powButton == 1 && t.button.state == 0) {  // if powerbutton is pressed and device is off, turn on and reset "is released flag"
       t.button.state = 1;
       t.button.isReleased = 0;
-    } else if (_powButton == 1 && t.button.state == 1) { // if powerbutton is pressed and device is on, turn off and reset "is released flag"
+    } else if (_powButton == 1 && t.button.state == 1) {  // if powerbutton is pressed and device is on, turn off and reset "is released flag"
       t.button.state = 0;
       t.button.isReleased = 0;
-      start_HRTIM1();                             // for now lets reset the flt state in the power off state
+      start_HRTIM1();                               // for now lets reset the flt state in the power off state
     }
   } else if (!t.button.isReleased && _powButton == 0) t.button.isReleased = 1; // set isReleased flag if powerbutton was released
 
@@ -261,34 +263,34 @@ void slider_task(void) {
 void UI_task(void) {
   uint8_t _enable = 1;
 
-  if (t.button.state) {  // if lamp is turned "soft" on
-    if (t.slider.isTouched) {  // check if slider is touched
-      if (ui.debounce >= 5) {   // "debounce" slider
+  if (t.button.state) {       // if lamp is turned "soft" on
+    if (t.slider.isTouched) { // check if slider is touched
+      if (ui.debounce >= 5) { // "debounce" slider
 
-        ui.distance += t.slider.pos - ui.distanceOld;             // calculate t.slider.pos delta
-        ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);
+        ui.distance += t.slider.pos - ui.distanceOld;         // calculate t.slider.pos delta
+        ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
 
         if (t.button.CBSwitch == 0) ui.brightness = ui.distance;          // if color/brightness switch is 0 then change brightness
-        if (t.button.CBSwitch == 1) ui.color = ui.distance / MAX_CURRENT; // if color/brightness switch is 1 then change the color
+        if (t.button.CBSwitch == 1) ui.color = ui.distance / MAX_CURRENT; // if color/brightness switch is 1 then change the color - scale from 0 to 1
 
-      } else ui.debounce++;
+      } else ui.debounce++;   // increase debounce counter until counter-target is reached
 
       if (t.button.CBSwitch == 0) ui.distance = ui.brightness;          // prevents jumps when switching between modes
       if (t.button.CBSwitch == 1) ui.distance = ui.color * MAX_CURRENT; // prevents jumps when switching between modes
 
-      ui.distanceOld = t.slider.pos;                                // set ui.distanceOld to current t.slider.pos
-    } else ui.debounce = 0;
-  } else if ( t.button.state == 0 && ui.brightnessAvg != 0) _enable = 0;
+      ui.distanceOld = t.slider.pos;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
+    } else ui.debounce = 0;                 // clear douncer if slider is not touched
+  } else if (!t.button.state) _enable = 0;  // if button state is 0 disable output
 
-  if ((ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) && _enable) {       // smooth out color value until target
-    ui.colorAvg = FILT(ui.colorAvg, ui.color, COLOR_FADING_FILTER);      // moving average filter with fixed constants
-    ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightness, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants
+  if ((ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) && _enable) {      // smooth out color value until target is reached and output is enabled
+    ui.colorAvg = FILT(ui.colorAvg, ui.color, COLOR_FADING_FILTER);                     // moving average filter with fixed constants for the color mixing
+    ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightness, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants for the brightness
 
-    set_brightness(CHAN_CW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);
-    set_brightness(CHAN_WW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);
-  } else {
-    set_brightness(CHAN_CW, 0.0f, ui.colorAvg, MAX_CURRENT);
-    set_brightness(CHAN_WW, 0.0f, ui.colorAvg, MAX_CURRENT);
+    set_brightness(CHAN_CW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set CW brightness accordingly to output
+    set_brightness(CHAN_WW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set WW brightness accordingly to output
+  } else {                                                    // if output is not enabled - brightness and color are ignored here
+    set_brightness(CHAN_CW, 0.0f, ui.colorAvg, MAX_CURRENT);  // set CW output to 0
+    set_brightness(CHAN_WW, 0.0f, ui.colorAvg, MAX_CURRENT);  // set WW output to 0
   }
 }
 
@@ -296,11 +298,11 @@ void LED_task(void) {
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);           // set LED "Power" to full brightness
   } else {
-    HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);    // clear LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, 0);         // clear LED "Color"
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS);      //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
+    HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);                        // clear LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                             // clear LED "Color"
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS); //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
   }
 }
 
