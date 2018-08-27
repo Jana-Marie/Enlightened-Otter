@@ -204,6 +204,13 @@ clean:
 	-rm -fR .dep $(BUILD_DIR)
 
 #######################################
+# clean up
+#######################################
+flash_st:
+	st-flash --reset write $(BUILD_DIR)/%.bin 0x8000000
+
+
+#######################################
 # dependencies
 #######################################
 -include $(shell mkdir .dep 2>/dev/null) $(wildcard .dep/*)
