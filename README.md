@@ -53,6 +53,7 @@ or OpenOCD
 ## Known Bugs
 
 - Touch does not work when licked (tested by @NiklasFauth)
+	- Workaround: Do not lick PCB
 
 ## Planning
 
@@ -60,30 +61,34 @@ or OpenOCD
 
 PCB V1.1 is ordered.
 
-HW is flashable, both bosst converter work properly up to a current of ~350mA, current regulation works on both boost converters (+-0.5-1.5mA), RT9466 seems to do its job, does work properly on 
-batteries, LED outputs and Touch inputs work, has correct fault handling.
-Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine. Gamma correcture is applied
+HW is flashable, both bosst converter work properly up to a current of ~350mA, current regulation works on both boost converters (+-0.5mA up to 180mA, above +-100mA needs to be debugged), RT9466 seems to do its job, does work properly on 
+batteries and USB, LED outputs and Touch inputs work, has correct fault handling.
+Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine. Gamma correcture is applied.
+The whole PCB can be shut down by holding the power button.
 
 HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
+- [ ] Fix regulator above 180mA
+	- is flickering quite alot above 180mA
+	- [ ] Rewrite regulation, seems to be flickering
 - [ ] Overtemp protection
 - [ ] "Mobile handling"
 	- [ ] Touch is not that responsive
 	- [ ] Battery low alarm/turnoff
 - [ ] Test I2C - broken?
-- [ ] Rewrite regulation, seems to be flickering
-- [ ] Make user Interface more responsive
-- [ ] HW
-	-  See HW/README.md
+	- writing works, reading is buggy, switch to dma
 - [ ] find MPP
 - [ ] Make it more efficient
 - [ ] Find more to do's
 
 ### Done:
 
-- [x] Order new PCB
+- [x] HW
+	-  See HW/README.md
+- [x] Make user Interface more responsive
+- [x] Order new PCB (V1.1)
 - [x] 3D Design
 - [x] get rid of flicker at 0.5-2.5mA 
 - [x] temperature calculation
