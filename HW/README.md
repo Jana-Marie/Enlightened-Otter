@@ -16,6 +16,9 @@
 
 ### Todo list
 
+- [ ] HW 1.1 
+	- [ ] Optimize values in circuit
+
 - [ ] HW 1.2
 
 
