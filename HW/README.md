@@ -18,6 +18,8 @@
 
 - [ ] HW 1.1 
 	- [ ] Optimize values in circuit
+	- most 47k to 33k
+	- there are too many different capacitor values
 
 - [ ] HW 1.2
 
