@@ -1,6 +1,6 @@
 # Enlighted-Otter
 
-Enlighted-Otter is an Open-Source and OSHW (Design files still missing, will upload later)  work-light for hacker/maker events like the chaos communication congress. It is based upon a STM32F334 with its 
+Enlighted-Otter is an Open-Source and OSHW work-light for hacker/maker events like the chaos communication congress. It is based upon a STM32F334 with its 
 high resolution timer as dual boost 
 converter. The main goal is to provide cableless, high CRI, high brightness, flicker-free illumination with a variable color temperature. This is achieved by using LEDs with high CRI (>93, STW9Q14C) and 
 the boost 
@@ -36,7 +36,7 @@ or OpenOCD
 
 #### On a Bottle
 
-[Finished Prototype](https://twitter.com/JanHenrikH/status/1033489392109797377)
+[![Finished Prototype](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_werkstatt.jpeg)](https://twitter.com/JanHenrikH/status/1033489392109797377)
 
 #### Boost converter operation
 
