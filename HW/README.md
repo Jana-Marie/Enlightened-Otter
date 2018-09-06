@@ -16,7 +16,7 @@
 
 ### Todo list
 
-- [ ] HW 1.1 
+- [ ] HW 1.1 (again)
 	- [ ] Optimize values in circuit
 	- most 47k to 33k
 	- there are too many different capacitor values
