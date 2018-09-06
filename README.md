@@ -34,6 +34,8 @@ or OpenOCD
 
 ## Videos
 
+Click to play
+
 #### On a Bottle
 
 [![Finished Prototype](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_werkstatt.jpeg)](https://twitter.com/JanHenrikH/status/1033489392109797377)
@@ -61,7 +63,7 @@ or OpenOCD
 
 PCB V1.1 is ordered.
 
-HW is flashable, both bosst converter work properly up to a current of ~350mA, current regulation works on both boost converters (+-0.5mA up to 400mA, regulation frequency is 3khz), RT9466 seems to do its job, does work properly on 
+HW is flashable, both bosst converter work properly up to a current of ~400mA, current regulation works on both boost converters (+-0.5mA up to 400mA, regulation frequency is 3khz), RT9466 seems to do its job, does work properly on 
 batteries and USB, LED outputs and Touch inputs work, has correct fault handling.
 Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine. Gamma correcture is applied.
 The whole PCB can be shut down by holding the power button.
