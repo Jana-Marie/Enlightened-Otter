@@ -20,6 +20,7 @@
 	- [ ] Optimize values in circuit
 	- most 47k to 33k
 	- there are too many different capacitor values
+	- [ ] Order MIC5504-3.0
 
 - [ ] HW 1.2
 
