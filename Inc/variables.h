@@ -19,6 +19,7 @@
 // TOUCH
 struct touch_button_t {
   int16_t acquisitionValue[3];                 // register that holds the acquired button values
+  int16_t acquisitionValueAvg[3];                 // register that holds the acquired button values
   int16_t offsetValue[3]; // Todo - make some kind of auto calibration = {2075, 2131, 2450}
   uint8_t CBSwitch;       // color or brightness switch = 0
   uint8_t state;
@@ -29,6 +30,7 @@ struct touch_button_t {
 
 struct touch_slider_t {
   int16_t acquisitionValue[3];                 // register that holds the acquired slider values
+  int16_t acquisitionValueAvg[3];                 // register that holds the acquired slider values
   int16_t offsetValue[3]; // offset values which needs to be subtracted from the acquired values = {1153, 1978, 1962}
   uint16_t pos;     // current slider position = 0
   uint8_t isTouched;// 1 if slider is touched = 0

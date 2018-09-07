@@ -18,14 +18,14 @@
 
 #define SCOPE_CHANNELS 	7 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
 
-#define MAX_CURRENT 350.0f 	// sets the maximum current - warning, because of gamma correction 
+#define MAX_CURRENT 400.0f 	// sets the maximum current - warning, because of gamma correction 
 
 // values to be tested to determine the most efficient boost converter frequency
 // 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
 
 #define HRTIM_FREQUENCY_KHZ 750.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
 #define REG_CNT 			254	 	// sets the number of HRTIM passes to the next controller pass
-#define KI 					0.012f 	// sets the KI constant for the current regulator - do not change unless you know what you're doing
+#define KI 					0.001f 	// sets the KI constant for the current regulator - do not change unless you know what you're doing
 
 #define MIN_DUTY 	0.002f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
@@ -33,15 +33,16 @@
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.8f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
-#define CURRENT_AVERAGING_FILTER 	0.98f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+#define CURRENT_AVERAGING_FILTER 	0.995f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
+#define TOUCH_FILTER				0.75f
 
 #define POWER_LED_BRIGHTNESS 64		// brightness of the power LED in off state (0-1024)
 
 #define TURNOFF_TIME 		130		// sets the time to count to before turning off 
-#define BUTTON_THRESHOLD 	-900	// sets the threshold at which a button press has to be triggered
-#define SLIDER_THRESHOLD 	-200	// sets the threshold at which the slider reports a value
+#define BUTTON_THRESHOLD 	-950	// sets the threshold at which a button press has to be triggered
+#define SLIDER_THRESHOLD 	-350	// sets the threshold at which the slider reports a value
 
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
