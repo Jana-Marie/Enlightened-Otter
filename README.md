@@ -1,6 +1,6 @@
 # Enlighted-Otter
 
-Enlighted-Otter is an Open-Source and OSHW (Design files still missing, will upload later)  work-light for hacker/maker events like the chaos communication congress. It is based upon a STM32F334 with its 
+Enlighted-Otter is an Open-Source and OSHW work-light for hacker/maker events like the chaos communication congress. It is based upon a STM32F334 with its 
 high resolution timer as dual boost 
 converter. The main goal is to provide cableless, high CRI, high brightness, flicker-free illumination with a variable color temperature. This is achieved by using LEDs with high CRI (>93, STW9Q14C) and 
 the boost 
@@ -20,7 +20,7 @@ and flash it via Ozone or st-utils
 
 or OpenOCD
 
-`openocd -f interface/jlink.cfg -f board/stm32f334discovery.cfg -c "init reset init program otter.bin reset run exit 0x08000000" -c shutdown` (not tested)
+`openocd -f interface/jlink.cfg -f board/stm32f334discovery.cfg -c "init reset init program otter.bin reset run exit 0x08000000" -c shutdown` (does not work)
 
 
 ## Images
@@ -34,9 +34,11 @@ or OpenOCD
 
 ## Videos
 
+Click to play
+
 #### On a Bottle
 
-[Finished Prototype](https://twitter.com/JanHenrikH/status/1033489392109797377)
+[![Finished Prototype](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_werkstatt.jpeg)](https://twitter.com/JanHenrikH/status/1033489392109797377)
 
 #### Boost converter operation
 
@@ -57,11 +59,23 @@ or OpenOCD
 
 ## Planning
 
+
+### Folder structure
+
+- **Src/** : Contains the source files to build the firmware
+- **Drivers/** : Contains the STM library files
+- **Inc/** : Contains the header files as well as the customization file for the firmare
+- **Tools/** : Contains python scripts to generate specific code
+- **HW/** : Contains the Schematic, Gerber and other Hawrdware files
+- **Images/** : Contains the images used in this repo
+- **3D Files/** : Contains the 3D file to be printed as inlet as well as its source
+- **/** : Contains other build files e.g. Makefile, linkerscript
+
 ### Current state:
 
 PCB V1.1 is ordered.
 
-HW is flashable, both bosst converter work properly up to a current of ~350mA, current regulation works on both boost converters (+-0.5mA up to 180mA, above +-100mA needs to be debugged), RT9466 seems to do its job, does work properly on 
+HW is flashable, both bosst converter work properly up to a current of ~400mA, current regulation works on both boost converters (+-0.5mA up to 400mA, regulation frequency is 3khz), RT9466 seems to do its job, does work properly on 
 batteries and USB, LED outputs and Touch inputs work, has correct fault handling.
 Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine. Gamma correcture is applied.
 The whole PCB can be shut down by holding the power button.
@@ -70,9 +84,10 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
-- [ ] Fix regulator above 180mA
-	- is flickering quite alot above 180mA
-	- [ ] Rewrite regulation, seems to be flickering
+- [ ] rewrite gamma correction
+	- [ ] use old one, but interpolate between points
+- [ ] visualize battery voltage
+- [ ] Optimize code
 - [ ] Overtemp protection
 - [ ] "Mobile handling"
 	- [ ] Touch is not that responsive
@@ -85,6 +100,10 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### Done:
 
+- [x] Fix regulator above 180mA
+	- is flickering quite alot above 180mA
+	- [x] Rewrite regulation, seems to be flickering
+		- was gamma correction causing that problem
 - [x] HW
 	-  See HW/README.md
 - [x] Make user Interface more responsive
