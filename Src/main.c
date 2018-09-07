@@ -56,6 +56,7 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
+//struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui;
@@ -103,20 +104,17 @@ int main(void)
 
   while (1)
   {
-    if (printCnt++ % 250 == 0) { // print only every n cycle
-
-      set_scope_channel(0, r.CW.iavg);
-      set_scope_channel(1, r.WW.iavg);
-      set_scope_channel(2, r.CW.target);
-      set_scope_channel(3, r.WW.target);
-      set_scope_channel(4, t.button.state);
-      set_scope_channel(5, t.button.isTouchedTime);
-      set_scope_channel(6, ntc_calc(stat.ledTemp));
-      console_scope();
-      HAL_Delay(5);
-      printCnt = 0;
-      LED_task(); // should be moved to other task
-    }
+    set_scope_channel(0, t.slider.acquisitionValue[0]);
+    set_scope_channel(1, t.slider.acquisitionValue[1]);
+    set_scope_channel(2, t.slider.acquisitionValue[2]);
+    set_scope_channel(3, t.button.acquisitionValue[0]);
+    set_scope_channel(4, t.button.acquisitionValue[1]);
+    set_scope_channel(5, t.button.acquisitionValue[2]);
+    set_scope_channel(6, ntc_calc(stat.ledTemp));
+    console_scope();
+    HAL_Delay(5);
+    printCnt = 0;
+    LED_task(); // should be moved to other task
   }
 }
 
@@ -127,7 +125,7 @@ void boost_reg(void) {
 
   // todoo move into sensor task
   stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
-  stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
+  //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
@@ -155,8 +153,6 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   if (chan) r.WW.target = target_tmp;        // Test without gamma, flickerings with maybe
   else if (!chan) r.CW.target = target_tmp;  // I guess this was faulty -.-
-  //if (chan) r.WW.target = gammaTable[(int)(target_tmp * 2)];        // apply gamma corection - gamma correction array position
-  //else if (!chan) r.CW.target = gammaTable[(int)(target_tmp * 2)];  // needs to be multiplied by 2 as we have 1000 gamma values for a current from 0-500mA
 }
 
 void TSC_task(void) {
@@ -164,8 +160,8 @@ void TSC_task(void) {
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
 
-    t.slider.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
-    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
+    t.slider.acquisitionValueAvg[t.IdxBank] = FILT(t.slider.acquisitionValueAvg[t.IdxBank],HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX),TOUCH_FILTER);
+    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValueAvg[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
 
     slider_task();
 
@@ -175,8 +171,8 @@ void TSC_task(void) {
     HAL_TSC_Start_IT(&htscb);
   } else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
-    t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
-    t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
+    t.button.acquisitionValueAvg[t.IdxBank] = FILT(t.button.acquisitionValueAvg[t.IdxBank],HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX),TOUCH_FILTER);
+    t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValueAvg[t.IdxBank] - t.button.offsetValue[t.IdxBank];
 
     button_task();
 
