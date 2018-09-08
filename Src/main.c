@@ -124,8 +124,8 @@ void boost_reg(void) {
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
   // todoo move into sensor task
-  //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
-  //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
+  stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
+  stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
@@ -210,8 +210,9 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
 
-  if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
-  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
+  if      (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
+  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[1] > BUTTON_THRESHOLD) t.button.CBSwitch = 1;
+  else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 2;
   else;
   if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
   else _powButton = 0;
@@ -296,6 +297,24 @@ void UI_task(void) {
 }
 
 void LED_task(void) {
+
+  if (t.button.CBSwitch == 2){
+
+    int16_t _br = stat.vBat-3200;
+    uint8_t _low = 1;
+    uint8_t _lower = 1;
+
+    _br = CLAMP(_br,0.0,1024);    
+    if(stat.vBat < 3100) _low = 0;
+    if(stat.vBat < 3000) _lower = 0;
+
+
+    HAL_GPIO_WritePin(GPIOA, LED_Brightness,_low); // set LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, _lower);       // set LED "Color"
+    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, _br);           // set LED "Power" to full brightness
+    return;
+  }
+
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
