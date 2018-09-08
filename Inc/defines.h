@@ -41,8 +41,10 @@
 #define POWER_LED_BRIGHTNESS 64		// brightness of the power LED in off state (0-1024)
 
 #define TURNOFF_TIME 		130		// sets the time to count to before turning off 
-#define BUTTON_THRESHOLD 	-950	// sets the threshold at which a button press has to be triggered
+#define BUTTON_THRESHOLD 	-350	// sets the threshold at which a button press has to be triggered
 #define SLIDER_THRESHOLD 	-350	// sets the threshold at which the slider reports a value
+
+#define CURRENT_CUTOFF		1.0f
 
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
