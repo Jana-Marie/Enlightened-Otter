@@ -124,7 +124,7 @@ void boost_reg(void) {
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
   // todoo move into sensor task
-  stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
+  //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
   //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
@@ -139,6 +139,9 @@ void boost_reg(void) {
   r.WW.duty += (r.Magiekonstante * r.WW.error);     // Simple I regulator for WW current
   r.WW.duty = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
+  if( r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
+  if( r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
+
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, r.WW.duty);  // Update WW duty cycle
 }
@@ -151,8 +154,8 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
-  if (chan) r.WW.target = target_tmp;        // Test without gamma, flickerings with maybe
-  else if (!chan) r.CW.target = target_tmp;  // I guess this was faulty -.-
+  if (chan) r.WW.target = target_tmp;        // 
+  else if (!chan) r.CW.target = target_tmp;  // 
 }
 
 void TSC_task(void) {
