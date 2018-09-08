@@ -8,6 +8,13 @@ converter operating at a frequency of up to 850khz. The PCB also features USB-C 
 
 Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), therefore serving with a very small footprint.
 
+## Specs
+
+| 		| Typical Value |
+| ------------- | ------------- |
+| Max current per Channel | 400mA  |
+
+
 ## Building and flashing
 
 Change *Inc/defines.h* to fit your desires, then build with
