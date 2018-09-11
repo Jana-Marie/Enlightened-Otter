@@ -10,9 +10,18 @@ Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), theref
 
 ## Specs
 
-| 		| Typical Value |
-| ------------- | ------------- |
-| Max current per Channel | 400mA  |
+| 							| Typical Value |
+| -------------------------	| -------------	|
+| Iout (per channel)	 	| 0-400mA 		|
+| Vout (per channel)		| 0-18.5V 		|
+| Pout (per channel)		| 0-7.5W		|
+| Illuminance (3500k @400mA)| 1600lx  		|
+| Illuminance (6500k @400mA)| 2000lx  		|
+| Vin (USB) 				| 4.8-12V  		|
+| Iin (USB) 				| 3A  			|
+| Vbat 		 				| 3.8V 			|
+| Ibat (max)				| 5A  			|
+
 
 
 ## Building and flashing
@@ -91,13 +100,17 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
-- [ ] rewrite gamma correction
-	- [ ] use old one, but interpolate between points
+- [x] rewrite gamma correction
+	- [x] use old one, but interpolate between points
+	- [ ] Test it
 - [ ] visualize battery voltage
 - [ ] Optimize code
+	- [x] make it less ugly
+	- [ ] now make it faster
 - [ ] Overtemp protection
 - [ ] "Mobile handling"
-	- [ ] Touch is not that responsive
+	- [x] Touch is not that responsive
+	- [ ] Added filters to touch input
 	- [ ] Battery low alarm/turnoff
 - [ ] Test I2C - broken?
 	- writing works, reading is buggy, switch to dma
