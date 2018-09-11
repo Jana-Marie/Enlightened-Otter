@@ -61,7 +61,6 @@ struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .but
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui;
 struct status_t stat;
-uint8_t printCnt = 0;     // debugvalue can be removed later
 
 int main(void)
 {
@@ -113,7 +112,6 @@ int main(void)
     set_scope_channel(6, ntc_calc(stat.ledTemp));
     console_scope();
     HAL_Delay(5);
-    printCnt = 0;
     LED_task(); // should be moved to other task
   }
 }
@@ -124,8 +122,8 @@ void boost_reg(void) {
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
   // todoo move into sensor task
-  stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
-  stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
+  // stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
+  // stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
@@ -139,8 +137,8 @@ void boost_reg(void) {
   r.WW.duty += (r.Magiekonstante * r.WW.error);     // Simple I regulator for WW current
   r.WW.duty = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
 
-  if( r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
-  if( r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
+  if ( r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY; // create current cutoff to prevent "glitching" at super low pwm values
+  if ( r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY; // create current cutoff to prevent "glitching" at super low pwm values
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, r.WW.duty);  // Update WW duty cycle
@@ -154,8 +152,8 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
-  if (chan) r.WW.target = target_tmp;        // 
-  else if (!chan) r.CW.target = target_tmp;  // 
+  if (chan) r.WW.target = gamma_calc(target_tmp);        //
+  else if (!chan) r.CW.target = gamma_calc(target_tmp);  //
 }
 
 void TSC_task(void) {
@@ -163,7 +161,7 @@ void TSC_task(void) {
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
 
-    t.slider.acquisitionValueAvg[t.IdxBank] = FILT(t.slider.acquisitionValueAvg[t.IdxBank],HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX),TOUCH_FILTER);
+    t.slider.acquisitionValueAvg[t.IdxBank] = FILT(t.slider.acquisitionValueAvg[t.IdxBank], HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX), TOUCH_FILTER);
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValueAvg[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
 
     slider_task();
@@ -174,7 +172,7 @@ void TSC_task(void) {
     HAL_TSC_Start_IT(&htscb);
   } else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
-    t.button.acquisitionValueAvg[t.IdxBank] = FILT(t.button.acquisitionValueAvg[t.IdxBank],HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX),TOUCH_FILTER);
+    t.button.acquisitionValueAvg[t.IdxBank] = FILT(t.button.acquisitionValueAvg[t.IdxBank], HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX), TOUCH_FILTER);
     t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValueAvg[t.IdxBank] - t.button.offsetValue[t.IdxBank];
 
     button_task();
@@ -298,18 +296,18 @@ void UI_task(void) {
 
 void LED_task(void) {
 
-  if (t.button.CBSwitch == 2){
+  if (t.button.CBSwitch == 2) {
 
-    int16_t _br = stat.vBat-3200;
+    int16_t _br = stat.vBat - 3200;
     uint8_t _low = 1;
     uint8_t _lower = 1;
 
-    _br = CLAMP(_br,0.0,1024);    
-    if(stat.vBat < 3100) _low = 0;
-    if(stat.vBat < 3000) _lower = 0;
+    _br = CLAMP(_br, 0.0, 1024);
+    if (stat.vBat < 3100) _low = 0;
+    if (stat.vBat < 3000) _lower = 0;
 
 
-    HAL_GPIO_WritePin(GPIOA, LED_Brightness,_low); // set LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Brightness, _low); // set LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, _lower);       // set LED "Color"
     __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, _br);           // set LED "Power" to full brightness
     return;
