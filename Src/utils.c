@@ -71,12 +71,12 @@ float ntc_calc(uint16_t adc_value) {
 float gamma_calc(float current) {
 
 	float p1, p2;
-	
-	p1 = gammaTable[int(current)];
-	p2 = gammaTable[int(current) + 1];
+
+	p1 = gammaTable[(uint16_t)(current)];
+	p2 = gammaTable[(uint16_t)(current) + 1];
 
 	float delta = (p2 - p1);
-	float diff = (current - int(current)) / delta;
+	float diff = (current - (uint16_t)current) / delta;
 
 	return p1 + diff * delta;
 }
