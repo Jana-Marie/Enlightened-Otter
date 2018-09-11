@@ -22,7 +22,6 @@
 #include "stm32f3xx_hal.h"
 #include "init_functions.h"
 #include "defines.h"
-#include "gamma.h"
 #include "variables.h"
 #include "utils.h"
 
@@ -208,12 +207,11 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
 
-  if      (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
-  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[1] > BUTTON_THRESHOLD) t.button.CBSwitch = 1;
-  else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 2;
+  if      (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
+  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
-  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
-  else _powButton = 0;
+  if      (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
+  else    _powButton = 0;
 
   // "hard" Off state maschine
   if (_powButton) {           // check if power button is pressed
@@ -237,6 +235,7 @@ void button_task(void) {
 }
 
 void slider_task(void) {
+
   if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;
 
   t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);
@@ -263,28 +262,29 @@ void slider_task(void) {
 void UI_task(void) {
   uint8_t _enable = 1;
 
-  if (t.button.state) {       // if lamp is turned "soft" on
-    if (t.slider.isTouched) { // check if slider is touched
-      if (ui.debounce >= 5) { // "debounce" slider
+  if (t.button.state) {                                         // if lamp is turned "soft" on
+    if (t.slider.isTouched) {                                   // check if slider is touched
+      if (ui.debounce >= 5) {                                   // "debounce" slider
+        if (t.slider.pos - ui.distanceOld <= 10) {              // check if slider did not jump
 
-        ui.distance += t.slider.pos - ui.distanceOld;         // calculate t.slider.pos delta
-        ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
+          ui.distance += t.slider.pos - ui.distanceOld;         // calculate t.slider.pos delta
+          ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
 
-        if (t.button.CBSwitch == 0) ui.brightness = ui.distance;          // if color/brightness switch is 0 then change brightness
-        if (t.button.CBSwitch == 1) ui.color = ui.distance / MAX_CURRENT; // if color/brightness switch is 1 then change the color - scale from 0 to 1
+          if (t.button.CBSwitch == 0) ui.brightness = ui.distance;          // if color/brightness switch is 0 then change brightness
+          if (t.button.CBSwitch == 1) ui.color = ui.distance / MAX_CURRENT; // if color/brightness switch is 1 then change the color - scale from 0 to 1
 
-      } else ui.debounce++;   // increase debounce counter until counter-target is reached
+        } else ui.debounce++;   // increase debounce counter until counter-target is reached
 
-      if (t.button.CBSwitch == 0) ui.distance = ui.brightness;          // prevents jumps when switching between modes
-      if (t.button.CBSwitch == 1) ui.distance = ui.color * MAX_CURRENT; // prevents jumps when switching between modes
-
+        if (t.button.CBSwitch == 0 && ui.debounce < 1) ui.distance = ui.brightness;          // prevents jumps when switching between modes
+        if (t.button.CBSwitch == 1 && ui.debounce < 1) ui.distance = ui.color * MAX_CURRENT; // prevents jumps when switching between modes
+      }
       ui.distanceOld = t.slider.pos;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
     } else ui.debounce = 0;                 // clear douncer if slider is not touched
   } else if (!t.button.state) _enable = 0;  // if button state is 0 disable output
 
-  if ((ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) && _enable) {      // smooth out color value until target is reached and output is enabled
-    ui.colorAvg = FILT(ui.colorAvg, ui.color, COLOR_FADING_FILTER);                     // moving average filter with fixed constants for the color mixing
-    ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightness, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants for the brightness
+  if ((ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) && _enable) {        // smooth out color value until target is reached and output is enabled
+    ui.colorAvg       = FILT(ui.colorAvg, ui.color, COLOR_FADING_FILTER);                 // moving average filter with fixed constants for the color mixing
+    ui.brightnessAvg  = FILT(ui.brightnessAvg, ui.brightness, BRIGHTNESS_FADING_FILTER);  // moving average filter with fixed constants for the brightness
 
     set_brightness(CHAN_CW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set CW brightness accordingly to output
     set_brightness(CHAN_WW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set WW brightness accordingly to output
@@ -295,23 +295,6 @@ void UI_task(void) {
 }
 
 void LED_task(void) {
-
-  if (t.button.CBSwitch == 2) {
-
-    int16_t _br = stat.vBat - 3200;
-    uint8_t _low = 1;
-    uint8_t _lower = 1;
-
-    _br = CLAMP(_br, 0.0, 1024);
-    if (stat.vBat < 3100) _low = 0;
-    if (stat.vBat < 3000) _lower = 0;
-
-
-    HAL_GPIO_WritePin(GPIOA, LED_Brightness, _low); // set LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, _lower);       // set LED "Color"
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, _br);           // set LED "Power" to full brightness
-    return;
-  }
 
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
