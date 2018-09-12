@@ -17,10 +17,11 @@ Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), theref
 | P*out* (per channel)		| 0-7.5W		|
 | Illuminance (3500k @400mA)	| 1600lx  		|
 | Illuminance (6500k @400mA)	| 2000lx  		|
-| V*in* (USB) 			| 4.8-12V  		|
+| V*in* (USB) 			| 4.8-14V  		|
 | I*in* (USB) 			| 3A  			|
 | V*bat* 			| 3.8V 			|
 | I*bat* (max)			| 5A  			|
+| Boost frequency		| 350khz		|
 
 
 
