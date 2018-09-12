@@ -23,17 +23,17 @@
 // values to be tested to determine the most efficient boost converter frequency
 // 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
 
-#define HRTIM_FREQUENCY_KHZ 750.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
+#define HRTIM_FREQUENCY_KHZ 450.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
 #define REG_CNT 			254	 	// sets the number of HRTIM passes to the next controller pass
-#define KI 					0.001f 	// sets the KI constant for the current regulator - do not change unless you know what you're doing
+#define KI 					0.0005f // sets the KI constant for the current regulator - do not change unless you know what you're doing
 
-#define MIN_DUTY 	0.002f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
+#define MIN_DUTY 	0.01f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.8f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
-#define CURRENT_AVERAGING_FILTER 	0.995f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+#define CURRENT_AVERAGING_FILTER 	0.998f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
 #define TOUCH_FILTER				0.75f
