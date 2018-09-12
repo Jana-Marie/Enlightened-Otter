@@ -104,17 +104,18 @@ int main(void)
 
   while (1)
   {
-    set_scope_channel(0, t.slider.acquisitionValue[0]);
-    set_scope_channel(1, t.slider.acquisitionValue[1]);
-    set_scope_channel(2, t.slider.acquisitionValue[2]);
+    set_scope_channel(0, r.CW.iavg);
+    set_scope_channel(1, r.CW.error);
+    set_scope_channel(2, r.CW.duty*1000.0f);
     set_scope_channel(3, t.button.acquisitionValue[0]);
     set_scope_channel(4, t.button.acquisitionValue[1]);
     set_scope_channel(5, t.button.acquisitionValue[2]);
     set_scope_channel(6, ntc_calc(stat.ledTemp));
     console_scope();
-    HAL_Delay(5);
+    HAL_Delay(10);
     printCnt = 0;
     LED_task(); // should be moved to other task
+    stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); 
   }
 }
 
@@ -124,8 +125,8 @@ void boost_reg(void) {
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
   // todoo move into sensor task
-  stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
-  stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
+  // stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
+  // stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
@@ -138,6 +139,10 @@ void boost_reg(void) {
 
   r.WW.duty += (r.Magiekonstante * r.WW.error);     // Simple I regulator for WW current
   r.WW.duty = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
+
+  // todoo
+  // regulator output is voltage, calculate current with polynom of led courve
+  // calculate d with current, set d
 
   if( r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
   if( r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
@@ -154,7 +159,7 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
-  if (chan) r.WW.target = target_tmp;        // 
+  if (chan)       r.WW.target = target_tmp;  // 
   else if (!chan) r.CW.target = target_tmp;  // 
 }
 
@@ -210,9 +215,8 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
 
-  if      (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
-  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[1] > BUTTON_THRESHOLD) t.button.CBSwitch = 1;
-  else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 2;
+  if      (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
+  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
   if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
   else _powButton = 0;
@@ -297,24 +301,6 @@ void UI_task(void) {
 }
 
 void LED_task(void) {
-
-  if (t.button.CBSwitch == 2){
-
-    int16_t _br = stat.vBat-3200;
-    uint8_t _low = 1;
-    uint8_t _lower = 1;
-
-    _br = CLAMP(_br,0.0,1024);    
-    if(stat.vBat < 3100) _low = 0;
-    if(stat.vBat < 3000) _lower = 0;
-
-
-    HAL_GPIO_WritePin(GPIOA, LED_Brightness,_low); // set LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, _lower);       // set LED "Color"
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, _br);           // set LED "Power" to full brightness
-    return;
-  }
-
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"

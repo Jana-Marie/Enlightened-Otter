@@ -18,63 +18,61 @@
 
 // TOUCH
 struct touch_button_t {
-  int16_t acquisitionValue[3];                 // register that holds the acquired button values
-  int16_t acquisitionValueAvg[3];                 // register that holds the acquired button values
-  int16_t offsetValue[3]; // Todo - make some kind of auto calibration = {2075, 2131, 2450}
-  uint8_t CBSwitch;       // color or brightness switch = 0
-  uint8_t state;
-  uint16_t isTouchedTime;
-  uint8_t isReleased;        // power button value = 1
-
+  int16_t acquisitionValue[3];    // register that holds the acquired button values
+  int16_t acquisitionValueAvg[3]; // register that holds the acquired averaged button values
+  int16_t offsetValue[3];         // register that stores the correction values for all buttons
+  uint8_t CBSwitch;               // Stores if color or brightness button was pressed
+  uint8_t state;                  // stores the power state
+  uint16_t isTouchedTime;         // stores the time for how long the power button was pressed
+  uint8_t isReleased;             // stores if power button was released
 };
 
 struct touch_slider_t {
-  int16_t acquisitionValue[3];                 // register that holds the acquired slider values
-  int16_t acquisitionValueAvg[3];                 // register that holds the acquired slider values
-  int16_t offsetValue[3]; // offset values which needs to be subtracted from the acquired values = {1153, 1978, 1962}
-  uint16_t pos;     // current slider position = 0
-  uint8_t isTouched;// 1 if slider is touched = 0
+  int16_t acquisitionValue[3];    // register that holds the acquired slider values
+  int16_t acquisitionValueAvg[3]; // register that holds the acquired averaged slider values
+  int16_t offsetValue[3];         // register that stores the correction values for the slider
+  uint16_t pos;                   // current slider position
+  uint8_t isTouched;              // 1 if slider is touched
 };
 
-struct touch_t {
-  uint8_t IdxBank;
+struct touch_t {                // stores the touch states
+  uint8_t IdxBank;              // iterates throught the banks/IOs
   struct touch_slider_t slider;
   struct touch_button_t button;
 };
 
 // REGULATOR
 struct reg_val_t {
-  float target;  // Coldwhite target current in mA
-  float iavg;
-  float error;
-  float duty;
-  float iout;
+  float target;     // target current in mA
+  float iout;       // LED current current in mA
+  float iavg;       // LED current (averaged) in mA
+  float error;      // error current in mA
+  float duty;       // output duty cycle
 };
 
-struct reg_t {
-  float Magiekonstante;
-  struct reg_val_t WW;
+struct reg_t {          // contains the values for both regulators
+  float Magiekonstante; // stores the KI val
+  struct reg_val_t WW;  
   struct reg_val_t CW;
 };
 
 // STATUS
-
-struct status_t {
-  uint16_t ledTemp;
-  uint16_t vIn;
-  uint16_t iIn;
-  uint16_t vBat;
-  uint16_t iBat;
-  uint16_t batTemp;
+struct status_t {   // status storage struct
+  uint16_t ledTemp; // contains led temperature
+  uint16_t vIn;     // contains input voltage
+  uint16_t iIn;     // contains input current
+  uint16_t vBat;    // contains battery voltage
+  uint16_t iBat;    // contains battery current
+  uint16_t batTemp; // contains battery temperature
 };
 
 // UI
-struct UI_t {
-  int16_t distance;      // delta slider position
-  int16_t distanceOld;
-  float brightness;      // calculated brightness delta
-  float brightnessAvg;      // calculated brightness delta
-  float color;  // a value from 0.0f to 1.0f defining the current color porportions
-  float colorAvg;  // a value from 0.0f to 1.0f defining the current color porportions
-  uint8_t debounce;
+struct UI_t {           // storage for ui task
+  int16_t distance;     // contains current slider position
+  int16_t distanceOld;  // contains the old slider position (after 1 cycle)
+  float brightness;     // calculated target brightness
+  float brightnessAvg;  // calculated target brightness averaged
+  float color;          // a value from 0.0f to 1.0f defining the current color porportions
+  float colorAvg;       // a value from 0.0f to 1.0f defining the current color porportions averaged
+  uint8_t debounce;     // debounce counter
 };

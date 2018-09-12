@@ -67,6 +67,7 @@ float ntc_calc(uint16_t adc_value) {
 	return (p1 - ( (p1 - p2) * (adc_value & 0x007F) ) / 128.0f ) / 2.0f;
 }
 
+
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val) {
 	ch_buf[ch] = val;

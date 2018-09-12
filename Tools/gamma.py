@@ -3,7 +3,11 @@ import math
 
 gamma       = 1.6
 outputRange = 500
+<<<<<<< HEAD
 steps       = 1000
+=======
+steps       = 500
+>>>>>>> 1aa8a630c749142ae5f94533a2d5a8aa1acd1dcb
 
 print("float gammaTable[] = { // generated gamma correction table from Tools/gamma.py gamma value used: %.1f resolution: %.5f " % (gamma,outputRange/steps),end='')
 
@@ -16,4 +20,8 @@ for i in range (0,steps,1):
   print("\t%.2f" % round((math.pow(i / steps, gamma) * steps + 0.5)/steps*outputRange,2),end='')
 
 print(" };")
+<<<<<<< HEAD
 exit()
+=======
+exit()
+>>>>>>> 1aa8a630c749142ae5f94533a2d5a8aa1acd1dcb
