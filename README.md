@@ -1,12 +1,12 @@
-# Enlighted-Otter
+# Enlightened-Otter
 
-Enlighted-Otter is an Open-Source and OSHW work-light for hacker/maker events like the chaos communication congress. It is based upon a STM32F334 with its 
+Enlightened-Otter is an Open-Source and OSHW work-light for hacker/maker events like the chaos communication congress. It is based upon a STM32F334 with its 
 high resolution timer as dual boost 
 converter. The main goal is to provide cableless, high CRI, high brightness, flicker-free illumination with a variable color temperature. This is achieved by using LEDs with high CRI (>93, STW9Q14C) and 
 the boost 
 converter operating at a frequency of up to 850khz. The PCB also features USB-C (power profile 1) to deliver enough power to charge the 18650 type batteries as well as keep up operation of the boost converter.
 
-Enlighted-Otter can be screwed onto an empty bottle of Mate (or similar), therefore serving with a very small footprint.
+Enlightened-Otter can be screwed onto an empty bottle of Mate (or similar), therefore serving with a very small footprint.
 
 ## Specs
 
@@ -42,12 +42,12 @@ or OpenOCD
 
 ## Images
 
-![Battery 1](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_tisch.jpeg)
-![Battery 2](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_werkstatt.jpeg)
+![Battery 1](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_tisch.jpeg)
+![Battery 2](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_werkstatt.jpeg)
 
-![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_1.jpeg)
-![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_2.jpeg)
-![Bottom View](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/Enlighted_Otter_3.jpeg)
+![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/Enlighted_Otter_1.jpeg)
+![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/Enlighted_Otter_2.jpeg)
+![Bottom View](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/Enlighted_Otter_3.jpeg)
 
 ## Videos
 
@@ -55,7 +55,7 @@ Click to play
 
 #### On a Bottle
 
-[![Finished Prototype](https://raw.githubusercontent.com/Jan--Henrik/Enlighted-Otter/master/Images/final_werkstatt.jpeg)](https://twitter.com/JanHenrikH/status/1033489392109797377)
+[![Finished Prototype](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_werkstatt.jpeg)](https://twitter.com/JanHenrikH/status/1033489392109797377)
 
 #### Boost converter operation
 
