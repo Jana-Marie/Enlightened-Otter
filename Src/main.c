@@ -57,11 +57,10 @@ void LED_task(void);
 void boost_reg();
 
 //struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui;
 struct status_t stat;
-uint8_t printCnt = 0;     // debugvalue can be removed later
 
 int main(void)
 {
@@ -106,14 +105,13 @@ int main(void)
   {
     set_scope_channel(0, r.CW.iavg);
     set_scope_channel(1, r.CW.error);
-    set_scope_channel(2, r.CW.duty*1000.0f);
-    set_scope_channel(3, t.button.acquisitionValue[0]);
-    set_scope_channel(4, t.button.acquisitionValue[1]);
-    set_scope_channel(5, t.button.acquisitionValue[2]);
+    set_scope_channel(2, ui.brightness);
+    set_scope_channel(3, t.slider.pos);
+    set_scope_channel(4, ui.distance);
+    set_scope_channel(5, MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]));
     set_scope_channel(6, ntc_calc(stat.ledTemp));
-    console_scope();
     HAL_Delay(10);
-    printCnt = 0;
+    console_scope();
     LED_task(); // should be moved to other task
     stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); 
   }
@@ -125,7 +123,6 @@ void boost_reg(void) {
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
 
   // todoo move into sensor task
-  // stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); // Temperature of Led board
   // stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
@@ -144,8 +141,8 @@ void boost_reg(void) {
   // regulator output is voltage, calculate current with polynom of led courve
   // calculate d with current, set d
 
-  if( r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
-  if( r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
+  if(r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
+  if(r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, r.WW.duty);  // Update WW duty cycle
@@ -258,10 +255,13 @@ void slider_task(void) {
   else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
   else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
-  if (MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]) > SLIDER_THRESHOLD) {
-    t.slider.pos = 0;
-    t.slider.isTouched = 0;
-  } else t.slider.isTouched = 1;
+  t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]);
+  
+  if (t.slider.isTouchedValAvg-t.slider.isTouchedVal > 200)t.slider.isTouched = 1;
+  else if(t.slider.isTouchedValAvg-t.slider.isTouchedVal < -600)t.slider.isTouched = 0;
+  else if(t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0;
+
+  t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg,t.slider.isTouchedVal,TOUCH_THRESHOLD_FILTER);
 
   UI_task();
 }
@@ -271,9 +271,11 @@ void UI_task(void) {
 
   if (t.button.state) {       // if lamp is turned "soft" on
     if (t.slider.isTouched) { // check if slider is touched
-      if (ui.debounce >= 5) { // "debounce" slider
+      if (ui.debounce >= 15) { // "debounce" slider
 
-        ui.distance += t.slider.pos - ui.distanceOld;         // calculate t.slider.pos delta
+        if (SLIDER_BEHAVIOR == REL) ui.distance += t.slider.pos - ui.distanceOld;         // calculate t.slider.pos delta
+        else if (SLIDER_BEHAVIOR == AB) ui.distance = t.slider.pos;    
+    
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
 
         if (t.button.CBSwitch == 0) ui.brightness = ui.distance;          // if color/brightness switch is 0 then change brightness
