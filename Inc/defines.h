@@ -36,7 +36,6 @@
 #define CURRENT_AVERAGING_FILTER 	0.9985f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
-#define TOUCH_FILTER				0.0f
 #define TOUCH_THRESHOLD_FILTER		0.55f
 
 #define POWER_LED_BRIGHTNESS 64		// brightness of the power LED in off state (0-1024)

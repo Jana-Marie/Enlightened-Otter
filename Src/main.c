@@ -165,8 +165,8 @@ void TSC_task(void) {
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
 
-    t.slider.acquisitionValueAvg[t.IdxBank] = FILT(t.slider.acquisitionValueAvg[t.IdxBank],HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX),TOUCH_FILTER);
-    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValueAvg[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
+    t.slider.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
 
     slider_task();
 
@@ -176,8 +176,8 @@ void TSC_task(void) {
     HAL_TSC_Start_IT(&htscb);
   } else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
   {
-    t.button.acquisitionValueAvg[t.IdxBank] = FILT(t.button.acquisitionValueAvg[t.IdxBank],HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX),TOUCH_FILTER);
-    t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValueAvg[t.IdxBank] - t.button.offsetValue[t.IdxBank];
+    t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
 
     button_task();
 

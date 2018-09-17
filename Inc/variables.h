@@ -19,7 +19,6 @@
 // TOUCH
 struct touch_button_t {
   int16_t acquisitionValue[3];    // register that holds the acquired button values
-  int16_t acquisitionValueAvg[3]; // register that holds the acquired averaged button values
   int16_t offsetValue[3];         // register that stores the correction values for all buttons
   uint8_t CBSwitch;               // Stores if color or brightness button was pressed
   uint8_t state;                  // stores the power state
@@ -29,7 +28,6 @@ struct touch_button_t {
 
 struct touch_slider_t {
   int16_t acquisitionValue[3];    // register that holds the acquired slider values
-  int16_t acquisitionValueAvg[3]; // register that holds the acquired averaged slider values
   int16_t offsetValue[3];         // register that stores the correction values for the slider
   int16_t pos;                   // current slider position
   int16_t isTouchedValAvg;                   // current slider position
