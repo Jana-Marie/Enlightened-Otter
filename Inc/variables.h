@@ -31,7 +31,9 @@ struct touch_slider_t {
   int16_t acquisitionValue[3];    // register that holds the acquired slider values
   int16_t acquisitionValueAvg[3]; // register that holds the acquired averaged slider values
   int16_t offsetValue[3];         // register that stores the correction values for the slider
-  uint16_t pos;                   // current slider position
+  int16_t pos;                   // current slider position
+  int16_t isTouchedValAvg;                   // current slider position
+  int16_t isTouchedVal;                   // current slider position
   uint8_t isTouched;              // 1 if slider is touched
 };
 

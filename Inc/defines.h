@@ -36,15 +36,18 @@
 #define CURRENT_AVERAGING_FILTER 	0.9985f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
-#define TOUCH_FILTER				0.8f
+#define TOUCH_FILTER				0.0f
+#define TOUCH_THRESHOLD_FILTER		0.55f
 
 #define POWER_LED_BRIGHTNESS 64		// brightness of the power LED in off state (0-1024)
 
 #define TURNOFF_TIME 		130		// sets the time to count to before turning off 
 #define BUTTON_THRESHOLD 	-350	// sets the threshold at which a button press has to be triggered
-#define SLIDER_THRESHOLD 	-350	// sets the threshold at which the slider reports a value
+#define SLIDER_THRESHOLD 	-400	// sets the threshold at which the slider reports a value
 
 #define CURRENT_CUTOFF		1.0f 	// sets the threshold at which the boost will be turned off
+
+#define SLIDER_BEHAVIOR		REL 	// 0 = AB = Absolute, 1 = REL = relative
 
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
@@ -114,6 +117,9 @@
 
 #define CHAN_WW 0
 #define CHAN_CW 1
+
+#define AB 0
+#define REL 1
 
 // ############################################################# //
 // usefull functions
