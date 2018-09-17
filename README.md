@@ -35,10 +35,6 @@ and flash it via Ozone or st-utils
 
 `st-flash --reset write build/*.bin 0x8000000`
 
-or OpenOCD
-
-`openocd -f interface/jlink.cfg -f board/stm32f334discovery.cfg -c "init reset init program otter.bin reset run exit 0x08000000" -c shutdown` (does not work)
-
 
 ## Images
 
@@ -103,6 +99,7 @@ HW regulates after boot while main loop is basically empty \o/
 
 - [x] rewrite gamma correction
 	- [x] use old one, but interpolate between points
+		- didnt work properly, will do later
 	- [ ] Test it
 - [ ] visualize battery voltage
 - [ ] Optimize code
@@ -111,16 +108,17 @@ HW regulates after boot while main loop is basically empty \o/
 - [ ] Overtemp protection
 - [ ] "Mobile handling"
 	- [x] Touch is not that responsive
-	- [ ] Added filters to touch input
+	- [x] Added filters to touch input
 	- [ ] Battery low alarm/turnoff
 - [ ] Test I2C - broken?
 	- writing works, reading is buggy, switch to dma
-- [ ] find MPP
 - [ ] Make it more efficient
 - [ ] Find more to do's
 
 ### Done:
 
+- [x] find MPP
+	- is at ~500khz
 - [x] Fix regulator above 180mA
 	- is flickering quite alot above 180mA
 	- [x] Rewrite regulation, seems to be flickering
