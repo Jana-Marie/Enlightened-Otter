@@ -56,6 +56,7 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
+
 //struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
@@ -103,10 +104,10 @@ int main(void)
 
   while (1)
   {
-    set_scope_channel(0, r.CW.iavg);
-    set_scope_channel(1, r.CW.error);
-    set_scope_channel(2, ui.brightness);
-    set_scope_channel(3, t.slider.pos);
+    set_scope_channel(0, r.CW.target);
+    set_scope_channel(1, r.CW.targetNoGamma);
+    set_scope_channel(2, r.CW.error);
+    set_scope_channel(3, ui.brightness);
     set_scope_channel(4, ui.distance);
     set_scope_channel(5, MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]));
     set_scope_channel(6, ntc_calc(stat.ledTemp));
@@ -156,8 +157,14 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
-  if (chan)       r.WW.target = target_tmp;  //
-  else if (!chan) r.CW.target = target_tmp;  //
+  if (chan){
+    r.WW.target = gammaTable[(int)target_tmp];  //
+    r.WW.targetNoGamma = target_tmp;  //
+  }
+  else if (!chan){
+    r.CW.target = gammaTable[(int)target_tmp];  //
+    r.CW.targetNoGamma = target_tmp;  //
+  }
 }
 
 void TSC_task(void) {
