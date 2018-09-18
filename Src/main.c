@@ -104,14 +104,14 @@ int main(void)
 
   while (1)
   {
-    set_scope_channel(0, r.CW.target);
-    set_scope_channel(1, r.CW.targetNoGamma);
+    //set_scope_channel(0, r.CW.target);
+    //set_scope_channel(1, r.CW.targetNoGamma);
     set_scope_channel(2, r.CW.error);
-    set_scope_channel(3, ui.brightness);
-    set_scope_channel(4, ui.distance);
-    set_scope_channel(5, MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]));
-    set_scope_channel(6, ntc_calc(stat.ledTemp));
-    HAL_Delay(10);
+    //set_scope_channel(3, ui.brightness);
+    //set_scope_channel(4, ui.distance);
+    //set_scope_channel(5, MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]));
+    //set_scope_channel(6, ntc_calc(stat.ledTemp));
+    HAL_Delay(5);
     console_scope();
     LED_task(); // should be moved to other task
     stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
@@ -158,11 +158,11 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
   if (chan){
-    r.WW.target = gammaTable[(int)target_tmp];  //
+    r.WW.target = gammaTable[(int)(target_tmp*2.0f)];  //
     r.WW.targetNoGamma = target_tmp;  //
   }
   else if (!chan){
-    r.CW.target = gammaTable[(int)target_tmp];  //
+    r.CW.target = gammaTable[(int)(target_tmp*2.0f)];  //
     r.CW.targetNoGamma = target_tmp;  //
   }
 }
