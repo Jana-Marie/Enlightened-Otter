@@ -3,7 +3,7 @@ import math
 
 gamma       = 2.4
 outputRange = 500
-steps	    = 500
+steps	    = 1000
 
 print("float gammaTable[] = { // generated gamma correction table from Tools/gamma.py gamma value used: %.1f resolution: %.5f " % (gamma,outputRange/steps),end='')
 
