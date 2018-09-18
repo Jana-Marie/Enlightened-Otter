@@ -113,7 +113,7 @@ int main(void)
     HAL_Delay(10);
     console_scope();
     LED_task(); // should be moved to other task
-    stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1); 
+    stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
   }
 }
 
@@ -141,8 +141,8 @@ void boost_reg(void) {
   // regulator output is voltage, calculate current with polynom of led courve
   // calculate d with current, set d
 
-  if(r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
-  if(r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
+  if (r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
+  if (r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, r.WW.duty);  // Update WW duty cycle
@@ -156,8 +156,8 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
-  if (chan)       r.WW.target = target_tmp;  // 
-  else if (!chan) r.CW.target = target_tmp;  // 
+  if (chan)       r.WW.target = target_tmp;  //
+  else if (!chan) r.CW.target = target_tmp;  //
 }
 
 void TSC_task(void) {
@@ -240,9 +240,9 @@ void button_task(void) {
 }
 
 void slider_task(void) {
-  if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;
+  if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;  // outer channel has only half the strenght
 
-  t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);
+  t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);         // clamp values for position calculation
 
   int16_t x = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[1]) / 2) - t.slider.acquisitionValue[2];
   int16_t y = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[1];
@@ -255,13 +255,15 @@ void slider_task(void) {
   else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
   else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
-  t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]);
-  
-  if (t.slider.isTouchedValAvg-t.slider.isTouchedVal > 200)t.slider.isTouched = 1;
-  else if(t.slider.isTouchedValAvg-t.slider.isTouchedVal < -600)t.slider.isTouched = 0;
-  else if(t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0;
+  t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]); // Check intensity of touch
 
-  t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg,t.slider.isTouchedVal,TOUCH_THRESHOLD_FILTER);
+  int16_t _isTouchedDelta = t.slider.isTouchedValAvg - t.slider.isTouchedVal; // caltulate delta from current intesity to averaged intesity
+
+  if      (_isTouchedDelta > 200)           t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
+  else if (_isTouchedDelta < -600)          t.slider.isTouched = 0; // if delta is lower then x, touch up was detected
+  else if (t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0; // std value, if no touch is present
+
+  t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg, t.slider.isTouchedVal, TOUCH_THRESHOLD_FILTER); // average/Lowpass filter the touch intesity
 
   UI_task();
 }
@@ -274,8 +276,8 @@ void UI_task(void) {
       if (ui.debounce >= 15) { // "debounce" slider
 
         if (SLIDER_BEHAVIOR == REL) ui.distance += t.slider.pos - ui.distanceOld;         // calculate t.slider.pos delta
-        else if (SLIDER_BEHAVIOR == AB) ui.distance = t.slider.pos;    
-    
+        else if (SLIDER_BEHAVIOR == AB) ui.distance = t.slider.pos;
+
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
 
         if (t.button.CBSwitch == 0) ui.brightness = ui.distance;          // if color/brightness switch is 0 then change brightness
