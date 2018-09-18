@@ -334,7 +334,7 @@ void HRTIM1_Init(void)
   // settings for the injected ADC
   compare_config.AutoDelayedMode    = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
-  compare_config.CompareValue       = HRTIM_PERIOD / 10 * 8.5;
+  compare_config.CompareValue       = HRTIM_PERIOD / 100.0f * 99.0f;
   HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_2, &compare_config);
 
   adc_trigger_config.Trigger      = HRTIM_ADCTRIGGEREVENT24_TIMERC_CMP2;
