@@ -97,10 +97,6 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
-- [x] rewrite gamma correction
-	- [x] use old one, but interpolate between points
-		- didnt work properly, will do later
-	- [ ] Test it
 - [ ] visualize battery voltage
 - [ ] Optimize code
 	- [x] make it less ugly
@@ -113,10 +109,15 @@ HW regulates after boot while main loop is basically empty \o/
 - [ ] Test I2C - broken?
 	- writing works, reading is buggy, switch to dma
 - [ ] Make it more efficient
+	- did it a little bit
 - [ ] Find more to do's
 
 ### Done:
 
+- [x] rewrite gamma correction
+	- [x] use old one, but interpolate between points
+		- didnt work properly, will do later
+	- [x] Test it
 - [x] find MPP
 	- is at ~500khz
 - [x] Fix regulator above 180mA
