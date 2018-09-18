@@ -22,7 +22,14 @@
 	- there are too many different capacitor values
 	- [ ] Order MIC5504-3.0
 
-- [ ] HW 1.2
+- [ ] HW 1.2/2.0
+	- [ ] move parts to the bottom side
+	- [ ] add esd protection resistors
+		- touch
+		- ntc
+	- [ ] fix usb plug
+	- [ ] fix touch
+		- round planes, remove ground
 
 
 - [x] HW 1.1
