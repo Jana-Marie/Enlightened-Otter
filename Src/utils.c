@@ -18,6 +18,7 @@
 
 #include "utils.h"
 #include "ntc.h"
+#include "gamma.h"
 
 void enable_OTG(void) {
 	configure_RT(CHG_CTRL16, DISABLE_UUG);
@@ -35,9 +36,9 @@ uint16_t read_RT_ADC(void) {
 	uint8_t _tmp_data_L = ADC_DATA_L;
 
 	HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_H, sizeof(_tmp_data_H), 500);
-	HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_H, 1, 500);
+	HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_H, 1, 50);
 	HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, &_tmp_data_L, sizeof(_tmp_data_L), 500);
-	HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_L, 1, 500);
+	HAL_I2C_Master_Receive(&hi2c1, RT_ADDRESS, &_ADC_L, 1, 50);
 
 	uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
 	return _tmp_data;
@@ -65,6 +66,15 @@ float ntc_calc(uint16_t adc_value) {
 	p2 = NTC_table[(adc_value >> 7) + 1];
 
 	return (p1 - ( (p1 - p2) * (adc_value & 0x007F) ) / 128.0f ) / 2.0f;
+}
+
+float gamma_calc(float target){
+	float p1,p2;
+	
+	p1 = gammaTable[(int)target];
+	p2 = gammaTable[(int)target+1];
+
+	return p1 + ((p1-p2)*((int)target-target));
 }
 
 

@@ -22,7 +22,7 @@
 
 #define HRTIM_FREQUENCY_KHZ 500.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
  									// 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
-#define REG_CNT 			254	 	// sets the number of HRTIM passes to the next controller pass
+#define REG_CNT 			199	 	// sets the number of HRTIM passes to the next controller pass
 #define KI 					0.0005f // sets the KI constant for the current regulator - do not change unless you know what you're doing
 
 #define MIN_DUTY 	0.0002f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
@@ -32,8 +32,8 @@
 #define OVERCURRENT 0.8f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
 #define CURRENT_AVERAGING_FILTER 	0.999f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
-#define COLOR_FADING_FILTER 		0.96f	// koeffizient of color cross fading filter
-#define BRIGHTNESS_FADING_FILTER 	0.96f	// koeffizient of brightness fading filter
+#define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
+#define BRIGHTNESS_FADING_FILTER 	0.95f	// koeffizient of brightness fading filter
 #define TOUCH_THRESHOLD_FILTER		0.55f
 
 #define POWER_LED_BRIGHTNESS 64		// brightness of the power LED in off state (0-1024)
@@ -50,7 +50,7 @@
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
 
-#define TOUCH_SCALE ((800.0f/200.0f)*22.2996515f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
+#define TOUCH_SCALE ((700.0f/200.0f)*22.2996515f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875)
 
 #define VDDA 				3.0f 	// Vref = VDDA = Analog power supply
 #define CURRENT_PRESCALER	1.0f 	// set the divisor for the current input

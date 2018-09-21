@@ -22,7 +22,7 @@
 #include "stm32f3xx_hal.h"
 #include "init_functions.h"
 #include "defines.h"
-#include "gamma.h"
+//#include "gamma.h"
 #include "variables.h"
 #include "utils.h"
 
@@ -104,17 +104,19 @@ int main(void)
 
   while (1)
   {
-    //set_scope_channel(0, r.CW.target);
-    //set_scope_channel(1, r.CW.targetNoGamma);
-    set_scope_channel(2, r.CW.error);
-    //set_scope_channel(3, ui.brightness);
-    //set_scope_channel(4, ui.distance);
-    //set_scope_channel(5, MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]));
-    //set_scope_channel(6, ntc_calc(stat.ledTemp));
-    HAL_Delay(5);
+    set_scope_channel(0, 0);
+    set_scope_channel(1, 0);
+    set_scope_channel(2, 0);
+    set_scope_channel(3, 0);
+    set_scope_channel(4, 0);
+    //set_scope_channel(5, read_RT_ADC());
+    set_scope_channel(6, ntc_calc(stat.ledTemp));
+    HAL_Delay(25);
     console_scope();
     LED_task(); // should be moved to other task
     stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+    //configure_RT(CHG_ADC,ADC_VBUS5);
+    //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
   }
 }
 
@@ -122,9 +124,6 @@ void boost_reg(void) {
   // Main current regulator
   r.CW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2) / 4096.0f * 3.0f * 1000.0f;  // ISensCW - mA
   r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3) / 4096.0f * 3.0f * 1000.0f;  // ISensWW - mA
-
-  // todoo move into sensor task
-  // stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
 
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
@@ -158,11 +157,13 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
   if (chan){
-    r.WW.target = gammaTable[(int)(target_tmp*2.0f)];  //
+    //r.WW.target = gammaTable[(int)(target_tmp)];  //
+    r.WW.target = gamma_calc(target_tmp);  //
     r.WW.targetNoGamma = target_tmp;  //
   }
   else if (!chan){
-    r.CW.target = gammaTable[(int)(target_tmp*2.0f)];  //
+    //r.CW.target = gammaTable[(int)(target_tmp)];  //
+    r.CW.target = gamma_calc(target_tmp);  //
     r.CW.targetNoGamma = target_tmp;  //
   }
 }

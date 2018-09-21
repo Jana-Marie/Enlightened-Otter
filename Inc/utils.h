@@ -20,6 +20,7 @@
 #include "defines.h"
 #include <string.h>
 
+
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart1;
 
@@ -31,7 +32,7 @@ void set_pwm(uint8_t timer, float duty);
 void set_brightness(uint8_t chan, float brightness, float color, float max_value);
 uint16_t read_RT_ADC(void);
 float ntc_calc(uint16_t adc_value);
-
+float gamma_calc(float target);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope();
