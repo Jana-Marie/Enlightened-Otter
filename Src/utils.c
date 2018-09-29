@@ -51,7 +51,7 @@ uint16_t read_RT_ADC(void) {
 	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &_ADC_L, 1);
 	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 
-	uint16_t _tmp_data = ((_ADC_L << 8) | (_ADC_H & 0xFF));
+	uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
 	return _tmp_data;
 }
 
