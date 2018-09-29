@@ -106,16 +106,17 @@ HW regulates after boot while main loop is basically empty \o/
 	- [x] Touch is not that responsive
 	- [x] Added filters to touch input
 	- [ ] Battery low alarm/turnoff
-- [ ] Test I2C - broken?
-	- writing works, reading is buggy, switch to dma
-	- [x] implemented DMA
-	- [ ] Receiving data does not work properly, data is present but not written into the variable
 - [ ] Make it more efficient
 	- did it a little bit
 - [ ] Find more to do's
 
 ### Done:
 
+- [ ] Test I2C - broken?
+	- writing works, reading is buggy, switch to dma
+	- [x] implemented DMA
+	- [x] Receiving data does not work properly, data is present but not written into the variable
+		- switched msb and lsb -.-
 - [x] rewrite gamma correction
 	- [x] use old one, but interpolate between points
 		- didnt work properly, will do later
