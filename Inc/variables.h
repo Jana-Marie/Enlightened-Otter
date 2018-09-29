@@ -63,8 +63,13 @@ struct status_t {   // status storage struct
   uint16_t vIn;     // contains input voltage
   uint16_t iIn;     // contains input current
   uint16_t vBat;    // contains battery voltage
+  uint16_t vBatRt;  // contains battery voltage measured by ritchtek
   uint16_t iBat;    // contains battery current
+  uint16_t pIn;
+  uint16_t pBat;
+  uint16_t pSum;
   uint16_t batTemp; // contains battery temperature
+  uint8_t  state;   // defines state of state maschine
 };
 
 // UI

@@ -395,7 +395,7 @@ void I2C1_Init(void)
 
   HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE);
 
-  HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 2);
+  HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0);
 
 }
 

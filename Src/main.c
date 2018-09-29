@@ -104,20 +104,54 @@ int main(void)
 
   while (1)
   {
-    set_scope_channel(0, 0);
-    set_scope_channel(1, 0);
-    set_scope_channel(2, 0);
-    set_scope_channel(3, 0);
-    //set_scope_channel(4, stat.vBat);
-    set_scope_channel(5, read_RT_ADC());
+    set_scope_channel(0, stat.vIn);
+    set_scope_channel(1, stat.iIn);
+    set_scope_channel(2, stat.pIn);
+    set_scope_channel(3, stat.vBatRt);
+    set_scope_channel(4, stat.iBat);
+    set_scope_channel(5, stat.batTemp);
     set_scope_channel(6, ntc_calc(stat.ledTemp));
     HAL_Delay(20);
     console_scope();
     LED_task(); // should be moved to other task
     stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-    configure_RT(CHG_ADC,ADC_VBUS2);
-    stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
+    //configure_RT(CHG_ADC,ADC_IBUS);
+    //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
     HAL_Delay(5);
+
+    switch (stat.state)
+    {
+    case 0:
+      stat.vIn = read_RT_ADC() * 10.0f;
+      configure_RT(CHG_ADC,ADC_IBUS);
+      stat.state = 1;
+      break;
+    case 1:
+      stat.iIn = read_RT_ADC() * 50.0f;
+      configure_RT(CHG_ADC,ADC_VBAT);
+      stat.state = 2;
+      break;
+    case 2:
+      stat.vBatRt = read_RT_ADC() * 5.0f;
+      configure_RT(CHG_ADC,ADC_IBAT);
+      stat.state = 3;
+      break;
+    case 3:
+      stat.iBat = read_RT_ADC() * 50.0f;
+      configure_RT(CHG_ADC,ADC_NTC);
+      stat.state = 4;
+      break;
+    case 4:
+      stat.batTemp = read_RT_ADC();
+      configure_RT(CHG_ADC,ADC_VBUS2);
+      stat.state = 0;
+      break;
+    default:
+      break;
+    }
+    stat.pIn = stat.vIn * stat.iIn / 1000.0f;
+    stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
+    stat.pSum = stat.pIn + stat.pBat;
   }
 }
 

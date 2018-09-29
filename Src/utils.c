@@ -32,24 +32,18 @@ void disable_OTG(void) {
 
 uint16_t read_RT_ADC(void) {
 	uint8_t _ADC_H, _ADC_L;
-	//uint8_t _ADC[2];
 	uint8_t _tmp_data_H = ADC_DATA_H;
 	uint8_t _tmp_data_L = ADC_DATA_L;
 
-	//HAL_I2C_Mem_Read_DMA(&hi2c1,RT_ADDRESS,ADC_DATA_L,1,_ADC,2);
-	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
-
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 	HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, &_tmp_data_H, 1);
-	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
-
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &_ADC_H, 1);
-	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
-
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 	HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, &_tmp_data_L, 1);
-	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
-
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &_ADC_L, 1);
-	  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 
 	uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
 	return _tmp_data;
