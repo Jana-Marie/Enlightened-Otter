@@ -108,6 +108,8 @@ HW regulates after boot while main loop is basically empty \o/
 	- [ ] Battery low alarm/turnoff
 - [ ] Test I2C - broken?
 	- writing works, reading is buggy, switch to dma
+	- [x] implemented DMA
+	- [ ] Receiving data does not work properly, data is present but not written into the variable
 - [ ] Make it more efficient
 	- did it a little bit
 - [ ] Find more to do's
