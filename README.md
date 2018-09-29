@@ -97,6 +97,7 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
+- [ ] RT cannot be turned off or cannot charge batteries - investigate
 - [ ] visualize battery voltage
 - [ ] Optimize code
 	- [x] make it less ugly
