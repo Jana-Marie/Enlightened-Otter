@@ -108,15 +108,16 @@ int main(void)
     set_scope_channel(1, 0);
     set_scope_channel(2, 0);
     set_scope_channel(3, 0);
-    set_scope_channel(4, 0);
-    //set_scope_channel(5, read_RT_ADC());
+    //set_scope_channel(4, stat.vBat);
+    set_scope_channel(5, read_RT_ADC());
     set_scope_channel(6, ntc_calc(stat.ledTemp));
-    HAL_Delay(25);
+    HAL_Delay(20);
     console_scope();
     LED_task(); // should be moved to other task
     stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-    //configure_RT(CHG_ADC,ADC_VBUS5);
-    //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
+    configure_RT(CHG_ADC,ADC_VBUS2);
+    stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f; // Battery voltage
+    HAL_Delay(5);
   }
 }
 

@@ -543,5 +543,7 @@ void RT_Init(void) {
 
 void configure_RT(uint8_t _register, uint8_t _mask) {
   uint8_t _tmp_data[2] = {_register, _mask};
-  HAL_I2C_Master_Transmit(&hi2c1, RT_ADDRESS, _tmp_data, sizeof(_tmp_data), 500);
+  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+  HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, _tmp_data, 2);
+  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
 }
