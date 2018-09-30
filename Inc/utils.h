@@ -33,9 +33,10 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 uint16_t read_RT_ADC(void);
 float ntc_calc(uint16_t adc_value);
 float gamma_calc(float target);
+uint8_t read_RT_status(uint8_t _mask);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
-void console_scope();
+void console_scope(void);
 uint8_t uart_buf[(7 * SCOPE_CHANNELS) + 2];
 volatile int16_t ch_buf[2 * SCOPE_CHANNELS];
 #endif

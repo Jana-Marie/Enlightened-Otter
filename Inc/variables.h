@@ -69,7 +69,8 @@ struct status_t {   // status storage struct
   uint16_t pBat;
   uint16_t pSum;
   uint16_t batTemp; // contains battery temperature
-  uint8_t  state;   // defines state of state maschine
+  int8_t  state;   // defines state of state maschine
+  uint8_t errCnt;
 };
 
 // UI
