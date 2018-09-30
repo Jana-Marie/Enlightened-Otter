@@ -31,24 +31,45 @@ void disable_OTG(void) {
 }
 
 uint16_t read_RT_ADC(void) {
+	uint16_t _cnt = 0;
 	uint8_t _ADC_H, _ADC_L;
 	uint8_t _tmp_data_H = ADC_DATA_H;
 	uint8_t _tmp_data_L = ADC_DATA_L;
 
-	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 	HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, &_tmp_data_H, 1);
-	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	_cnt = 0;
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &_ADC_H, 1);
-	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	_cnt = 0;
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 	HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, &_tmp_data_L, 1);
-	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	_cnt = 0;
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &_ADC_L, 1);
-	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	_cnt = 0;
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 
 	uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
 	return _tmp_data;
 }
 
+/*
+uint8_t read_RT_reg(uint8_t _register, uint8_t _mask){
+	uint8_t ret;
+	configure_RT(_register,_mask);
+
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &ret, 1);
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+
+	return ret;
+}
+
+uint8_t check_ADC(){
+	read_RT_reg();
+}
+*/
 void set_pwm(uint8_t timer, float duty) {
 
 	/* Clamp duty cycle values */

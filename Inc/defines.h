@@ -85,6 +85,9 @@
 #define DISABLE_JEITA 	0x00	// Disable JEITA charger profile, idk maybe we dont want this
 #define ENABLE_JEITA 	0x10	// Enable it again
 
+#define CHG_IRQ3 		0x55
+#define ADC_READY_MASK	0x01
+
 #define CHG_STAT 		0x42	// Contains all the status bits
 // [7:6] 00 ready; 01 charge in progress; 10 charge done; 11 fault
 // 5 	 0 precharge; 1 fastcharge

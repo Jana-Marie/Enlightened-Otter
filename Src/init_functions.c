@@ -383,7 +383,7 @@ void I2C1_Init(void)
   hi2c1.Instance = I2C1;
 
   // I2C Master config
-  hi2c1.Init.Timing           = 0x2000090E;
+  hi2c1.Init.Timing           = 0xF000F3FF;//0xF000F3FF
   hi2c1.Init.OwnAddress1      = 0;
   hi2c1.Init.AddressingMode   = I2C_ADDRESSINGMODE_7BIT;
   hi2c1.Init.DualAddressMode  = I2C_DUALADDRESS_DISABLE;
@@ -395,7 +395,8 @@ void I2C1_Init(void)
 
   HAL_I2CEx_ConfigAnalogFilter(&hi2c1, I2C_ANALOGFILTER_ENABLE);
 
-  HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 0);
+  HAL_I2CEx_ConfigDigitalFilter(&hi2c1, 15);
+  HAL_I2CEx_EnableFastModePlus(I2C_FASTMODEPLUS_I2C1);
 
 }
 
@@ -542,8 +543,10 @@ void RT_Init(void) {
 }
 
 void configure_RT(uint8_t _register, uint8_t _mask) {
+  uint16_t _cnt = 0;
   uint8_t _tmp_data[2] = {_register, _mask};
-  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
   HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, _tmp_data, 2);
-  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+  _cnt = 0;
+  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 }

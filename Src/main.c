@@ -104,21 +104,21 @@ int main(void)
 
   while (1)
   {
+    
     set_scope_channel(0, stat.vIn);
     set_scope_channel(1, stat.iIn);
     set_scope_channel(2, stat.pIn);
     set_scope_channel(3, stat.vBatRt);
     set_scope_channel(4, stat.iBat);
-    set_scope_channel(5, stat.batTemp);
-    set_scope_channel(6, ntc_calc(stat.ledTemp));
-    HAL_Delay(20);
+    set_scope_channel(5, stat.pSum);    
+    set_scope_channel(6, HAL_I2C_GetState(&hi2c1));
+    HAL_Delay(300);
     console_scope();
-    LED_task(); // should be moved to other task
+    LED_task();
     stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
     //configure_RT(CHG_ADC,ADC_IBUS);
     //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
-    HAL_Delay(5);
-
+    
     switch (stat.state)
     {
     case 0:
@@ -151,7 +151,11 @@ int main(void)
     }
     stat.pIn = stat.vIn * stat.iIn / 1000.0f;
     stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
-    stat.pSum = stat.pIn + stat.pBat;
+    stat.pSum = stat.pIn - stat.pBat;
+
+    if (stat.vIn == 0 && stat.vBatRt == 0) { // sometimes I2C still crashes, this will restart it
+      I2C1_Init();
+    }
   }
 }
 
