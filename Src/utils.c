@@ -54,22 +54,22 @@ uint16_t read_RT_ADC(void) {
 	return _tmp_data;
 }
 
-/*
-uint8_t read_RT_reg(uint8_t _register, uint8_t _mask){
+uint8_t read_RT_status(uint8_t _mask){
 	uint8_t ret;
-	configure_RT(_register,_mask);
+	uint8_t _cnt = 0;
+	uint8_t _register = CHG_STAT;
 
-	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
+	HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, &_register, 1);
+	_cnt = 0;
+    while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &ret, 1);
-	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY);
-
+	_cnt = 0;
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
+	ret = ret & _mask;
 	return ret;
 }
 
-uint8_t check_ADC(){
-	read_RT_reg();
-}
-*/
 void set_pwm(uint8_t timer, float duty) {
 
 	/* Clamp duty cycle values */

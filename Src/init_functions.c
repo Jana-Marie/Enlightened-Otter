@@ -540,6 +540,7 @@ void RT_Init(void) {
   // Configure the RT9466, set currents to maximum
   configure_RT(CHG_CTRL2, IINLIM_MASK);
   configure_RT(CHG_CTRL3, SET_ILIM_3A);
+  configure_RT(CHG_ADC,ADC_VBUS2);
 }
 
 void configure_RT(uint8_t _register, uint8_t _mask) {
