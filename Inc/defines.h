@@ -89,6 +89,10 @@
 #define ADC_READY_MASK	0x01
 
 #define CHG_STAT 		0x42	// Contains all the status bits
+#define FASTCHARGE_MASK 0x20
+#define CHG_MASK		0x40
+#define CHG_DONE_MASK	0x80
+#define ADC_DONE_MASK	0x01	
 // [7:6] 00 ready; 01 charge in progress; 10 charge done; 11 fault
 // 5 	 0 precharge; 1 fastcharge
 // 4	 0 no trickle charge; 1 trickle charge
