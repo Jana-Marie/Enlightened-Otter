@@ -106,56 +106,63 @@ int main(void)
   {
     
     set_scope_channel(0, stat.vIn);
-    set_scope_channel(1, stat.iIn);
-    set_scope_channel(2, stat.pIn);
     set_scope_channel(3, stat.vBatRt);
-    set_scope_channel(4, stat.iBat);
+    set_scope_channel(4, stat.errCnt);
     set_scope_channel(5, stat.pSum);    
     set_scope_channel(6, HAL_I2C_GetState(&hi2c1));
-    HAL_Delay(300);
     console_scope();
     LED_task();
+    HAL_Delay(25);
     stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-    //configure_RT(CHG_ADC,ADC_IBUS);
     //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
     
-    switch (stat.state)
-    {
-    case 0:
-      stat.vIn = read_RT_ADC() * 10.0f;
-      configure_RT(CHG_ADC,ADC_IBUS);
-      stat.state = 1;
-      break;
-    case 1:
-      stat.iIn = read_RT_ADC() * 50.0f;
-      configure_RT(CHG_ADC,ADC_VBAT);
-      stat.state = 2;
-      break;
-    case 2:
-      stat.vBatRt = read_RT_ADC() * 5.0f;
-      configure_RT(CHG_ADC,ADC_IBAT);
-      stat.state = 3;
-      break;
-    case 3:
-      stat.iBat = read_RT_ADC() * 50.0f;
-      configure_RT(CHG_ADC,ADC_NTC);
-      stat.state = 4;
-      break;
-    case 4:
-      stat.batTemp = read_RT_ADC();
-      configure_RT(CHG_ADC,ADC_VBUS2);
-      stat.state = 0;
-      break;
-    default:
-      break;
-    }
+    if(read_RT_status(ADC_DONE_MASK) != 0){
+      switch (stat.state)
+      {
+      case 0:
+        stat.vIn = read_RT_ADC() * 10.0f;
+        configure_RT(CHG_ADC,ADC_IBUS);
+        stat.state = 1;
+        break;
+      case 1:
+        stat.iIn = read_RT_ADC() * 50.0f;
+        configure_RT(CHG_ADC,ADC_VBAT);
+        stat.state = 2;
+        break;
+      case 2:
+        stat.vBatRt = read_RT_ADC() * 5.0f;
+        configure_RT(CHG_ADC,ADC_IBAT);
+        stat.state = 3;
+        break;
+      case 3:
+        stat.iBat = read_RT_ADC() * 50.0f;
+        configure_RT(CHG_ADC,ADC_NTC);
+        stat.state = 4;
+        break;
+      case 4:
+        stat.batTemp = read_RT_ADC();
+        configure_RT(CHG_ADC,ADC_VBUS2);
+        stat.state = 0;
+        break;
+      default:
+        break;
+      }
+      stat.errCnt = 0;
+    } else stat.errCnt++;
+
+    if(stat.state == -1) configure_RT(CHG_CTRL2,TURNOFF_MASK);
+
+
     stat.pIn = stat.vIn * stat.iIn / 1000.0f;
     stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
     stat.pSum = stat.pIn - stat.pBat;
 
-    if (stat.vIn == 0 && stat.vBatRt == 0) { // sometimes I2C still crashes, this will restart it
+    if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
+      stat.errCnt = 0;
       I2C1_Init();
     }
+
+    if(stat.vBatRt > 2500 && stat.vBatRt < 3000) stat.state = -1;
   }
 }
 
@@ -268,7 +275,7 @@ void button_task(void) {
   // "hard" Off state maschine
   if (_powButton) {           // check if power button is pressed
     t.button.isTouchedTime++; // increase counter if so
-    if (t.button.isTouchedTime > TURNOFF_TIME) configure_RT(CHG_CTRL2, TURNOFF_MASK); // when the counter target is reached, turn off via richtek "shipping" mode
+    if (t.button.isTouchedTime > TURNOFF_TIME) stat.state = -1;// when the counter target is reached, turn off via richtek "shipping" mode
   } else t.button.isTouchedTime = 0;  // if power button is released, reset counter
 
   // power button state maschine
