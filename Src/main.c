@@ -58,7 +58,7 @@ void boost_reg();
 
 
 //struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1153, 1978, 1962}, .button.offsetValue = {2075, 2131, 2450}, .button.CBSwitch = 0};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {5590, 4150, 2210}, .button.offsetValue = {3547, 3610, 3840}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui;
 struct status_t stat;
@@ -94,7 +94,7 @@ int main(void)
   RT_Init();      // initialize the RT9466, mainly sets ILIM
   start_HRTIM1(); // start HRTIM and enable outputs
 
-  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
+  //HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1);
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers needs to be done, otherwise power failure
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
@@ -104,65 +104,68 @@ int main(void)
 
   while (1)
   {
-    
-    set_scope_channel(0, stat.vIn);
-    set_scope_channel(3, stat.vBatRt);
-    set_scope_channel(4, stat.errCnt);
-    set_scope_channel(5, stat.pSum);    
-    set_scope_channel(6, HAL_I2C_GetState(&hi2c1));
+
+    set_scope_channel(0, t.button.acquisitionValue[0]);
+    set_scope_channel(1, t.button.acquisitionValue[1]);
+    set_scope_channel(2, t.button.acquisitionValue[2]);
+    set_scope_channel(3, t.slider.isTouched);
+    set_scope_channel(4, t.slider.pos);
+    set_scope_channel(5, t.slider.isTouchedValAvg);
+    set_scope_channel(6, r.CW.iout);
     console_scope();
     LED_task();
     HAL_Delay(25);
-    stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
+    //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
     //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
-    
-    if(read_RT_status(ADC_DONE_MASK) != 0){
-      switch (stat.state)
-      {
-      case 0:
-        stat.vIn = read_RT_ADC() * 10.0f;
-        configure_RT(CHG_ADC,ADC_IBUS);
-        stat.state = 1;
-        break;
-      case 1:
-        stat.iIn = read_RT_ADC() * 50.0f;
-        configure_RT(CHG_ADC,ADC_VBAT);
-        stat.state = 2;
-        break;
-      case 2:
-        stat.vBatRt = read_RT_ADC() * 5.0f;
-        configure_RT(CHG_ADC,ADC_IBAT);
-        stat.state = 3;
-        break;
-      case 3:
-        stat.iBat = read_RT_ADC() * 50.0f;
-        configure_RT(CHG_ADC,ADC_NTC);
-        stat.state = 4;
-        break;
-      case 4:
-        stat.batTemp = read_RT_ADC();
-        configure_RT(CHG_ADC,ADC_VBUS2);
-        stat.state = 0;
-        break;
-      default:
-        break;
-      }
-      stat.errCnt = 0;
-    } else stat.errCnt++;
+    /*
+        if (read_RT_status(ADC_DONE_MASK) != 0) {
+          switch (stat.state)
+          {
+          case 0:
+            stat.vIn = read_RT_ADC() * 10.0f;
+            configure_RT(CHG_ADC, ADC_IBUS);
+            stat.state = 1;
+            break;
+          case 1:
+            stat.iIn = read_RT_ADC() * 50.0f;
+            configure_RT(CHG_ADC, ADC_VBAT);
+            stat.state = 2;
+            break;
+          case 2:
+            stat.vBatRt = read_RT_ADC() * 5.0f;
+            configure_RT(CHG_ADC, ADC_IBAT);
+            stat.state = 3;
+            break;
+          case 3:
+            stat.iBat = read_RT_ADC() * 50.0f;
+            configure_RT(CHG_ADC, ADC_NTC);
+            stat.state = 4;
+            break;
+          case 4:
+            stat.batTemp = read_RT_ADC();
+            configure_RT(CHG_ADC, ADC_VBUS2);
+            stat.state = 0;
+            break;
+          default:
+            break;
+          }
+          stat.errCnt = 0;
+        } else stat.errCnt++;
 
-    if(stat.state == -1) configure_RT(CHG_CTRL2,TURNOFF_MASK);
+        if (stat.state == -1) configure_RT(CHG_CTRL2, TURNOFF_MASK);
 
 
-    stat.pIn = stat.vIn * stat.iIn / 1000.0f;
-    stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
-    stat.pSum = stat.pIn - stat.pBat;
+        stat.pIn = stat.vIn * stat.iIn / 1000.0f;
+        stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
+        stat.pSum = stat.pIn - stat.pBat;
 
-    if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
-      stat.errCnt = 0;
-      I2C1_Init();
-    }
+        if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
+          stat.errCnt = 0;
+          I2C1_Init();
+        }
 
-    if(stat.vBatRt > 2500 && stat.vBatRt < 3000) stat.state = -1;
+        if (stat.vBatRt > 2500 && stat.vBatRt < 3000) stat.state = -1;
+    */
   }
 }
 
@@ -202,12 +205,12 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
-  if (chan){
+  if (chan) {
     //r.WW.target = gammaTable[(int)(target_tmp)];  //
     r.WW.target = gamma_calc(target_tmp);  //
     r.WW.targetNoGamma = target_tmp;  //
   }
-  else if (!chan){
+  else if (!chan) {
     //r.CW.target = gammaTable[(int)(target_tmp)];  //
     r.CW.target = gamma_calc(target_tmp);  //
     r.CW.targetNoGamma = target_tmp;  //
@@ -221,7 +224,6 @@ void TSC_task(void) {
 
     t.slider.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
-
     slider_task();
 
     HAL_TSC_IOConfig(&htscb, &IoConfigb);
@@ -232,7 +234,6 @@ void TSC_task(void) {
   {
     t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
     t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
-
     button_task();
 
     HAL_TSC_IOConfig(&htscs, &IoConfigs);
@@ -294,34 +295,36 @@ void button_task(void) {
 }
 
 void slider_task(void) {
-  if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;  // outer channel has only half the strenght
+  if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 3;  // outer channel has only half the strenght
+  if (t.IdxBank == 1) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 1.5;  // outer channel has only half the strenght
 
   t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);         // clamp values for position calculation
 
-  int16_t x = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[1]) / 2) - t.slider.acquisitionValue[2];
-  int16_t y = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[1];
-  int16_t z = ((t.slider.acquisitionValue[1] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[0];
-
-  if      (x < y && x < z && y < z) t.slider.pos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
-  else if (x < y && x < z && y > z) t.slider.pos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
-  else if (z < y && z < x && x < y) t.slider.pos = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
-  else if (z < y && z < x && x > y) t.slider.pos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
-  else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
-  else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
-
   t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]); // Check intensity of touch
+  t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg, t.slider.isTouchedVal, TOUCH_THRESHOLD_FILTER); // average/Lowpass filter the touch intesity
 
   int16_t _isTouchedDelta = t.slider.isTouchedValAvg - t.slider.isTouchedVal; // caltulate delta from current intesity to averaged intesity
 
   if      (_isTouchedDelta > 200)           t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
   else if (_isTouchedDelta < -600)          t.slider.isTouched = 0; // if delta is lower then x, touch up was detected
   else if (t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0; // std value, if no touch is present
+  
+  if (t.slider.isTouched ) {
+    int16_t x = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[1]) / 2) - t.slider.acquisitionValue[2];
+    int16_t y = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[1];
+    int16_t z = ((t.slider.acquisitionValue[1] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[0];
 
-  t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg, t.slider.isTouchedVal, TOUCH_THRESHOLD_FILTER); // average/Lowpass filter the touch intesity
+    if      (x < y && x < z && y < z) t.slider.pos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
+    else if (x < y && x < z && y > z) t.slider.pos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;
+    else if (z < y && z < x && x < y) t.slider.pos = 5 * TOUCH_SCALE - ((y * TOUCH_SCALE) / (y + x));
+    else if (z < y && z < x && x > y) t.slider.pos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
+    else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
+    else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
-  UI_task();
+    UI_task();
+  }
 }
-
+// TODO FIX THIS SHIT
 void UI_task(void) {
   uint8_t _enable = 1;
 
@@ -361,12 +364,14 @@ void UI_task(void) {
 void LED_task(void) {
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);           // set LED "Power" to full brightness
+    HAL_GPIO_WritePin(GPIOA, LED_Color, 1);       // set LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Power, t.button.CBSwitch);       // set LED "Color"
+    //__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 1024);           // set LED "Power" to full brightness
   } else {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);                        // clear LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Power, 0);                             // clear LED "Color"
     HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                             // clear LED "Color"
-    __HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS); //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
+    //__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, POWER_LED_BRIGHTNESS); //HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
   }
 }
 
