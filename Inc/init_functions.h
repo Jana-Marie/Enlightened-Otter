@@ -35,7 +35,6 @@ void I2C1_Init(void);
 void USART1_UART_Init(void);
 void DAC1_Init(void);
 void DAC2_Init(void);
-void TIM2_Init(void);
 
 void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);

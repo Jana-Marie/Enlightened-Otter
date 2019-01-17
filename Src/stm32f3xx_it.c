@@ -308,7 +308,6 @@ void ADC1_2_IRQHandler(void)
 
 void EXTI2_TSC_IRQHandler(void)
 {
-
   TSC_task();
 
   HAL_TSC_IRQHandler(&htscs);
