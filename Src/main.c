@@ -284,7 +284,6 @@ void button_task(void) {
       start_HRTIM1();                               // for now lets reset the flt state in the power off state
     }
   } else if (!t.button.isReleased && _powButton == 0) t.button.isReleased = 1; // set isReleased flag if powerbutton was released
-
   UI_task();
 }
 
@@ -315,7 +314,7 @@ void slider_task(void) {
     else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
     else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
 
-    UI_task();
+    //UI_task();
   }
 }
 
