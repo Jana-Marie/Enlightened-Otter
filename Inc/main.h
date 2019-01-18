@@ -49,9 +49,9 @@
 
 #define LED_Brightness GPIO_PIN_8
 #define LED1_GPIO_Port GPIOA
-#define LED_Color GPIO_PIN_11
+#define LED_Color GPIO_PIN_15
 #define LED2_GPIO_Port GPIOA
-#define LED_Power GPIO_PIN_15
+#define LED_Power GPIO_PIN_11
 #define LED3_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */

@@ -359,8 +359,8 @@ void UI_task(void) {
 void LED_task(void) {
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, 1);                       // set LED "Color"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, t.button.CBSwitch);       // set LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Power, 1);                       // set LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
   } else {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);                  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
