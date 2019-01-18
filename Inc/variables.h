@@ -44,7 +44,7 @@ struct touch_t {                  // stores the touch states
 // REGULATOR
 struct reg_val_t {
   float target;         // target current in mA
-  float targetNoGamma;
+  float targetNoGamma;  // target current without gamma correcture
   float iout;           // LED current current in mA
   float iavg;           // LED current (averaged) in mA
   float error;          // error current in mA
@@ -65,9 +65,9 @@ struct status_t {   // status storage struct
   uint16_t vBat;    // contains battery voltage
   uint16_t vBatRt;  // contains battery voltage measured by ritchtek
   uint16_t iBat;    // contains battery current
-  uint16_t pIn;
-  uint16_t pBat;
-  uint16_t pSum;
+  uint16_t pIn;     // contains the power drawn from the USB-port
+  uint16_t pBat;    // contains the power drawn from the battery
+  uint16_t pSum;    // contains the sum of the power drawn
   uint16_t batTemp; // contains battery temperature
   int8_t  state;    // defines state of state maschine
   uint8_t errCnt;
