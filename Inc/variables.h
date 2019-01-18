@@ -44,7 +44,7 @@ struct touch_t {                  // stores the touch states
 // REGULATOR
 struct reg_val_t {
   float target;         // target current in mA
-  float targetNoGamma;  // target current without gamma correcture
+  //float targetNoGamma;  // target current without gamma correcture
   float iout;           // LED current current in mA
   float iavg;           // LED current (averaged) in mA
   float error;          // error current in mA

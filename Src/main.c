@@ -55,7 +55,7 @@ void LED_task(void);
 void boost_reg();
 
 //struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {4390,3150,1210}, .button.offsetValue = {3147, 3210, 3440}, .button.CBSwitch = 0};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {4390, 3150, 1210}, .button.offsetValue = {3147, 3210, 3440}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui;
 struct status_t stat;
@@ -194,20 +194,20 @@ void boost_reg(void) {
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
   float target_tmp, color_tmp;
 
-  if (chan)       color_tmp = (1.0f - color);          // set color temperature multiplicator from 0 to 1 for WW
-  else if (!chan) color_tmp = color; // and from 1 to 0 for CW
+  if (chan)       color_tmp = (1.0f - color);   // set color temperature multiplicator from 0 to 1 for WW
+  else if (!chan) color_tmp = color;            // and from 1 to 0 for CW
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
   if (chan) {
-    r.WW.target = gammaTable[(int)(target_tmp)];  //
-    //r.WW.target = gamma_calc(target_tmp);  //
-    r.WW.targetNoGamma = target_tmp;  //
+    r.WW.target = gammaTable[(int)(target_tmp)];  // New gamma calculation
+    //r.WW.target = gamma_calc(target_tmp);       // possibly replaces this one
+    //r.WW.targetNoGamma = target_tmp;              // if needed
   }
   else if (!chan) {
     r.CW.target = gammaTable[(int)(target_tmp)];  //
     //r.CW.target = gamma_calc(target_tmp);  //
-    r.CW.targetNoGamma = target_tmp;  //
+    //r.CW.targetNoGamma = target_tmp;  //
   }
 }
 
@@ -301,7 +301,7 @@ void slider_task(void) {
   if      (_isTouchedDelta > 200)           t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
   else if (_isTouchedDelta < -600)          t.slider.isTouched = 0; // if delta is lower then x, touch up was detected
   else if (t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0; // std value, if no touch is present
-  
+
   if (t.slider.isTouched ) {
     int16_t x = ((t.slider.acquisitionValue[2] + t.slider.acquisitionValue[0]) / 2) - t.slider.acquisitionValue[1];
     int16_t y = ((t.slider.acquisitionValue[2] + t.slider.acquisitionValue[1]) / 2) - t.slider.acquisitionValue[0];
@@ -326,7 +326,7 @@ void UI_task(void) {
       if (ui.debounce >= 15) {  // "debounce" slider
 
         if (SLIDER_BEHAVIOR == REL) {
-          if(ABS(t.slider.pos - ui.distanceOld) < 100) ui.distance += ui.distanceOld - t.slider.pos;         // calculate t.slider.pos delta 
+          if (ABS(t.slider.pos - ui.distanceOld) < 100) ui.distance += ui.distanceOld - t.slider.pos;        // calculate t.slider.pos delta
         }
         else if (SLIDER_BEHAVIOR == AB) ui.distance = t.slider.pos;
 
