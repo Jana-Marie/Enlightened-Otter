@@ -19,6 +19,7 @@ Assembled HW 2.0, seems to be much sturdier, everything looking good. GND-Plane 
 	- [ ] fix auto turnoff
 	- [ ] No current > 499mA (EO will turn off)
 	- [ ] Test LEDS and ESP
+	- [ ] move 254TR closer together
 	- [x] fix touch direction and intensity
 
 
