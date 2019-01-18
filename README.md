@@ -10,18 +10,24 @@ Enlightened-Otter can be screwed onto an empty bottle of Mate (or similar), ther
 
 ## Specs
 
-| 				| Typical Value 	|
-| -------------------------	| -------------		|
-| I*out* (per channel)	 	| 0-400mA 		|
-| V*out* (per channel)		| 0-18.5V 		|
-| P*out* (per channel)		| 0-7.5W		|
-| Illuminance (3500k @400mA)	| 1600lx  		|
-| Illuminance (6500k @400mA)	| 2000lx  		|
-| V*in* (USB) 			| 4.8-14V  		|
-| I*in* (USB) 			| 3A  			|
-| V*bat* 			| 3.8V 			|
-| I*bat* (max)			| 5A  			|
-| Boost frequency		| 350khz		|
+|								| Typical Value |
+| -------------------------		| -------------	|
+| I*out* (per channel)	 		| 0-500mA 		|
+| V*out* (per channel)			| 0-18.5V 		|
+| P*out* (per channel)			| 0-7.5W*		|
+| Illuminance (3500k @400mA)	| 1600lx*  		|
+| Illuminance (6500k @400mA)	| 2000lx* 		|
+| V*in* (USB) 					| 4.8-14V  		|
+| I*in* (USB) 					| 3A  			|
+| V*bat* 						| 3.8V 			|
+| I*bat* (max)					| 5A  			|
+| Boost frequency				| 500khz**		|
+| I*ripple* (@2.5kHz)			| < 0.5mA 		|
+
+
+\* Needs to be measured again
+ 
+\** Needs to be evaluated again
 
 
 
@@ -36,7 +42,7 @@ and flash it via Ozone or st-utils
 `st-flash --reset write build/*.bin 0x8000000`
 
 
-## Images
+## Images V1.1
 
 ![Battery 1](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_tisch.jpeg)
 ![Battery 2](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_werkstatt.jpeg)
@@ -86,10 +92,10 @@ Click to play
 
 ### Current state:
 
-PCB V1.1 is ordered.
+PCB V2.0 is here.
 
-HW is flashable, both bosst converter work properly up to a current of ~400mA, current regulation works on both boost converters (+-0.5mA up to 400mA, regulation frequency is 3khz), RT9466 seems to do its job, does work properly on 
-batteries and USB, LED outputs and Touch inputs work, has correct fault handling.
+HW is flashable, both boost converter work properly up to a current of ~500mA, current regulation works on both boost converters ( < +-0.5mA up to 500mA, regulation frequency is 2.5khz), RT9466 seems to do its job, does work properly on 
+batteries, not on USB. Measuring thought the RT does not work, Power down does. LED outputs and Touch inputs work, has correct fault handling.
 Advanced User interface is also working, current and color can be set via touch input. Soft on/off works fine. Gamma correcture is applied.
 The whole PCB can be shut down by holding the power button.
 
@@ -97,23 +103,26 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
-- [ ] RT cannot be turned off or cannot charge batteries - investigate
-- [ ] visualize battery voltage
-- [ ] Optimize code
-	- [x] make it less ugly
-	- [ ] now make it faster
+- [ ] everything is super slow when Itarget is 0.0 -> investigate
+- [ ] measuring throught the RT does not work
+- [ ] visualize battery voltage -> moodlight LEDs
+- [ ] Implement moodlight LEDs
 - [ ] Overtemp protection
 - [ ] "Mobile handling"
 	- [x] Touch is not that responsive
 	- [x] Added filters to touch input
-	- [ ] Battery low alarm/turnoff
-- [ ] Make it more efficient
+	- [ ] Battery low alarm/turnoff -> is implemented, doesnt work, see RT9466 measuring
+- [ ] Make it more efficient -> V2 seems to be much more efficient
 	- did it a little bit
 - [ ] Find more to do's
 
 ### Done:
 
-- [ ] Test I2C - broken?
+- [x] RT cannot be turned off or cannot charge batteries - investigate
+- [x] Optimize code
+	- [x] make it less ugly
+	- [x] now make it faster
+- [x] Test I2C - broken?
 	- writing works, reading is buggy, switch to dma
 	- [x] implemented DMA
 	- [x] Receiving data does not work properly, data is present but not written into the variable
