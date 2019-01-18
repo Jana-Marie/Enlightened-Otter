@@ -57,7 +57,7 @@ void boost_reg();
 //struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {4390, 3150, 1210}, .button.offsetValue = {3147, 3210, 3440}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
-struct UI_t ui;
+struct UI_t ui = {.colorAvg = 0.4, .color = 0.4, .brightnessAvg = 10, brightness = 10};
 struct status_t stat;
 
 int main(void)
@@ -284,6 +284,7 @@ void button_task(void) {
       start_HRTIM1();                               // for now lets reset the flt state in the power off state
     }
   } else if (!t.button.isReleased && _powButton == 0) t.button.isReleased = 1; // set isReleased flag if powerbutton was released
+
   UI_task();
 }
 
@@ -313,8 +314,6 @@ void slider_task(void) {
     else if (z < y && z < x && x > y) t.slider.pos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
     else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
     else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
-
-    //UI_task();
   }
 }
 
