@@ -29,31 +29,31 @@ struct touch_button_t {
 struct touch_slider_t {
   int16_t acquisitionValue[3];    // register that holds the acquired slider values
   int16_t offsetValue[3];         // register that stores the correction values for the slider
-  int16_t pos;                   // current slider position
-  int16_t isTouchedValAvg;                   // current slider position
-  int16_t isTouchedVal;                   // current slider position
+  int16_t pos;                    // current slider position
+  int16_t isTouchedValAvg;        // current slider position
+  int16_t isTouchedVal;           // current slider position
   uint8_t isTouched;              // 1 if slider is touched
 };
 
-struct touch_t {                // stores the touch states
-  uint8_t IdxBank;              // iterates throught the banks/IOs
+struct touch_t {                  // stores the touch states
+  uint8_t IdxBank;                // iterates throught the banks/IOs
   struct touch_slider_t slider;
   struct touch_button_t button;
 };
 
 // REGULATOR
 struct reg_val_t {
-  float target;     // target current in mA
+  float target;         // target current in mA
   float targetNoGamma;
-  float iout;       // LED current current in mA
-  float iavg;       // LED current (averaged) in mA
-  float error;      // error current in mA
-  float duty;       // output duty cycle
+  float iout;           // LED current current in mA
+  float iavg;           // LED current (averaged) in mA
+  float error;          // error current in mA
+  float duty;           // output duty cycle
 };
 
 struct reg_t {          // contains the values for both regulators
   float Magiekonstante; // stores the KI val
-  struct reg_val_t WW;  
+  struct reg_val_t WW;
   struct reg_val_t CW;
 };
 
@@ -69,7 +69,7 @@ struct status_t {   // status storage struct
   uint16_t pBat;
   uint16_t pSum;
   uint16_t batTemp; // contains battery temperature
-  int8_t  state;   // defines state of state maschine
+  int8_t  state;    // defines state of state maschine
   uint8_t errCnt;
 };
 
