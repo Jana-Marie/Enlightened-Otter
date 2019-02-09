@@ -37,6 +37,8 @@ extern DAC_HandleTypeDef hdac2;
 
 extern HRTIM_HandleTypeDef hhrtim1;
 
+extern TIM_HandleTypeDef htim1;
+
 extern I2C_HandleTypeDef hi2c1;
 
 extern TSC_HandleTypeDef htscs;        // Touch slider handle
@@ -57,7 +59,7 @@ void boost_reg();
 //struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {4390, 3150, 1210}, .button.offsetValue = {3147, 3210, 3440}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
-struct UI_t ui = {.colorAvg = 0.4, .color = 0.4, .brightnessAvg = 10, brightness = 10};
+struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
 struct status_t stat;
 
 int main(void)
@@ -76,6 +78,7 @@ int main(void)
   USART1_UART_Init();
   DAC1_Init();
   DAC2_Init();
+  TIM1_Init();
 
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
@@ -89,6 +92,8 @@ int main(void)
 
   RT_Init();      // initialize the RT9466, mainly sets ILIM
   start_HRTIM1(); // start HRTIM and enable outputs
+
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers needs to be done, otherwise power failure
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
@@ -113,7 +118,7 @@ int main(void)
 
     //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
     //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
-    /*
+    
     if (read_RT_status(ADC_DONE_MASK) != 0) {
       switch (stat.state)
       {
@@ -147,7 +152,7 @@ int main(void)
       }
       stat.errCnt = 0;
     } else stat.errCnt++;
-    */
+    
 
 
     stat.pIn = stat.vIn * stat.iIn / 1000.0f;
@@ -358,11 +363,13 @@ void UI_task(void) {
 void LED_task(void) {
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, 1);                       // set LED "Color"
+    //HAL_GPIO_WritePin(GPIOA, LED_Power, 1);                       // set LED "Color"
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 1024);
     HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
   } else {
     HAL_GPIO_WritePin(GPIOA, LED_Brightness, 0);                  // clear LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
+    //HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 255);
     HAL_GPIO_WritePin(GPIOA, LED_Power, 0);                       // clear LED "Color"
   }
 }
