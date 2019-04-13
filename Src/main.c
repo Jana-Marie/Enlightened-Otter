@@ -118,7 +118,7 @@ int main(void)
 
     //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
     //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
-    
+    /*
     if (read_RT_status(ADC_DONE_MASK) != 0) {
       switch (stat.state)
       {
@@ -158,7 +158,7 @@ int main(void)
     stat.pIn = stat.vIn * stat.iIn / 1000.0f;
     stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
     stat.pSum = stat.pIn - stat.pBat;
-
+  */
     if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
       stat.errCnt = 0;
       I2C1_Init();
@@ -233,6 +233,8 @@ void TSC_task(void) {
   {
     t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
     t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
+    t.button.acquisitionValue[t.IdxBank] = FILT(t.button.acquisitionValue[t.IdxBank], t.button.acquisitionValue[t.IdxBank], 0.98); // average/Lowpass filter the touch intesity
+
     button_task();
 
     HAL_TSC_IOConfig(&htscs, &IoConfigs);

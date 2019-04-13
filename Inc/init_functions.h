@@ -30,6 +30,7 @@ void COMP2_Init(void);
 void COMP4_Init(void);
 void COMP6_Init(void);
 void HRTIM1_Init(void);
+void TIM1_Init(void);
 void TSC_Init(void);
 void I2C1_Init(void);
 void USART1_UART_Init(void);

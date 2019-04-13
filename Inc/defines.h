@@ -31,13 +31,13 @@
 #define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V 
 #define OVERCURRENT 0.8f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
 
-#define CURRENT_AVERAGING_FILTER 	0.999f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+#define CURRENT_AVERAGING_FILTER 	0.99f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.96f	// koeffizient of brightness fading filter
 #define TOUCH_THRESHOLD_FILTER		0.65f
 
 #define TURNOFF_TIME 		130		// sets the time to count to before turning off 
-#define BUTTON_THRESHOLD 	-2000	// sets the threshold at which a button press has to be triggered
+#define BUTTON_THRESHOLD 	-1600	// sets the threshold at which a button press has to be triggered
 
 #define CURRENT_CUTOFF		1.0f 	// sets the threshold at which the boost will be turned off
 
@@ -46,7 +46,8 @@
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
 
-#define TOUCH_SCALE ((700.0f/200.0f)*22.2996515f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875) - I have No idea anymore how this works
+//#define TOUCH_SCALE ((700.0f/200.0f)*22.2996515f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875) - I have No idea anymore how this works
+#define TOUCH_SCALE ((700.0f/200.0f)*44.599303f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875) - I have No idea anymore how this works
 
 #define VDDA 				3.0f 	// Vref = VDDA = Analog power supply
 #define CURRENT_PRESCALER	1.0f 	// set the divisor for the current input
