@@ -1,0 +1,7 @@
+(module "ESP09" (layer F.Cu) (tedit 5B0D3C36)
+  (gr_arc (start -7.30000 -4.50000) (end -6.79010 -4.50000) (angle -360) (layer F.SilkS) (width 0.154))
+  (fp_line (start -5.00000 5.00000) (end -5.00000 -5.00000) (layer F.SilkS) (width 0.01))
+  (fp_line (start -5.00000 5.00000) (end 5.00000 5.00000) (layer F.SilkS) (width 0.01))
+  (fp_line (start 5.00000 5.00000) (end 5.00000 -5.00000) (layer F.SilkS) (width 0.01))
+  (fp_line (start -5.00000 -5.00000) (end 5.00000 -5.00000) (layer F.SilkS) (width 0.01))
+)

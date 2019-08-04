@@ -1,0 +1,7 @@
+(module "SK6812" (layer F.Cu) (tedit 5B0D3C36)
+  (fp_line (start 1.20000 1.75000) (end 1.75000 1.20000) (layer F.SilkS) (width 0.1))
+  (fp_line (start -1.75000 -1.75000) (end 1.75000 -1.75000) (layer F.SilkS) (width 0.1))
+  (fp_line (start 1.75000 1.20000) (end 1.75000 -1.75000) (layer F.SilkS) (width 0.1))
+  (fp_line (start -1.75000 1.75000) (end 1.20000 1.75000) (layer F.SilkS) (width 0.1))
+  (fp_line (start -1.75000 1.75000) (end -1.75000 -1.75000) (layer F.SilkS) (width 0.1))
+)
