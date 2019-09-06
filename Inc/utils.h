@@ -20,21 +20,23 @@
 #include "defines.h"
 #include <string.h>
 
-
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart1;
+
 
 void enable_OTG(void);
 void disable_OTG(void);
 void set_pwm(uint8_t timer, float duty);
 void set_brightness(uint8_t chan, float brightness, float color, float max_value);
-uint16_t read_RT_ADC(void);
+float read_RT_ADC(void);
 float ntc_calc(uint16_t adc_value);
 float gamma_calc(float target);
 uint8_t read_RT_status(uint8_t _mask);
 uint8_t read_RT_register(uint8_t _register);
 void RT_Init(void);
 void configure_RT(uint8_t _register, uint8_t _mask);
+void powerdown(void);
+void RT_adc_task(void);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope(void);

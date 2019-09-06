@@ -23,8 +23,9 @@
 #include "init_functions.h"
 #include "defines.h"
 #include "gamma.h"
-#include "variables.h"
 #include "utils.h"
+#include "variables.h"
+
 
 extern ADC_HandleTypeDef hadc2;
 
@@ -62,7 +63,6 @@ struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f
 struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
 struct status_t stat;
 
-
 uint8_t otterStat = 0;
 
 int main(void)
@@ -95,6 +95,7 @@ int main(void)
   HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);  // set the voltage for the COMP6 to trigger FLT_1
 
   RT_Init();      // initialize the RT9466, mainly sets ILIM
+  configure_RT(CHG_CTRL1,0x10);
 
   start_HRTIM1(); // start HRTIM and enable outputs
 
@@ -108,8 +109,6 @@ int main(void)
   HAL_Delay(100); // measure current offset
   r.CW.ioff = r.CW.iavg;  // IOffsetCW - mA
   r.WW.ioff = r.WW.iavg;  // IOffsetWW - mA
-
-  configure_RT(CHG_CTRL1,DISABLE_STAT_LED_MASK);
 
   while (1)
   {
@@ -127,53 +126,14 @@ int main(void)
     //r.CW.target = r.CW.target + 0.1f;
     //if(r.CW.target > 20.0f) r.CW.target = 0.0f;
 
+    //
 
-    HAL_Delay(100);
-    otterStat = read_RT_register(CHG_CTRL1);
+    HAL_Delay(250);
+    //otterStat = read_RT_register(0x11);
     //TSC_task();
 
-    //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
-    //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
-    /*
-    if (read_RT_status(ADC_DONE_MASK) != 0) {
-      switch (stat.state)
-      {
-      case 0:
-        stat.vIn = read_RT_ADC() * 10.0f;
-        configure_RT(CHG_ADC, ADC_IBUS);
-        stat.state = 1;
-        break;
-      case 1:
-        stat.iIn = read_RT_ADC() * 50.0f;
-        configure_RT(CHG_ADC, ADC_VBAT);
-        stat.state = 2;
-        break;
-      case 2:
-        stat.vBatRt = read_RT_ADC() * 5.0f;
-        configure_RT(CHG_ADC, ADC_IBAT);
-        stat.state = 3;
-        break;
-      case 3:
-        stat.iBat = read_RT_ADC() * 50.0f;
-        configure_RT(CHG_ADC, ADC_NTC);
-        stat.state = 4;
-        break;
-      case 4:
-        stat.batTemp = read_RT_ADC();
-        configure_RT(CHG_ADC, ADC_VBUS2);
-        stat.state = 0;
-        break;
-      default:
-        break;
-      }
-      stat.errCnt = 0;
-    } else stat.errCnt++;
-    */
 
-
-    stat.pIn = stat.vIn * stat.iIn / 1000.0f;
-    stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
-    stat.pSum = stat.pIn - stat.pBat;
+    //RT_adc_task();
 
   /*
     if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
@@ -181,7 +141,7 @@ int main(void)
       I2C1_Init();
     }
 */
-    if ((stat.vBatRt > 2500 && stat.vBatRt < 3000) || stat.state == -1) configure_RT(CHG_CTRL2, TURNOFF_MASK);
+    if ((stat.vBatRt > 2500 && stat.vBatRt < 3000) || stat.state == -1) powerdown(); //configure_RT(CHG_CTRL2, TURNOFF_MASK);
 
   }
 }
@@ -192,6 +152,9 @@ HAL_HRTIM_RepetitionEventCallback(HRTIM_HandleTypeDef * hhrtim, uint32_t TimerId
 
 void boost_reg(void) {
   // Main current regulator
+  stat.ledTemp = ntc_calc(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
+  stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 3.0f;
+
   r.CW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2),SHUNT_GAIN) * 1000.0f;  // ISensCW - mA
   r.WW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3),SHUNT_GAIN) * 1000.0f;  // ISensWW - mA
 

@@ -60,16 +60,16 @@ struct reg_t {          // contains the values for both regulators
 
 // STATUS
 struct status_t {   // status storage struct
-  uint16_t ledTemp; // contains led temperature
-  uint16_t vIn;     // contains input voltage
-  uint16_t iIn;     // contains input current
-  uint16_t vBat;    // contains battery voltage
-  uint16_t vBatRt;  // contains battery voltage measured by ritchtek
-  uint16_t iBat;    // contains battery current
-  uint16_t pIn;     // contains the power drawn from the USB-port
-  uint16_t pBat;    // contains the power drawn from the battery
-  uint16_t pSum;    // contains the sum of the power drawn
-  uint16_t batTemp; // contains battery temperature
+  float ledTemp; // contains led temperature
+  float vIn;     // contains input voltage
+  float iIn;     // contains input current
+  float vBat;    // contains battery voltage
+  float vBatRt;  // contains battery voltage measured by ritchtek
+  float iBat;    // contains battery current
+  float pIn;     // contains the power drawn from the USB-port
+  float pBat;    // contains the power drawn from the battery
+  float pSum;    // contains the sum of the power drawn
+  float batTemp; // contains battery temperature
   int8_t  state;    // defines state of state maschine
   uint8_t errCnt;
 };

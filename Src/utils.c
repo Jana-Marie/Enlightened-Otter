@@ -19,6 +19,53 @@
 #include "utils.h"
 #include "ntc.h"
 //#include "gamma.h"
+#include "variables.h"
+
+extern struct status_t stat;
+
+void RT_adc_task(void){
+	if (read_RT_status(ADC_DONE_MASK) == 0) {
+		switch (stat.state)
+		{
+		case 0:
+			stat.vIn = read_RT_ADC();//* 0.01f;
+			configure_RT(CHG_ADC, ADC_IBUS);
+			stat.state = 1;
+			break;
+		case 1:
+			stat.iIn = read_RT_ADC();// * 0.05f;
+			configure_RT(CHG_ADC, ADC_VBAT);
+			stat.state = 2;
+			break;
+		case 2:
+			stat.vBatRt = read_RT_ADC();// * 0.005f;
+			configure_RT(CHG_ADC, ADC_IBAT);
+			stat.state = 3;
+			break;
+		case 3:
+			stat.iBat = read_RT_ADC();// * 0.05f;
+			configure_RT(CHG_ADC, ADC_NTC);
+			stat.state = 4;
+			break;
+		case 4:
+			stat.batTemp = read_RT_ADC();
+			configure_RT(CHG_ADC, ADC_VBUS2);
+			stat.state = 0;
+			break;
+		default:
+			break;
+		}
+		stat.errCnt = 0;
+	} else stat.errCnt++;
+
+	stat.pIn = stat.vIn * stat.iIn / 1000.0f;
+	stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
+	stat.pSum = stat.pIn - stat.pBat;
+}
+
+void powerdown(void){
+	 configure_RT(CHG_CTRL2, TURNOFF_MASK);
+}
 
 void enable_OTG(void) {
 	configure_RT(CHG_CTRL16, DISABLE_UUG);
@@ -30,7 +77,7 @@ void disable_OTG(void) {
 	configure_RT(CHG_CTRL1, DISABLE_OTG_MASK);
 }
 
-uint16_t read_RT_ADC(void) {
+float read_RT_ADC(void) {
 	uint16_t _cnt = 0;
 	uint8_t _ADC_H, _ADC_L;
 	uint8_t _tmp_data_H = ADC_DATA_H;
@@ -50,7 +97,7 @@ uint16_t read_RT_ADC(void) {
 	_cnt = 0;
 	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
 
-	uint16_t _tmp_data = ((_ADC_H << 8) | (_ADC_L & 0xFF));
+	float _tmp_data = ((_ADC_H *256) + _ADC_L);
 	return _tmp_data;
 }
 
@@ -88,7 +135,7 @@ uint8_t read_RT_register(uint8_t _register){
 void RT_Init(void) {
   // Configure the RT9466, set currents to maximum
   configure_RT(CHG_CTRL2, IINLIM_MASK);
-  //configure_RT(CHG_CTRL3, SET_ILIM_3A);
+  configure_RT(CHG_CTRL3, SET_ILIM_3A);
 	configure_RT(CHG_CTRL1,ENABLE_STAT_LED_MASK);
   configure_RT(CHG_ADC, ADC_VBUS2);
 }
