@@ -1,6 +1,6 @@
 /*
-* Enlighted - Otter  -  Stm32f334 based mobile worklight.
-* Copyright (C) 2018 Jan Henrik Hemsing
+* Enlightened - Otter  -  Stm32f334 based mobile worklight.
+* Copyright (C) 2019 Jan Henrik Hemsing
 *
 * This program is free software: you can redistribute it and / or modify it
 * under the terms of the GNU General Public License as published by the Free
@@ -60,7 +60,7 @@ void SystemClock_Config(void)
 
   RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSI | RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState            = RCC_HSE_ON;
-  RCC_OscInitStruct.HSEPredivValue      = RCC_HSE_PREDIV_DIV1;
+  RCC_OscInitStruct.HSEPredivValue      = RCC_HSE_PREDIV_DIV2;
   RCC_OscInitStruct.HSIState            = RCC_HSI_ON;
   RCC_OscInitStruct.HSICalibrationValue = 16;
   RCC_OscInitStruct.PLL.PLLState        = RCC_PLL_ON;
@@ -259,7 +259,7 @@ void HRTIM1_Init(void)
   HAL_HRTIM_Init(&hhrtim1);
 
   HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1);
-
+  /*
   // Select internal fault source (FLT_1)
   pFaultCfg.Source    = HRTIM_FAULTSOURCE_INTERNAL;
   pFaultCfg.Polarity  = HRTIM_FAULTPOLARITY_HIGH;
@@ -277,6 +277,7 @@ void HRTIM1_Init(void)
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_3, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
+  */
 
   // Set the frequency and period
   pTimeBaseCfg.Period             = HRTIM_PERIOD;
@@ -327,9 +328,9 @@ void HRTIM1_Init(void)
 
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD1, &pOutputCfg);
 
-  HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC2, &pOutputCfg);
+  //HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC2, &pOutputCfg);
 
-  HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg);
+  //HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg);
 
   // settings for the injected ADC
   compare_config.AutoDelayedMode    = HRTIM_AUTODELAYEDMODE_REGULAR;
@@ -348,6 +349,10 @@ void HRTIM1_Init(void)
 
   HAL_HRTIM_MspPostInit(&hhrtim1);
 
+  HAL_NVIC_SetPriority(HRTIM1_Master_IRQn, 10, 0);
+  HAL_NVIC_EnableIRQ(HRTIM1_Master_IRQn);
+  HAL_NVIC_SetPriority(HRTIM1_TIMD_IRQn, 10, 0);
+  HAL_NVIC_EnableIRQ(HRTIM1_TIMD_IRQn);
 }
 
 void TIM1_Init(void)
@@ -499,14 +504,30 @@ void GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   // Set output state to LOW
-  HAL_GPIO_WritePin(GPIOA, LED_Brightness | LED_Color | LED_Power, GPIO_PIN_RESET);
-
+  HAL_GPIO_WritePin(GPIOA, LED_Color | LED_Power, GPIO_PIN_RESET);
   // Change pin mode to output
-  GPIO_InitStruct.Pin   = LED_Brightness | LED_Color | LED_Power;
+  GPIO_InitStruct.Pin   = LED_Color | LED_Power;
   GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull  = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, LED_Brightness, GPIO_PIN_RESET);
+
+  GPIO_InitStruct.Pin   = LED_Brightness;
+  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull  = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+  HAL_GPIO_WritePin(GPIOB, ESP_EN | SK6812_EN, GPIO_PIN_RESET);
+
+  GPIO_InitStruct.Pin   = LED_Brightness;
+  GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_OD;
+  GPIO_InitStruct.Pull  = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 }
 
 void start_HRTIM1(void) {
@@ -520,6 +541,8 @@ void start_HRTIM1(void) {
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT2);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT2);
 
+  __HAL_HRTIM_MASTER_ENABLE_IT(&hhrtim1, HRTIM_MASTER_IT_MREP);
+
   r.CW.target = 0.0f;
   //r.CW.targetNoGamma = 0.0f;
   r.WW.target = 0.0f;
@@ -532,9 +555,9 @@ void start_HRTIM1(void) {
 
   // Enable outputs
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
+  //HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
+  //HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
 }
 
 void RT_Init(void) {

@@ -1,6 +1,6 @@
 /*
- * Enlighted-Otter  -  Stm32f334 based mobile worklight.
- * Copyright (C) 2018 Jan Henrik Hemsing
+ * Enlightened-Otter  -  Stm32f334 based mobile worklight.
+ * Copyright (C) 2019 Jan Henrik Hemsing
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -17,7 +17,7 @@
  */
  #pragma once
 
-float gammaTable[] = { // generated gamma correction table from Tools/gamma.py gamma value used: 1.6 resolution: 1.00000 
+float gammaTable[] = { // generated gamma correction table from Tools/gamma.py gamma value used: 1.6 resolution: 1.00000
 	0.50,	0.52,	0.57,	0.64,	0.72,	0.82,	0.92,	1.04,	1.17,	1.31,	1.46,	1.61,	1.78,	1.96,	2.14,	2.33,
 	2.53,	2.74,	2.95,	3.17,	3.40,	3.63,	3.88,	4.13,	4.38,	4.64,	4.91,	5.19,	5.47,	5.75,	6.05,	6.35,
 	6.65,	6.96,	7.28,	7.60,	7.93,	8.26,	8.60,	8.94,	9.29,	9.64,	10.00,	10.37,	10.74,	11.11,	11.49,	11.88,

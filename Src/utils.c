@@ -1,6 +1,6 @@
 /*
- * Enlighted-Otter  -  Stm32f334 based mobile worklight.
- * Copyright (C) 2018 Jan Henrik Hemsing
+ * Enlightened-Otter  -  Stm32f334 based mobile worklight.
+ * Copyright (C) 2019 Jan Henrik Hemsing
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -96,7 +96,7 @@ float ntc_calc(uint16_t adc_value) {
 /*
 float gamma_calc(float target){
 	float p1,p2;
-	
+
 	p1 = gammaTable[(int)target];
 	p2 = gammaTable[(int)target+1];
 

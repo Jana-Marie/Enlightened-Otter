@@ -1,6 +1,6 @@
 /*
- * Enlighted-Otter  -  Stm32f334 based mobile worklight.
- * Copyright (C) 2018 Jan Henrik Hemsing
+ * Enlightened-Otter  -  Stm32f334 based mobile worklight.
+ * Copyright (C) 2019 Jan Henrik Hemsing
  *
  * This program is free software: you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -42,4 +42,3 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
 void RT_Init(void);
 void configure_RT(uint8_t _register, uint8_t _mask);
 void start_HRTIM1(void);
-

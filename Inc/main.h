@@ -5,7 +5,7 @@
   ******************************************************************************
   ** This notice applies to any and all portions of this file
   * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
+  * USER CODE END. Other portions of this file, whether
   * inserted by the user or by software development tools
   * are owned by their respective copyright owners.
   *
@@ -47,12 +47,16 @@
 
 /* Private define ------------------------------------------------------------*/
 
-#define LED_Brightness GPIO_PIN_8
-#define LED1_GPIO_Port GPIOA
+#define LED_Brightness GPIO_PIN_15
+#define LED1_GPIO_Port GPIOB
+#define ESP_EN GPIO_PIN_10
+#define ESP_EN_GPIO_Port GPIOB
 #define LED_Color GPIO_PIN_15
 #define LED2_GPIO_Port GPIOA
 #define LED_Power GPIO_PIN_11
 #define LED3_GPIO_Port GPIOA
+#define SK6812_EN GPIO_PIN_8
+#define SK6812_EN_GPIO_Port GPIOA
 
 /* USER CODE BEGIN Private defines */
 
@@ -64,11 +68,11 @@ void _Error_Handler(char *, int);
 
 /**
   * @}
-  */ 
+  */
 
 /**
   * @}
-*/ 
+*/
 
 #endif /* __MAIN_H */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
