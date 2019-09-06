@@ -22,7 +22,6 @@
 #include "stm32f3xx_hal.h"
 #include "init_functions.h"
 #include "defines.h"
-#include "gamma.h"
 #include "utils.h"
 #include "variables.h"
 
@@ -58,7 +57,6 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
-//struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {5100, 5200, 4615}, .button.offsetValue = {5500, 5350, 6650}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
@@ -84,7 +82,7 @@ int main(void)
   USART1_UART_Init();
   DAC1_Init();
   DAC2_Init();
-  //TIM1_Init();
+  TIM1_Init();
 
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
@@ -103,7 +101,9 @@ int main(void)
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, MIN_DUTY); // clear PWM registers needs to be done, otherwise power failure
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
-  //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
+
+  HAL_TIM_Base_Start(&htim1);
+  HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
   HAL_TSC_Start_IT(&htscb);   // start the touch button controller
   HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
@@ -116,25 +116,13 @@ int main(void)
 
   while (1)
   {
-
     HAL_Delay(250);
     //otterStat = read_RT_register(0x11);
-    //TSC_task();
-
     //RT_adc_task();
 
-  /*
-    if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
-      stat.errCnt = 0;
-      I2C1_Init();
-    }
-*/
-    //otterStat = HAL_ADC_GetValue(&hadc1);
-    //HAL_ADC_Start(&hadc1);
-    //stat.vBatRt = (otterStat/ARES*AREF);
     stat.vBat = FILT(ADC2VBAT(HAL_ADC_GetValue(&hadc1)),stat.vBat,0.95);
     HAL_ADC_Start(&hadc1);
-    if ((stat.vBat > 1.0f && stat.vBat < 3.0f) || stat.state == -1) powerdown();
+    if ((stat.vBat > 1.0f && stat.vBat < 3.0f) || stat.state == -1) ;//powerdown();
   }
 }
 
@@ -149,9 +137,6 @@ void boost_reg(void) {
   r.CW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2),SHUNT_GAIN) * 1000.0f;  // ISensCW - mA
   r.WW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3),SHUNT_GAIN) * 1000.0f;  // ISensWW - mA
 
-  //r.CW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2);  // ISensCW - mA
-  //r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3);  // ISensWW - mA
-
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
 
@@ -163,10 +148,6 @@ void boost_reg(void) {
 
   r.WW.duty += (r.Magiekonstante * r.WW.error);     // Simple I regulator for WW current
   r.WW.duty = CLAMP(r.WW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
-
-  // todoo
-  // regulator output is voltage, calculate current with polynom of led courve
-  // calculate d with current, set d
 
   if (r.CW.target < CURRENT_CUTOFF) r.CW.duty = MIN_DUTY;
   if (r.WW.target < CURRENT_CUTOFF) r.WW.duty = MIN_DUTY;
@@ -184,13 +165,13 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
   if (chan) {
-    r.WW.target = gammaTable[(int)(target_tmp)];  // New gamma calculation
-    //r.WW.target = gamma_calc(target_tmp);       // possibly replaces this one
+    //r.WW.target = gammaTable[(int)(target_tmp)];  // New gamma calculation
+    r.WW.target = gamma_calc(target_tmp);       // possibly replaces this one
     //r.WW.targetNoGamma = target_tmp;              // if needed
   }
   else if (!chan) {
-    r.CW.target = gammaTable[(int)(target_tmp)];  //
-    //r.CW.target = gamma_calc(target_tmp);  //
+    //r.CW.target = gammaTable[(int)(target_tmp)];  //
+    r.CW.target = gamma_calc(target_tmp);  //
     //r.CW.targetNoGamma = target_tmp;  //
   }
 }
@@ -243,15 +224,16 @@ void TSC_task(void) {
   default:
     break;
   }
+  UI_task();
 }
 
 void button_task(void) {
   uint8_t _powButton;
 
-  if      (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
-  else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
+  if      (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
+  else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
-  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
+  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD && t.button.acquisitionValue[1] > BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
   else _powButton = 0;
 
   // "hard" Off state maschine
@@ -271,8 +253,6 @@ void button_task(void) {
       start_HRTIM1();                               // for now lets reset the flt state in the power off state
     }
   } else if (!t.button.isReleased && _powButton == 0) t.button.isReleased = 1; // set isReleased flag if powerbutton was released
-
-  UI_task();
 }
 
 void slider_task(void) {
@@ -283,7 +263,7 @@ void slider_task(void) {
 
   int16_t _isTouchedDelta = t.slider.isTouchedValAvg - t.slider.isTouchedVal; // caltulate delta from current intesity to averaged intesity
 
-  if      (_isTouchedDelta > 200)           t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
+  if      (_isTouchedDelta > 100)           t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
   else if (_isTouchedDelta < -600)          t.slider.isTouched = 0; // if delta is lower then x, touch up was detected
   else if (t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0; // std value, if no touch is present
 
@@ -306,12 +286,13 @@ void UI_task(void) {
 
   if (t.button.state) {         // if lamp is turned "soft" on
     if (t.slider.isTouched) {   // check if slider is touched
-      if (ui.debounce >= 15) {  // "debounce" slider
+      if (ui.debounce >= 5) {  // "debounce" slider
 
         if (SLIDER_BEHAVIOR == REL) {
-          if (ABS(t.slider.pos - ui.distanceOld) < 100) ui.distance += ui.distanceOld - t.slider.pos;        // calculate t.slider.pos delta
+          if (ABS(t.slider.pos - ui.distanceOld) < 200) ui.distance += ui.distanceOld - t.slider.pos;        // calculate t.slider.pos delta
+        } else if (SLIDER_BEHAVIOR == AB){
+          ui.distance = (MAX_CURRENT - (t.slider.pos - 30)) ;
         }
-        else if (SLIDER_BEHAVIOR == AB) ui.distance = t.slider.pos;
 
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
 
@@ -343,12 +324,12 @@ void UI_task(void) {
 void LED_task(void) {
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOB, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, 1);                       // set LED "Color"
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 4096);           // set LED "Power"
     HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
   } else {
     HAL_GPIO_WritePin(GPIOB, LED_Brightness, 0);                  // clear LED "Brightness"
+    __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 512);            // clear LED "Power"
     HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
-    HAL_GPIO_WritePin(GPIOA, LED_Power, 0);                       // clear LED "Color"
   }
 }
 

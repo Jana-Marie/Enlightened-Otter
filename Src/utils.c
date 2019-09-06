@@ -18,7 +18,7 @@
 
 #include "utils.h"
 #include "ntc.h"
-//#include "gamma.h"
+#include "gamma.h"
 #include "variables.h"
 
 extern struct status_t stat;
@@ -173,16 +173,15 @@ float ntc_calc(uint16_t adc_value) {
 
 	return (p1 - ( (p1 - p2) * (adc_value & 0x007F) ) / 128.0f ) / 2.0f;
 }
-/*
+
 float gamma_calc(float target){
 	float p1,p2;
 
 	p1 = gammaTable[(int)target];
 	p2 = gammaTable[(int)target+1];
 
-	return p1 + ((p1-p2)*((int)target-target));
+	return (p1 + ((p1-p2)*((int)target-target)));
 }
-*/
 
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val) {

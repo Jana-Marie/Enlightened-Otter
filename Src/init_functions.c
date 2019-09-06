@@ -288,13 +288,14 @@ void HRTIM1_Init(void)
   HAL_HRTIM_Init(&hhrtim1);
 
   HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1);
-  /*
+
   // Select internal fault source (FLT_1)
   pFaultCfg.Source    = HRTIM_FAULTSOURCE_INTERNAL;
   pFaultCfg.Polarity  = HRTIM_FAULTPOLARITY_HIGH;
   pFaultCfg.Filter    = HRTIM_FAULTFILTER_NONE;
   pFaultCfg.Lock      = HRTIM_FAULTLOCK_READWRITE;
 
+  /*
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
@@ -357,10 +358,6 @@ void HRTIM1_Init(void)
 
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD1, &pOutputCfg);
 
-  //HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC2, &pOutputCfg);
-
-  //HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD2, &pOutputCfg);
-
   // settings for the injected ADC
   compare_config.AutoDelayedMode    = HRTIM_AUTODELAYEDMODE_REGULAR;
   compare_config.AutoDelayedTimeout = 0;
@@ -386,19 +383,26 @@ void HRTIM1_Init(void)
 
 void TIM1_Init(void)
 {
-
-  TIM_MasterConfigTypeDef sMasterConfig;
-  TIM_OC_InitTypeDef sConfigOC;
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+  TIM_OC_InitTypeDef sConfigOC = {0};
+  TIM_BreakDeadTimeConfigTypeDef sBreakDeadTimeConfig = {0};
 
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 1024;
+  htim1.Init.Period = 4096;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim1.Init.RepetitionCounter = 0;
   htim1.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
+  HAL_TIM_Base_Init(&htim1);
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  HAL_TIM_ConfigClockSource(&htim1, &sClockSourceConfig);
   HAL_TIM_PWM_Init(&htim1);
 
   sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterOutputTrigger2 = TIM_TRGO2_RESET;
   sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
   HAL_TIMEx_MasterConfigSynchronization(&htim1, &sMasterConfig);
 
@@ -406,8 +410,22 @@ void TIM1_Init(void)
   sConfigOC.Pulse = 255;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;
+  sConfigOC.OCIdleState = TIM_OCIDLESTATE_RESET;
+  sConfigOC.OCNIdleState = TIM_OCNIDLESTATE_RESET;
   HAL_TIM_PWM_ConfigChannel(&htim1, &sConfigOC, TIM_CHANNEL_4);
 
+  sBreakDeadTimeConfig.OffStateRunMode = TIM_OSSR_DISABLE;
+  sBreakDeadTimeConfig.OffStateIDLEMode = TIM_OSSI_DISABLE;
+  sBreakDeadTimeConfig.LockLevel = TIM_LOCKLEVEL_OFF;
+  sBreakDeadTimeConfig.DeadTime = 0;
+  sBreakDeadTimeConfig.BreakState = TIM_BREAK_DISABLE;
+  sBreakDeadTimeConfig.BreakPolarity = TIM_BREAKPOLARITY_HIGH;
+  sBreakDeadTimeConfig.BreakFilter = 0;
+  sBreakDeadTimeConfig.Break2State = TIM_BREAK2_DISABLE;
+  sBreakDeadTimeConfig.Break2Polarity = TIM_BREAK2POLARITY_HIGH;
+  sBreakDeadTimeConfig.Break2Filter = 0;
+  sBreakDeadTimeConfig.AutomaticOutput = TIM_AUTOMATICOUTPUT_DISABLE;
+  HAL_TIMEx_ConfigBreakDeadTime(&htim1, &sBreakDeadTimeConfig);
   HAL_TIM_MspPostInit(&htim1);
 }
 
@@ -533,9 +551,9 @@ void GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   // Set output state to LOW
-  HAL_GPIO_WritePin(GPIOA, LED_Color | LED_Power, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED_Color, GPIO_PIN_RESET);
   // Change pin mode to output
-  GPIO_InitStruct.Pin   = LED_Color | LED_Power;
+  GPIO_InitStruct.Pin   = LED_Color;
   GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull  = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;

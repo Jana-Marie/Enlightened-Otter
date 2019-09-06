@@ -27,3 +27,7 @@ set_scope_channel(2, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1)); /
 set_scope_channel(3, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2)/4096.0*3.0*1000.0); //ISens1 - mA
 set_scope_channel(4, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3)/4096.0*3.0*1000.0); //Isens2 - mA
 set_scope_channel(5, HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4)/2048.0*2.12*3.0*1000); //VBAT - mV
+if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
+  stat.errCnt = 0;
+  I2C1_Init();
+}

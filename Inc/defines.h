@@ -16,44 +16,62 @@
  * this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define SCOPE_CHANNELS 	7 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
+#define DO_EXPAND(VAL)  VAL ## 1
+#define EXPAND(VAL)     DO_EXPAND(VAL)
+
+#define SCOPE_CHANNELS 	0 	// sets the number of (uart) scope channels to be set/transmitted, non defining SCOPE_CHANNELS will remove the function completly
 
 #define MAX_CURRENT 499.0f 	// sets the maximum current
 
 #define HRTIM_FREQUENCY_KHZ 500.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
  									// 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
 #define REG_CNT 			127	 	// sets the number of HRTIM passes to the next controller pass
-#define KI 					0.05f // sets the KI constant for the current regulator - do not change unless you know what you're doing
+#define KI 					0.4f // sets the KI constant for the current regulator - do not change unless you know what you're doing
 
 #define MIN_DUTY 	0.002f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
-#define OVERVOLTAGE 18.0f 	// V  -  Voltage set for Overvoltage protection, Vtargetmax is ~16.5V
-#define OVERCURRENT 0.8f	// A  -  set current for overcurrent protection (LEDs are speced @100mA but can work with ~150mA)
+#define CURRENT_AVERAGING_FILTER 	0.95f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
+#define COLOR_FADING_FILTER 		0.8f	// koeffizient of color cross fading filter
+#define BRIGHTNESS_FADING_FILTER 	0.8f	// koeffizient of brightness fading filter
+#define TOUCH_THRESHOLD_FILTER		0.65f
 
+/*
 #define CURRENT_AVERAGING_FILTER 	0.95f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.96f	// koeffizient of brightness fading filter
 #define TOUCH_THRESHOLD_FILTER		0.65f
+*/
 
 #define TURNOFF_TIME 		60		// sets the time to count to before turning off
-#define BUTTON_THRESHOLD 	-1300	// sets the threshold at which a button press has to be triggered
+#define BUTTON_THRESHOLD 	-900	// sets the threshold at which a button press has to be triggered
 
 #define CURRENT_CUTOFF		1.0f 	// sets the threshold at which the boost will be turned off
 
-#define SLIDER_BEHAVIOR		REL 	// 0 = AB = Absolute, 1 = REL = relative
+#define SLIDER_BEHAVIOR		AB 	// 0 = AB = Absolute, 1 = REL = relative
 
+#define SHUNT 0.22f
+#define SHUNT_SERIE 1000
+#define SHUNT_PULLUP 220000
+#define AREF 2.9f
+#define ARES 4096.0f
+#define SHUNT_GAIN 23.0f
+#define BATT_PULLUP 220000.0f
+#define BATT_PULLDOWN 220000.0f
+
+#define FAULT_CURRENT		(int)(4095) 	// Overcurrent set to ~510mA
+#define FAULT_VOLTAGE		(int)(4095) 	// Overvoltaeg set to 17V
+/*
+#if (EXPAND(SLIDER_BEHAVIOR) == 1)
+#define TOUCH_SCALE 200.0f   	// sets the touch slider scale - I have No idea anymore how this works
+#else
+#define TOUCH_SCALE 10.0f   	// sets the touch slider scale - I have No idea anymore how this works
+#endif
+*/
+#define TOUCH_SCALE 62.5f
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
 
-//#define TOUCH_SCALE ((700.0f/200.0f)*22.2996515f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875) - I have No idea anymore how this works
-#define TOUCH_SCALE ((700.0f/200.0f)*44.599303f)   	// sets the touch slider scale 22.2996515 -> 0-200 (TOUCH_SCALE * 8.96875) - I have No idea anymore how this works
-
-#define VDDA 				3.0f 	// Vref = VDDA = Analog power supply
-#define CURRENT_PRESCALER	1.0f 	// set the divisor for the current input
-#define VOLTAGE_PRESCALER	10.2f	//set the divisor for the voltage input
-#define FAULT_CURRENT		(int)(4096*((OVERCURRENT/CURRENT_PRESCALER)/VDDA)) 	// calculates the value the DAC for the Overcurrent protection has to be set to
-#define FAULT_VOLTAGE		(int)(4096*(((OVERVOLTAGE-0.7f)/VOLTAGE_PRESCALER)/VDDA)) 	// calculates the value the DAC for the Overvoltage protection has to be set to
 #define HRTIM_PERIOD 		(int)(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
 
 // ############################################################# //
@@ -125,14 +143,6 @@
 
 // ############################################################# //
 // usefull functions
-#define SHUNT 0.22f
-#define SHUNT_SERIE 1000
-#define SHUNT_PULLUP 220000
-#define AREF 2.9f
-#define ARES 4096.0f
-#define SHUNT_GAIN 23.0
-#define BATT_PULLUP 220000.0f
-#define BATT_PULLDOWN 220000.0f
 
 #define ADC2VBAT(a) (((a / ARES) * AREF)*((BATT_PULLUP + BATT_PULLDOWN) / BATT_PULLDOWN))
 #define AMP(a, gain) (((a) * AREF / ARES / (gain) - AREF / (SHUNT_PULLUP + SHUNT_SERIE) * SHUNT_SERIE) / (SHUNT * SHUNT_PULLUP) * (SHUNT_PULLUP + SHUNT_SERIE))
