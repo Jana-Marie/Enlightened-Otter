@@ -103,21 +103,25 @@ HW regulates after boot while main loop is basically empty \o/
 
 ### To do:
 
-- [ ] everything is super slow when Itarget is 0.0 -> investigate
 - [ ] measuring throught the RT does not work
+- [ ] ADC1 wrong values -> investigate
+- [ ] test esp8266
+- [ ] implement esp8266
+- [ ] touch slider is not super responsive -> investigate
 - [ ] visualize battery voltage -> moodlight LEDs
 - [ ] Implement moodlight LEDs
 - [ ] Overtemp protection
-- [ ] "Mobile handling"
-	- [x] Touch is not that responsive
-	- [x] Added filters to touch input
-	- [ ] Battery low alarm/turnoff -> is implemented, doesnt work, see RT9466 measuring
-- [ ] Make it more efficient -> V2 seems to be much more efficient
-	- did it a little bit
 - [ ] Find more to do's
 
 ### Done:
 
+- [x] "Mobile handling"
+	- [x] Touch is not that responsive
+	- [x] Added filters to touch input
+	- [x] Battery low alarm/turnoff -> is implemented, doesnt work, see RT9466 measuring
+- [x] everything is super slow when Itarget is 0.0 -> investigate
+- [x] UVP
+- [x] Port firmware to V2.1
 - [x] RT cannot be turned off or cannot charge batteries - investigate
 - [x] Optimize code
 	- [x] make it less ugly
