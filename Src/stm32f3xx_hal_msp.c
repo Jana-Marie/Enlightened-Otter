@@ -94,19 +94,19 @@ static uint32_t HAL_RCC_ADC12_CLK_ENABLED = 0;
 
 void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 {
-
-  GPIO_InitTypeDef GPIO_InitStruct;
-  if (hadc->Instance == ADC1)
+  GPIO_InitTypeDef GPIO_InitStruct = {0};
+  if(hadc->Instance==ADC1)
   {
-    /* USER CODE BEGIN ADC1_MspInit 0 */
+  /* USER CODE BEGIN ADC1_MspInit 0 */
 
-    /* USER CODE END ADC1_MspInit 0 */
+  /* USER CODE END ADC1_MspInit 0 */
     /* Peripheral clock enable */
     HAL_RCC_ADC12_CLK_ENABLED++;
     if (HAL_RCC_ADC12_CLK_ENABLED == 1) {
       __HAL_RCC_ADC12_CLK_ENABLE();
     }
 
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     /**ADC1 GPIO Configuration
     PB1     ------> ADC1_IN12
     */
@@ -115,8 +115,24 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
-    /* ADC1 DMA Init */
-    /* ADC1 Init */
+  /* USER CODE BEGIN ADC1_MspInit 1 */
+
+  /* USER CODE END ADC1_MspInit 1 */
+  }
+  /*
+  GPIO_InitTypeDef GPIO_InitStruct;
+  if (hadc->Instance == ADC1)
+  {
+    HAL_RCC_ADC12_CLK_ENABLED++;
+    if (HAL_RCC_ADC12_CLK_ENABLED == 1) {
+      __HAL_RCC_ADC12_CLK_ENABLE();
+    }
+
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
     hdma_adc1.Instance = DMA1_Channel1;
     hdma_adc1.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_adc1.Init.PeriphInc = DMA_PINC_DISABLE;
@@ -132,11 +148,10 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
 
     __HAL_LINKDMA(hadc, DMA_Handle, hdma_adc1);
 
-    /* USER CODE BEGIN ADC1_MspInit 1 */
     HAL_NVIC_SetPriority(ADC1_2_IRQn, 0, 0);
     HAL_NVIC_EnableIRQ(ADC1_2_IRQn);
-    /* USER CODE END ADC1_MspInit 1 */
   }
+  */
   else if (hadc->Instance == ADC2)
   {
     /* USER CODE BEGIN ADC2_MspInit 0 */

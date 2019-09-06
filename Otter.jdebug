@@ -18,9 +18,12 @@ void OnProjectLoad (void) {
   Project.SetTIFSpeed ("1 MHz");
   Project.AddSvdFile ("$(InstallDir)/Config/CPU/Cortex-M4F.svd");
   Project.AddSvdFile ("$(InstallDir)/Config/Peripherals/ARMv7M.svd");
+  Project.AddPathSubstitute ("/home/janhenrik/STM32Cube/Enlighted-Otter", "$(ProjectDir)");
+  Project.AddPathSubstitute ("/home/janhenrik/stm32cube/enlighted-otter", "$(ProjectDir)");
   //
   // User settings
   //
+  File.Open ("$(ProjectDir)/build/otter.elf");
 }
 
 /*********************************************************************

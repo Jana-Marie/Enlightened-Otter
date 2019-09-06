@@ -128,10 +128,13 @@
 #define SHUNT 0.22f
 #define SHUNT_SERIE 1000
 #define SHUNT_PULLUP 220000
-#define AREF 3.0f
-#define ARES 4096
+#define AREF 2.9f
+#define ARES 4096.0f
 #define SHUNT_GAIN 23.0
+#define BATT_PULLUP 220000.0f
+#define BATT_PULLDOWN 220000.0f
 
+#define ADC2VBAT(a) (((a / ARES) * AREF)*((BATT_PULLUP + BATT_PULLDOWN) / BATT_PULLDOWN))
 #define AMP(a, gain) (((a) * AREF / ARES / (gain) - AREF / (SHUNT_PULLUP + SHUNT_SERIE) * SHUNT_SERIE) / (SHUNT * SHUNT_PULLUP) * (SHUNT_PULLUP + SHUNT_SERIE))
 #define CLAMP(x, low, high) (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 #define SCALE(value, high, max) MIN(MAX(((max) - (value)) / ((max) - (high)), 0.0), 1.0)

@@ -92,6 +92,41 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
+void ADC1_Init(void)
+{
+  ADC_MultiModeTypeDef multimode = {0};
+  ADC_ChannelConfTypeDef sConfig = {0};
+
+  hadc1.Instance = ADC1;
+  hadc1.Init.ClockPrescaler = ADC_CLOCK_ASYNC_DIV1;
+  hadc1.Init.Resolution = ADC_RESOLUTION_12B;
+  hadc1.Init.ScanConvMode = DISABLE;
+  hadc1.Init.ContinuousConvMode = DISABLE;
+  hadc1.Init.DiscontinuousConvMode = DISABLE;
+  hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+  hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
+  hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+  hadc1.Init.NbrOfConversion = 1;
+  hadc1.Init.DMAContinuousRequests = DISABLE;
+  hadc1.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
+  hadc1.Init.LowPowerAutoWait = DISABLE;
+  hadc1.Init.Overrun = ADC_OVR_DATA_OVERWRITTEN;
+  HAL_ADC_Init(&hadc1);
+
+  multimode.Mode = ADC_MODE_INDEPENDENT;
+  HAL_ADCEx_MultiModeConfigChannel(&hadc1, &multimode);
+
+  sConfig.Channel = ADC_CHANNEL_12;
+  sConfig.Rank = ADC_REGULAR_RANK_1;
+  sConfig.SingleDiff = ADC_SINGLE_ENDED;
+  sConfig.SamplingTime = ADC_SAMPLETIME_601CYCLES_5;
+  sConfig.OffsetNumber = ADC_OFFSET_NONE;
+  sConfig.Offset = 0;
+  HAL_ADC_ConfigChannel(&hadc1, &sConfig);
+
+  HAL_ADCEx_Calibration_Start(&hadc1, ADC_SINGLE_ENDED);
+}
+
 void ADC2_Init(void)
 {
   ADC_MultiModeTypeDef MultiModeConfig;
@@ -130,7 +165,7 @@ void ADC2_Init(void)
   InjectionConfig.InjectedSingleDiff            = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber          = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset                = 0;
-  InjectionConfig.InjectedNbrOfConversion       = 4;
+  InjectionConfig.InjectedNbrOfConversion       = 3;
   InjectionConfig.InjectedDiscontinuousConvMode = DISABLE;
   InjectionConfig.AutoInjectedConv              = DISABLE;
   InjectionConfig.QueueInjectedContext          = DISABLE;
@@ -147,12 +182,6 @@ void ADC2_Init(void)
   // Configure the 2nd injected conversion for IWW on Ch2
   InjectionConfig.InjectedChannel       = ADC_CHANNEL_2;
   InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_3;
-  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_19CYCLES_5;
-  HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
-
-  // Configure the 2nd injected conversion for VBAT on Ch3
-  InjectionConfig.InjectedChannel       = ADC_CHANNEL_3;
-  InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_4;
   InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 

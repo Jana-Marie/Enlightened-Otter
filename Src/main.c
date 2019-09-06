@@ -28,6 +28,7 @@
 
 
 extern ADC_HandleTypeDef hadc2;
+extern ADC_HandleTypeDef hadc1;
 
 extern COMP_HandleTypeDef hcomp2;
 extern COMP_HandleTypeDef hcomp4;
@@ -61,9 +62,9 @@ void boost_reg();
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {5100, 5200, 4615}, .button.offsetValue = {5500, 5350, 6650}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
-struct status_t stat;
+struct status_t stat = {.vBat = 4.2};
 
-uint8_t otterStat = 0;
+uint16_t otterStat = 0;
 
 int main(void)
 {
@@ -72,6 +73,7 @@ int main(void)
 
   GPIO_Init();
   DMA_Init();
+  ADC1_Init();
   ADC2_Init();
   COMP2_Init();
   COMP4_Init();
@@ -106,32 +108,18 @@ int main(void)
   HAL_TSC_Start_IT(&htscb);   // start the touch button controller
   HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
 
+  HAL_ADC_Start(&hadc1);
+
   HAL_Delay(100); // measure current offset
   r.CW.ioff = r.CW.iavg;  // IOffsetCW - mA
   r.WW.ioff = r.WW.iavg;  // IOffsetWW - mA
 
   while (1)
   {
-    //TODO: HRTIM1 BRK input, HRTIM1 current
-    /*
-    set_scope_channel(0, t.IdxBank);
-    set_scope_channel(1, stat.errCnt);
-    set_scope_channel(2, stat.pSum);
-    set_scope_channel(3, r.CW.target);
-    set_scope_channel(4, r.WW.target);
-    set_scope_channel(5, r.CW.error);
-    set_scope_channel(6, r.WW.error);
-    console_scope();
-    */
-    //r.CW.target = r.CW.target + 0.1f;
-    //if(r.CW.target > 20.0f) r.CW.target = 0.0f;
-
-    //
 
     HAL_Delay(250);
     //otterStat = read_RT_register(0x11);
     //TSC_task();
-
 
     //RT_adc_task();
 
@@ -141,8 +129,12 @@ int main(void)
       I2C1_Init();
     }
 */
-    if ((stat.vBatRt > 2500 && stat.vBatRt < 3000) || stat.state == -1) powerdown(); //configure_RT(CHG_CTRL2, TURNOFF_MASK);
-
+    //otterStat = HAL_ADC_GetValue(&hadc1);
+    //HAL_ADC_Start(&hadc1);
+    //stat.vBatRt = (otterStat/ARES*AREF);
+    stat.vBat = FILT(ADC2VBAT(HAL_ADC_GetValue(&hadc1)),stat.vBat,0.95);
+    HAL_ADC_Start(&hadc1);
+    if ((stat.vBat > 1.0f && stat.vBat < 3.0f) || stat.state == -1) powerdown();
   }
 }
 
@@ -153,7 +145,6 @@ HAL_HRTIM_RepetitionEventCallback(HRTIM_HandleTypeDef * hhrtim, uint32_t TimerId
 void boost_reg(void) {
   // Main current regulator
   stat.ledTemp = ntc_calc(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1));
-  stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 3.0f;
 
   r.CW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2),SHUNT_GAIN) * 1000.0f;  // ISensCW - mA
   r.WW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3),SHUNT_GAIN) * 1000.0f;  // ISensWW - mA
