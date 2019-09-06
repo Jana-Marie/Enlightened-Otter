@@ -24,8 +24,6 @@
 extern I2C_HandleTypeDef hi2c1;
 extern UART_HandleTypeDef huart1;
 
-extern void configure_RT(uint8_t _register, uint8_t _mask);
-
 void enable_OTG(void);
 void disable_OTG(void);
 void set_pwm(uint8_t timer, float duty);
@@ -34,6 +32,9 @@ uint16_t read_RT_ADC(void);
 float ntc_calc(uint16_t adc_value);
 float gamma_calc(float target);
 uint8_t read_RT_status(uint8_t _mask);
+uint8_t read_RT_register(uint8_t _register);
+void RT_Init(void);
+void configure_RT(uint8_t _register, uint8_t _mask);
 #if defined(SCOPE_CHANNELS)
 void set_scope_channel(uint8_t ch, int16_t val);
 void console_scope(void);

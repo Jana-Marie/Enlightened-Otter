@@ -70,6 +70,39 @@ uint8_t read_RT_status(uint8_t _mask){
 	return ret;
 }
 
+uint8_t read_RT_register(uint8_t _register){
+	uint8_t ret;
+	uint8_t _cnt = 0;
+
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
+	HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, &_register, 1);
+	_cnt = 0;
+    while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
+	HAL_I2C_Master_Receive_DMA(&hi2c1, RT_ADDRESS, &ret, 1);
+	_cnt = 0;
+	while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
+	return ret;
+}
+
+
+void RT_Init(void) {
+  // Configure the RT9466, set currents to maximum
+  configure_RT(CHG_CTRL2, IINLIM_MASK);
+  //configure_RT(CHG_CTRL3, SET_ILIM_3A);
+	configure_RT(CHG_CTRL1,ENABLE_STAT_LED_MASK);
+  configure_RT(CHG_ADC, ADC_VBUS2);
+}
+
+void configure_RT(uint8_t _register, uint8_t _mask) {
+  uint16_t _cnt = 0;
+  uint8_t _tmp_data[2] = {_register, _mask};
+  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
+  HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, _tmp_data, 2);
+  _cnt = 0;
+  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
+}
+
+
 void set_pwm(uint8_t timer, float duty) {
 
 	/* Clamp duty cycle values */

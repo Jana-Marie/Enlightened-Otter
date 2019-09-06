@@ -39,6 +39,4 @@ void DAC2_Init(void);
 
 void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef *hhrtim);
 void HAL_TIM_MspPostInit(TIM_HandleTypeDef *htim);
-void RT_Init(void);
-void configure_RT(uint8_t _register, uint8_t _mask);
 void start_HRTIM1(void);

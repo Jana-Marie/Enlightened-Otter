@@ -26,26 +26,6 @@
 #include "variables.h"
 #include "utils.h"
 
-#define SHUNT 0.22f
-#define SHUNT_SERIE 1000
-#define SHUNT_PULLUP 220000
-#define AREF 3.0f
-#define ARES 4096
-
-//#define AMP(a, gain) (((a)*AREF / ARES / (gain)-AREF / (SHUNT_PULLUP + SHUNT_SERIE) * SHUNT_SERIE) / (SHUNT * SHUNT_PULLUP) * (SHUNT_PULLUP + SHUNT_SERIE))
-/*
-#define ADC2V(a) ((a) / (ARES) * (AREF))
-#define V1(a, vcc, pu, pm) ((a) + (pm) * ((vcc) - (a)) / (pu))
-#define AMP(a, vcc, pu, pm, shunt, gain) (V1((gain) * (a), vcc, pu, pm) / (shunt))
-*/
-#define SHUNT_GAIN 23.0
-/*
-#define AMP(a, gain) (((a) * AREF / ARES / (gain) - AREF / (SHUNT_PULLUP + SHUNT_SERIE) * SHUNT_SERIE) / (SHUNT * SHUNT_PULLUP) * (SHUNT_PULLUP + SHUNT_SERIE))
-#define AMP(a, gain) (((a) * 3.0f / 4096 / (gain) - 3.0f / (220000 + 1000) * 1000) / (0.22f * 220000) * (220000 + 1000))
-#define AMP(a, gain) (((a) * 0.00073242188 / (gain) - 3.0f / 221000000 / 48400 * 221000)
-*/
-#define AMP(a, gain) (((a) * AREF / ARES / (gain) - AREF / (SHUNT_PULLUP + SHUNT_SERIE) * SHUNT_SERIE) / (SHUNT * SHUNT_PULLUP) * (SHUNT_PULLUP + SHUNT_SERIE))
-
 extern ADC_HandleTypeDef hadc2;
 
 extern COMP_HandleTypeDef hcomp2;
@@ -82,22 +62,8 @@ struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f
 struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
 struct status_t stat;
 
-uint16_t adcCW = 0;
-uint16_t adcWW = 0;
 
-HAL_HRTIM_RepetitionEventCallback(HRTIM_HandleTypeDef * hhrtim, uint32_t TimerIdx){
-
-  boost_reg();
-  /* NOTE : This function should not be modified, when the callback is needed,
-            the HAL_HRTIM_Master_RepetitionEventCallback could be implenetd in the user file
-   */
-}
-/*
-void HAL_HRTIM_RegistersUpdateCallback(&hhrtim1)
-{
-boost_reg();
-}
-*/
+uint8_t otterStat = 0;
 
 int main(void)
 {
@@ -139,9 +105,11 @@ int main(void)
   HAL_TSC_Start_IT(&htscb);   // start the touch button controller
   HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
 
-  HAL_Delay(100);
+  HAL_Delay(100); // measure current offset
   r.CW.ioff = r.CW.iavg;  // IOffsetCW - mA
   r.WW.ioff = r.WW.iavg;  // IOffsetWW - mA
+
+  configure_RT(CHG_CTRL1,DISABLE_STAT_LED_MASK);
 
   while (1)
   {
@@ -159,8 +127,9 @@ int main(void)
     //r.CW.target = r.CW.target + 0.1f;
     //if(r.CW.target > 20.0f) r.CW.target = 0.0f;
 
-    LED_task();
-    HAL_Delay(25);
+
+    HAL_Delay(100);
+    otterStat = read_RT_register(CHG_CTRL1);
     //TSC_task();
 
     //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
@@ -199,30 +168,32 @@ int main(void)
       }
       stat.errCnt = 0;
     } else stat.errCnt++;
-
+    */
 
 
     stat.pIn = stat.vIn * stat.iIn / 1000.0f;
     stat.pBat = stat.vBatRt * stat.iBat / 1000.0f;
     stat.pSum = stat.pIn - stat.pBat;
-  */
+
   /*
     if ((stat.vIn == 0 && stat.vBatRt == 0) || stat.errCnt > 20) { // sometimes I2C still crashes, this will restart it
       stat.errCnt = 0;
       I2C1_Init();
     }
-
+*/
     if ((stat.vBatRt > 2500 && stat.vBatRt < 3000) || stat.state == -1) configure_RT(CHG_CTRL2, TURNOFF_MASK);
-    */
+
   }
+}
+
+HAL_HRTIM_RepetitionEventCallback(HRTIM_HandleTypeDef * hhrtim, uint32_t TimerIdx){
+  boost_reg();
 }
 
 void boost_reg(void) {
   // Main current regulator
-  adcCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2);
-  adcWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3);
-  r.CW.iout = AMP(adcCW,SHUNT_GAIN) * 1000.0f;  // ISensCW - mA
-  r.WW.iout = AMP(adcWW,SHUNT_GAIN) * 1000.0f;  // ISensWW - mA
+  r.CW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2),SHUNT_GAIN) * 1000.0f;  // ISensCW - mA
+  r.WW.iout = AMP(HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3),SHUNT_GAIN) * 1000.0f;  // ISensWW - mA
 
   //r.CW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2);  // ISensCW - mA
   //r.WW.iout = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3);  // ISensWW - mA
@@ -259,12 +230,12 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
   if (chan) {
-    //r.WW.target = gammaTable[(int)(target_tmp)];  // New gamma calculation
+    r.WW.target = gammaTable[(int)(target_tmp)];  // New gamma calculation
     //r.WW.target = gamma_calc(target_tmp);       // possibly replaces this one
     //r.WW.targetNoGamma = target_tmp;              // if needed
   }
   else if (!chan) {
-    //r.CW.target = gammaTable[(int)(target_tmp)];  //
+    r.CW.target = gammaTable[(int)(target_tmp)];  //
     //r.CW.target = gamma_calc(target_tmp);  //
     //r.CW.targetNoGamma = target_tmp;  //
   }
@@ -323,8 +294,8 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
 
-  if      (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
-  else if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
+  if      (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
+  else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) t.button.CBSwitch = 1;
   else;
   if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
   else _powButton = 0;
@@ -412,18 +383,17 @@ void UI_task(void) {
     set_brightness(CHAN_CW, 0.0f, ui.colorAvg, MAX_CURRENT);  // set CW output to 0
     set_brightness(CHAN_WW, 0.0f, ui.colorAvg, MAX_CURRENT);  // set WW output to 0
   }
+  LED_task();
 }
 
 void LED_task(void) {
   if (t.button.state == 1) {
-    HAL_GPIO_WritePin(GPIOB, LED_Brightness, t.button.CBSwitch); // set LED "Brightness"
+    HAL_GPIO_WritePin(GPIOB, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Power, 1);                       // set LED "Color"
-    //__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 1024);
-    HAL_GPIO_WritePin(GPIOA, LED_Color, !t.button.CBSwitch);       // set LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
   } else {
     HAL_GPIO_WritePin(GPIOB, LED_Brightness, 0);                  // clear LED "Brightness"
     HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
-    //__HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 255);
     HAL_GPIO_WritePin(GPIOA, LED_Power, 0);                       // clear LED "Color"
   }
 }

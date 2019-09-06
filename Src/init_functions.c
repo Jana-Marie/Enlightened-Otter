@@ -560,19 +560,3 @@ void start_HRTIM1(void) {
   HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
   //HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
 }
-
-void RT_Init(void) {
-  // Configure the RT9466, set currents to maximum
-  configure_RT(CHG_CTRL2, IINLIM_MASK);
-  configure_RT(CHG_CTRL3, SET_ILIM_3A);
-  configure_RT(CHG_ADC,ADC_VBUS2);
-}
-
-void configure_RT(uint8_t _register, uint8_t _mask) {
-  uint16_t _cnt = 0;
-  uint8_t _tmp_data[2] = {_register, _mask};
-  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
-  HAL_I2C_Master_Transmit_DMA(&hi2c1, RT_ADDRESS, _tmp_data, 2);
-  _cnt = 0;
-  while (HAL_I2C_GetState(&hi2c1) != HAL_I2C_STATE_READY) if (_cnt++ > 10000) break;
-}
