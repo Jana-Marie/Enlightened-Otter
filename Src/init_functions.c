@@ -126,7 +126,7 @@ void ADC2_Init(void)
   // Discontinuous injected mode: 1st injected conversion for NTC on Ch12
   InjectionConfig.InjectedChannel               = ADC_CHANNEL_12;
   InjectionConfig.InjectedRank                  = ADC_INJECTED_RANK_1;
-  InjectionConfig.InjectedSamplingTime          = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedSamplingTime          = ADC_SAMPLETIME_19CYCLES_5;
   InjectionConfig.InjectedSingleDiff            = ADC_SINGLE_ENDED;
   InjectionConfig.InjectedOffsetNumber          = ADC_OFFSET_NONE;
   InjectionConfig.InjectedOffset                = 0;
@@ -141,19 +141,19 @@ void ADC2_Init(void)
   // Configure the 2nd injected conversion for ICW on Ch1
   InjectionConfig.InjectedChannel       = ADC_CHANNEL_1;
   InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_2;
-  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   // Configure the 2nd injected conversion for IWW on Ch2
   InjectionConfig.InjectedChannel       = ADC_CHANNEL_2;
   InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_3;
-  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   // Configure the 2nd injected conversion for VBAT on Ch3
   InjectionConfig.InjectedChannel       = ADC_CHANNEL_3;
   InjectionConfig.InjectedRank          = ADC_INJECTED_RANK_4;
-  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_601CYCLES_5;
+  InjectionConfig.InjectedSamplingTime  = ADC_SAMPLETIME_19CYCLES_5;
   HAL_ADCEx_InjectedConfigChannel(&hadc2, &InjectionConfig);
 
   // Run the ADC calibration in single-ended mode
@@ -163,7 +163,7 @@ void ADC2_Init(void)
   HAL_ADCEx_InjectedStart(&hadc2);
 
   // Enable End of Injected Conversion interrupt
-  __HAL_ADC_ENABLE_IT(&hadc2, ADC_IT_JEOC);
+  //__HAL_ADC_ENABLE_IT(&hadc2, ADC_IT_JEOC);
 }
 
 void COMP2_Init(void)

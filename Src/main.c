@@ -105,16 +105,6 @@ int main(void)
   SystemClock_Config();
 
   GPIO_Init();
-
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
-
   DMA_Init();
   ADC2_Init();
   COMP2_Init();
@@ -152,14 +142,6 @@ int main(void)
   HAL_Delay(100);
   r.CW.ioff = r.CW.iavg;  // IOffsetCW - mA
   r.WW.ioff = r.WW.iavg;  // IOffsetWW - mA
-  HAL_Delay(1000);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
-  HAL_Delay(200);
-  HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
 
   while (1)
   {
@@ -251,8 +233,8 @@ void boost_reg(void) {
   r.CW.iavg = FILT(r.CW.iavg, r.CW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for CW input current
   r.WW.iavg = FILT(r.WW.iavg, r.WW.iout, CURRENT_AVERAGING_FILTER); // Moving average filter for WW input current
 
-  r.CW.error = r.CW.target - r.CW.iavg - r.CW.ioff;  // Calculate CW-current error
-  r.WW.error = r.WW.target - r.WW.iavg - r.WW.ioff;  // Calculate WW-current error
+  r.CW.error = r.CW.target - (r.CW.iavg - r.CW.ioff);  // Calculate CW-current error
+  r.WW.error = r.WW.target - (r.WW.iavg - r.WW.ioff);  // Calculate WW-current error
 
   r.CW.duty += (r.Magiekonstante * r.CW.error);     // Simple I regulator for CW current
   r.CW.duty = CLAMP(r.CW.duty, MIN_DUTY, MAX_DUTY); // Clamp to duty cycle
