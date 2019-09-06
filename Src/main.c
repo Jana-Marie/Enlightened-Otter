@@ -77,7 +77,7 @@ void LED_task(void);
 void boost_reg();
 
 //struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {0, 0, 0}};
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {0, 0, 0}, .button.offsetValue = {5500, 5350, 6650}, .button.CBSwitch = 0};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {5100, 5200, 4615}, .button.offsetValue = {5500, 5350, 6650}, .button.CBSwitch = 0};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
 struct status_t stat;
@@ -136,8 +136,8 @@ int main(void)
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, MIN_DUTY); // clear PWM registers
   //HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
-  //HAL_TSC_Start_IT(&htscb);   // start the touch button controller
-  //HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
+  HAL_TSC_Start_IT(&htscb);   // start the touch button controller
+  HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
 
   HAL_Delay(100);
   r.CW.ioff = r.CW.iavg;  // IOffsetCW - mA
@@ -159,10 +159,9 @@ int main(void)
     //r.CW.target = r.CW.target + 0.1f;
     //if(r.CW.target > 20.0f) r.CW.target = 0.0f;
 
-    //LED_task();
+    LED_task();
     HAL_Delay(25);
     //TSC_task();
-    HAL_GPIO_TogglePin(GPIOA, LED_Brightness);
 
     //stat.ledTemp = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_1);
     //stat.vBat =  HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_4) / 4096.0f * 2.12f * 3.0f * 1000.0f;
@@ -219,8 +218,6 @@ int main(void)
 }
 
 void boost_reg(void) {
-  HAL_GPIO_WritePin(GPIOA, LED_Power, 1);
-
   // Main current regulator
   adcCW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_2);
   adcWW = HAL_ADCEx_InjectedGetValue(&hadc2, ADC_INJECTED_RANK_3);
@@ -251,8 +248,6 @@ void boost_reg(void) {
 
   set_pwm(HRTIM_TIMERINDEX_TIMER_D, r.CW.duty);  // Update CW duty cycle
   set_pwm(HRTIM_TIMERINDEX_TIMER_C, r.WW.duty);  // Update WW duty cycle
-
-  HAL_GPIO_WritePin(GPIOA, LED_Power, 0);
 }
 
 void set_brightness(uint8_t chan, float brightness, float color, float max_value) {
@@ -279,9 +274,10 @@ void TSC_task(void) {
 
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
-
     t.slider.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
+    if (t.IdxBank == 1) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;    // outer channel has only half the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
+
     slider_task();
 
     HAL_TSC_IOConfig(&htscb, &IoConfigb);
@@ -355,9 +351,6 @@ void button_task(void) {
 }
 
 void slider_task(void) {
-  if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 3;    // outer channel has only half the strenght
-  if (t.IdxBank == 1) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 1.5;  // inner-left channel has only half the strenght
-
   t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);           // clamp values for position calculation
 
   t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]); // Check intensity of touch
@@ -370,9 +363,9 @@ void slider_task(void) {
   else if (t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0; // std value, if no touch is present
 
   if (t.slider.isTouched ) {
-    int16_t x = ((t.slider.acquisitionValue[2] + t.slider.acquisitionValue[0]) / 2) - t.slider.acquisitionValue[1];
-    int16_t y = ((t.slider.acquisitionValue[2] + t.slider.acquisitionValue[1]) / 2) - t.slider.acquisitionValue[0];
-    int16_t z = ((t.slider.acquisitionValue[0] + t.slider.acquisitionValue[1]) / 2) - t.slider.acquisitionValue[2];
+    int16_t x = ((t.slider.acquisitionValue[1] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[0];
+    int16_t y = ((t.slider.acquisitionValue[1] + t.slider.acquisitionValue[0]) / 2) - t.slider.acquisitionValue[2];
+    int16_t z = ((t.slider.acquisitionValue[2] + t.slider.acquisitionValue[0]) / 2) - t.slider.acquisitionValue[1];
 
     if      (x < y && x < z && y < z) t.slider.pos = 2 * TOUCH_SCALE - ((z * TOUCH_SCALE) / (y + z));
     else if (x < y && x < z && y > z) t.slider.pos = ((y * TOUCH_SCALE) / (y + z)) + TOUCH_SCALE;

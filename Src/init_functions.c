@@ -418,7 +418,7 @@ void TSC_Init(void)
   htscs.Init.SpreadSpectrumDeviation  = 127;
   htscs.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV2;
   htscs.Init.PulseGeneratorPrescaler  = TSC_PG_PRESC_DIV64;
-  htscs.Init.MaxCountValue            = TSC_MCV_8191;
+  htscs.Init.MaxCountValue            = TSC_MCV_16383;
   htscs.Init.IODefaultMode            = TSC_IODEF_OUT_PP_LOW;
   htscs.Init.SynchroPinPolarity       = TSC_SYNC_POLARITY_FALLING;
   htscs.Init.AcquisitionMode          = TSC_ACQ_MODE_NORMAL;
@@ -436,7 +436,7 @@ void TSC_Init(void)
   htscb.Init.SpreadSpectrumDeviation  = 127;
   htscb.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV2;
   htscb.Init.PulseGeneratorPrescaler  = TSC_PG_PRESC_DIV64;
-  htscb.Init.MaxCountValue            = TSC_MCV_8191;
+  htscb.Init.MaxCountValue            = TSC_MCV_16383;
   htscb.Init.IODefaultMode            = TSC_IODEF_OUT_PP_LOW;
   htscb.Init.SynchroPinPolarity       = TSC_SYNC_POLARITY_FALLING;
   htscb.Init.AcquisitionMode          = TSC_ACQ_MODE_NORMAL;
@@ -521,12 +521,13 @@ void GPIO_Init(void)
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
   HAL_GPIO_WritePin(GPIOB, ESP_EN | SK6812_EN, GPIO_PIN_RESET);
-
-  GPIO_InitStruct.Pin   = LED_Brightness;
+  /*
+  GPIO_InitStruct.Pin   = ESP_EN | SK6812_EN;
   GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_OD;
   GPIO_InitStruct.Pull  = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+  */
 
 }
 
