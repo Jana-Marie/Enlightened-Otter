@@ -39,6 +39,8 @@ extern DAC_HandleTypeDef hdac2;
 extern HRTIM_HandleTypeDef hhrtim1;
 
 extern TIM_HandleTypeDef htim1;
+extern TIM_HandleTypeDef htim15;
+extern TIM_HandleTypeDef htim16;
 
 extern I2C_HandleTypeDef hi2c1;
 
@@ -64,6 +66,45 @@ struct status_t stat = {.vBat = 4.2};
 
 uint16_t otterStat = 0;
 
+#define BUFFER_SIZE ((20*24) + 42)
+uint16_t write_buffer[BUFFER_SIZE];
+
+#define CMPH 50
+#define CMPL 25
+
+void set_pixel(uint32_t led, uint8_t r,uint8_t g,uint8_t b,uint16_t *_write_buffer) {
+	uint32_t x = 0;
+	for(uint8_t i = 0; i <= 7; i++) {
+		//r
+		_write_buffer[((i+led)*8)+0] = (r & 0x80) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+1] = (r & 0x40) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+2] = (r & 0x20) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+3] = (r & 0x10) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+4] = (r & 0x08) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+5] = (r & 0x04) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+6] = (r & 0x02) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+7] = (r & 0x01) ? CMPH:CMPL;
+		//g
+		_write_buffer[((i+led)*8)+8]  = (g& 0x80) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+9]  = (g& 0x40) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+10] = (g & 0x20) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+11] = (g & 0x10) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+12] = (g & 0x08) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+13] = (g & 0x04) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+14] = (g & 0x02) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+15] = (g & 0x01) ? CMPH:CMPL;
+		//b
+		_write_buffer[((i+led)*8)+16] = (b & 0x80) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+17] = (b & 0x40) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+18] = (b & 0x20) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+19] = (b & 0x10) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+20] = (b & 0x08) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+21] = (b & 0x04) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+22] = (b & 0x02) ? CMPH:CMPL;
+		_write_buffer[((i+led)*8)+23] = (b & 0x01) ? CMPH:CMPL;
+	}
+}
+
 int main(void)
 {
   HAL_Init();
@@ -83,6 +124,8 @@ int main(void)
   DAC1_Init();
   DAC2_Init();
   TIM1_Init();
+  //TIM15_Init();
+  TIM16_Init();
 
   HAL_COMP_Start(&hcomp2);
   HAL_COMP_Start(&hcomp4);
@@ -113,6 +156,21 @@ int main(void)
   HAL_Delay(100); // measure current offset
   r.CW.ioff = r.CW.iavg;  // IOffsetCW - mA
   r.WW.ioff = r.WW.iavg;  // IOffsetWW - mA
+
+  HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
+  //HAL_TIM_Base_Start_IT(&htim15);
+  //HAL_Delay(1);
+
+  //HAL_TIM_Base_Start(&htim16);
+  //HAL_TIM_PWM_Start(&htim16, TIM_CHANNEL_1);
+  //HAL_TIM_OnePulse_Start(&htim16, TIM_CHANNEL_1);
+  //HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,1);
+
+  HAL_TIM_PWM_Start_DMA(&htim16, TIM_CHANNEL_1, write_buffer, BUFFER_SIZE);
+
+	for(int i; i <= 18; i++){
+		set_pixel(i,0xff,0x00,0xff,write_buffer);
+	}
 
   while (1)
   {
@@ -325,11 +383,11 @@ void LED_task(void) {
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOB, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 4096);           // set LED "Power"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
+    //HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
   } else {
     HAL_GPIO_WritePin(GPIOB, LED_Brightness, 0);                  // clear LED "Brightness"
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 512);            // clear LED "Power"
-    HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
+  //  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
   }
 }
 

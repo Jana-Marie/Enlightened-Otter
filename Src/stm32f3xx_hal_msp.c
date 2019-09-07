@@ -51,6 +51,8 @@ extern DMA_HandleTypeDef hdma_usart1_rx;
 
 extern DMA_HandleTypeDef hdma_usart1_tx;
 
+extern DMA_HandleTypeDef hdma_tim16_ch1_up;
+
 extern void _Error_Handler(char *, int);
 /* USER CODE BEGIN 0 */
 
@@ -169,7 +171,7 @@ void HAL_ADC_MspInit(ADC_HandleTypeDef* hadc)
     PA6     ------> ADC2_IN3
     PB2     ------> ADC2_IN12
     */
-    GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6;
+    GPIO_InitStruct.Pin = GPIO_PIN_4 | GPIO_PIN_5;
     GPIO_InitStruct.Mode = GPIO_MODE_ANALOG;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
@@ -248,7 +250,7 @@ void HAL_ADC_MspDeInit(ADC_HandleTypeDef* hadc)
     PA6     ------> ADC2_IN3
     PB2     ------> ADC2_IN12
     */
-    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4 | GPIO_PIN_5 | GPIO_PIN_6);
+    HAL_GPIO_DeInit(GPIOA, GPIO_PIN_4 | GPIO_PIN_5);
 
     HAL_GPIO_DeInit(GPIOB, GPIO_PIN_2);
 
@@ -482,7 +484,6 @@ void HAL_HRTIM_MspPostInit(HRTIM_HandleTypeDef* hhrtim)
 
     /* USER CODE END HRTIM1_MspPostInit 1 */
   }
-
 }
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
@@ -498,7 +499,44 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* htim_base)
 
   /* USER CODE END TIM1_MspInit 1 */
   }
+  else if(htim_base->Instance==TIM15)
+  {
+  /* USER CODE BEGIN TIM15_MspInit 0 */
 
+  /* USER CODE END TIM15_MspInit 0 */
+    /* Peripheral clock enable */
+    __HAL_RCC_TIM15_CLK_ENABLE();
+    /* TIM15 interrupt Init */
+
+  /* USER CODE BEGIN TIM15_MspInit 1 */
+
+  /* USER CODE END TIM15_MspInit 1 */
+  }
+  else if(htim_base->Instance==TIM16)
+  {
+  /* USER CODE BEGIN TIM16_MspInit 0 */
+
+  /* USER CODE END TIM16_MspInit 0 */
+  /* Peripheral clock enable */
+  __HAL_RCC_TIM16_CLK_ENABLE();
+  hdma_tim16_ch1_up.Instance = DMA1_Channel3;
+  hdma_tim16_ch1_up.Init.Direction = DMA_MEMORY_TO_PERIPH;
+  hdma_tim16_ch1_up.Init.PeriphInc = DMA_PINC_DISABLE;
+  hdma_tim16_ch1_up.Init.MemInc = DMA_MINC_ENABLE;
+  hdma_tim16_ch1_up.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
+  hdma_tim16_ch1_up.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
+  hdma_tim16_ch1_up.Init.Mode = DMA_CIRCULAR;
+  hdma_tim16_ch1_up.Init.Priority = DMA_PRIORITY_VERY_HIGH;
+  HAL_DMA_Init(&hdma_tim16_ch1_up);
+
+  /* Several peripheral DMA handle pointers point to the same DMA handle.
+   Be aware that there is only one channel to perform all the requested DMAs. */
+  //__HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC1],hdma_tim16_ch1_up);
+  __HAL_LINKDMA(htim_base,hdma[TIM_DMA_ID_CC1],hdma_tim16_ch1_up);
+  /* USER CODE BEGIN TIM16_MspInit 1 */
+
+  /* USER CODE END TIM16_MspInit 1 */
+  }
 }
 
 void HAL_HRTIM_MspDeInit(HRTIM_HandleTypeDef* hhrtim)
@@ -515,7 +553,6 @@ void HAL_HRTIM_MspDeInit(HRTIM_HandleTypeDef* hhrtim)
 
     /* USER CODE END HRTIM1_MspDeInit 1 */
   }
-
 }
 
 void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
@@ -544,7 +581,7 @@ void HAL_I2C_MspInit(I2C_HandleTypeDef* hi2c)
 
     /* I2C1 DMA Init */
     /* I2C1_RX Init */
-    hdma_i2c1_rx.Instance = DMA1_Channel3;
+    hdma_i2c1_rx.Instance = DMA1_Channel7;
     hdma_i2c1_rx.Init.Direction = DMA_PERIPH_TO_MEMORY;
     hdma_i2c1_rx.Init.PeriphInc = DMA_PINC_DISABLE;
     hdma_i2c1_rx.Init.MemInc = DMA_MINC_ENABLE;
@@ -629,7 +666,27 @@ void HAL_TIM_MspPostInit(TIM_HandleTypeDef* htim)
 
   /* USER CODE END TIM1_MspPostInit 1 */
   }
+  else if(htim->Instance==TIM16)
+  {
+  /* USER CODE BEGIN TIM16_MspPostInit 0 */
 
+  /* USER CODE END TIM16_MspPostInit 0 */
+
+    //__HAL_RCC_GPIOA_CLK_ENABLE();
+    /**TIM16 GPIO Configuration
+    PA6     ------> TIM16_CH1
+    */
+    GPIO_InitStruct.Pin = GPIO_PIN_6;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+    GPIO_InitStruct.Alternate = GPIO_AF1_TIM16;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /* USER CODE BEGIN TIM16_MspPostInit 1 */
+
+  /* USER CODE END TIM16_MspPostInit 1 */
+  }
 }
 
 void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
@@ -646,7 +703,6 @@ void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef* htim_pwm)
 
     /* USER CODE END TIM2_MspDeInit 1 */
   }
-
 }
 
 void HAL_I2C_MspDeInit(I2C_HandleTypeDef* hi2c)
