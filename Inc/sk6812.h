@@ -5,8 +5,8 @@
 uint16_t write_buffer[LED_BUFFER_SIZE];
 
 typedef struct {
-    double r;       // a fraction between 0 and 1
     double g;       // a fraction between 0 and 1
+    double r;       // a fraction between 0 and 1
     double b;       // a fraction between 0 and 1
 }rgb;
 

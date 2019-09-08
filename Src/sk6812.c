@@ -104,31 +104,31 @@ rgb hsv2rgb(hsv in)
 }
 
 void set_pixel(uint16_t led, rgb in,uint16_t *_write_buffer) {
-		//r
-		_write_buffer[((led)*24)+0] = ((int)(in.r*255) & 0x80) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+1] = ((int)(in.r*255) & 0x40) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+2] = ((int)(in.r*255) & 0x20) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+3] = ((int)(in.r*255) & 0x10) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+4] = ((int)(in.r*255) & 0x08) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+5] = ((int)(in.r*255) & 0x04) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+6] = ((int)(in.r*255) & 0x02) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+7] = ((int)(in.r*255) & 0x01) ? LED_CMPH:LED_CMPL;
-		//g
-		_write_buffer[((led)*24)+8]  = ((int)(in.g*255) & 0x80) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+9]  = ((int)(in.g*255) & 0x40) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+10] = ((int)(in.g*255) & 0x20) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+11] = ((int)(in.g*255) & 0x10) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+12] = ((int)(in.g*255) & 0x08) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+13] = ((int)(in.g*255) & 0x04) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+14] = ((int)(in.g*255) & 0x02) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+15] = ((int)(in.g*255) & 0x01) ? LED_CMPH:LED_CMPL;
-		//b
-		_write_buffer[((led)*24)+16] = ((int)(in.b*255) & 0x80) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+17] = ((int)(in.b*255) & 0x40) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+18] = ((int)(in.b*255) & 0x20) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+19] = ((int)(in.b*255) & 0x10) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+20] = ((int)(in.b*255) & 0x08) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+21] = ((int)(in.b*255) & 0x04) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+22] = ((int)(in.b*255) & 0x02) ? LED_CMPH:LED_CMPL;
-		_write_buffer[((led)*24)+23] = ((int)(in.b*255) & 0x01) ? LED_CMPH:LED_CMPL;
+	//r
+	_write_buffer[((led)*24)+0+off] = ((int)(in.g*255) & 0x80) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+1+off] = ((int)(in.g*255) & 0x40) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+2+off] = ((int)(in.g*255) & 0x20) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+3+off] = ((int)(in.g*255) & 0x10) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+4+off] = ((int)(in.g*255) & 0x08) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+5+off] = ((int)(in.g*255) & 0x04) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+6+off] = ((int)(in.g*255) & 0x02) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+7+off] = ((int)(in.g*255) & 0x01) ? LED_CMPH:LED_CMPL;
+	//g
+	_write_buffer[((led)*24)+8+off]  = ((int)(in.r*255) & 0x80) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+9+off]  = ((int)(in.r*255) & 0x40) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+10+off] = ((int)(in.r*255) & 0x20) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+11+off] = ((int)(in.r*255) & 0x10) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+12+off] = ((int)(in.r*255) & 0x08) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+13+off] = ((int)(in.r*255) & 0x04) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+14+off] = ((int)(in.r*255) & 0x02) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+15+off] = ((int)(in.r*255) & 0x01) ? LED_CMPH:LED_CMPL;
+	//b
+	_write_buffer[((led)*24)+16+off] = ((int)(in.b*255) & 0x80) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+17+off] = ((int)(in.b*255) & 0x40) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+18+off] = ((int)(in.b*255) & 0x20) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+19+off] = ((int)(in.b*255) & 0x10) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+20+off] = ((int)(in.b*255) & 0x08) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+21+off] = ((int)(in.b*255) & 0x04) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+22+off] = ((int)(in.b*255) & 0x02) ? LED_CMPH:LED_CMPL;
+	_write_buffer[((led)*24)+23+off] = ((int)(in.b*255) & 0x01) ? LED_CMPH:LED_CMPL;
 }

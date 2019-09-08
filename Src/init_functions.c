@@ -298,7 +298,7 @@ void HRTIM1_Init(void)
   pFaultCfg.Filter    = HRTIM_FAULTFILTER_NONE;
   pFaultCfg.Lock      = HRTIM_FAULTLOCK_READWRITE;
 
-  
+
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
@@ -471,7 +471,7 @@ void TIM16_Init(void)
   //HAL_TIM_OnePulse_Init(&htim16, TIM_OPMODE_SINGLE);
 
   sConfigOC.OCMode = TIM_OCMODE_PWM1;
-  sConfigOC.Pulse = 99;
+  sConfigOC.Pulse = 26;
   sConfigOC.OCPolarity = TIM_OCPOLARITY_HIGH;
   sConfigOC.OCNPolarity = TIM_OCNPOLARITY_HIGH;
   sConfigOC.OCFastMode = TIM_OCFAST_DISABLE;

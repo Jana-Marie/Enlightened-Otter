@@ -25,8 +25,8 @@
 
 #define HRTIM_FREQUENCY_KHZ 500.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
  									// 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
-#define REG_CNT 			127	 	// sets the number of HRTIM passes to the next controller pass
-#define KI 					0.4f // sets the KI constant for the current regulator - do not change unless you know what you're doing
+#define REG_CNT 			50	 	// sets the number of HRTIM passes to the next controller pass
+#define KI 					0.2f // sets the KI constant for the current regulator - do not change unless you know what you're doing
 
 #define MIN_DUTY 	0.002f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
@@ -36,8 +36,12 @@
 #define BRIGHTNESS_FADING_FILTER 	0.8f	// koeffizient of brightness fading filter
 #define TOUCH_THRESHOLD_FILTER		0.65f
 
-#define TURNOFF_TIME 		60		// sets the time to count to before turning off
-#define BUTTON_THRESHOLD 	-900	// sets the threshold at which a button press has to be triggered
+#define STANDBY_TIME      3     // turn off EO after 3 min idle
+#define TURNOFF_TIME 		  60		// sets the time to count to before turning off
+#define BUTTON_THRESHOLD  -1000	// sets the threshold at which a button press has to be triggered
+#define IS_TOUCHED_DELTA  300  // sets the threshold for a slider detection event
+#define IS_RELEASED_DELTA -600 // sets the threshold for a slider release event
+#define IS_RELEASED_ABS   -1000 // sets the threshold for slider release
 
 #define CURRENT_CUTOFF		1.0f 	// sets the threshold at which the boost will be turned off
 
@@ -62,12 +66,14 @@
 #endif
 */
 #define TOUCH_SCALE 62.5f
+#define UI_DEBOUNCE_VAL 10
+
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
 
-#define HRTIM_PERIOD 		(int)(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
-
-#define LED_BUFFER_SIZE ((6*24) + 42)
+#define HRTIM_PERIOD      (int)(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
+#define STANDBY_TIME_CALC (uint32_t)(STANDBY_TIME*60*1000*2)
+#define LED_BUFFER_SIZE   ((6*24) + 42)
 
 // ############################################################# //
 // I2C registers
@@ -137,7 +143,7 @@
 #define REL 1
 
 #define LED_CMPH 50
-#define LED_CMPL 25
+#define LED_CMPL 26
 
 // ############################################################# //
 // usefull functions

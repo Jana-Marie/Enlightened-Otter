@@ -67,8 +67,11 @@ extern uint16_t write_buffer[LED_BUFFER_SIZE];
 
 uint16_t otterStat = 0;
 hsv otter;
+rgb otter_rgb;
 uint8_t moodlight = 0;
 uint8_t party = 0;
+double colorOffset;
+uint32_t standby = 0;
 
 int main(void)
 {
@@ -133,7 +136,7 @@ int main(void)
     HAL_Delay(10);
     //otterStat = read_RT_register(0x11);
     //RT_adc_task();
-    if(moodlight){
+    if(moodlight && !t.slider.isTouched){
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
       for(int i = 0; i <= 5; i++){
         otter.h = (int)((i) + (HAL_GetTick()/600))%360;
@@ -141,7 +144,7 @@ int main(void)
         otter.v = 1.0;
         set_pixel(i,hsv2rgb(otter),write_buffer);
       }
-    } else if (party){
+    } else if (party && !t.slider.isTouched ){
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
       for(int i = 0; i <= 5; i++){
         otter.h = (int)((i*60) + (HAL_GetTick()/30))%360;
@@ -149,8 +152,53 @@ int main(void)
         otter.v = 1.0;
         set_pixel(i,hsv2rgb(otter),write_buffer);
       }
+    } else if (!t.button.CBSwitch && t.slider.isTouched && t.button.state && ui.debounce >= UI_DEBOUNCE_VAL){
+      HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
+      for(int i = 0; i <= 5; i++){
+        otter.h = 180.0;
+        if((int)((ui.brightness/MAX_CURRENT)*6.0)>i){
+          otter.v = 1.0;
+        } else if((int)((ui.brightness/MAX_CURRENT)*6.0)>=i){
+          otter.v = ((ui.brightness/MAX_CURRENT)*6.0)-(int)((ui.brightness/MAX_CURRENT)*6.0);
+        } else {
+          otter.v = 0.0;
+        }
+        otter.s = 0.5;
+
+        set_pixel(((i+2)%6),hsv2rgb(otter),write_buffer);
+      }
+    } else if (t.button.CBSwitch && t.slider.isTouched  && t.button.state && ui.debounce >= UI_DEBOUNCE_VAL){
+      HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
+      for(int i = 0; i <= 5; i++){
+
+        if(((int)(ui.color*6.0f))>i){
+          otter_rgb.r = 0.5;
+          otter_rgb.g = 0.7;
+          otter_rgb.b = 1;
+        }
+        else if(((int)(ui.color*6.0f))>=i){
+          colorOffset = (ui.color*6.0f)-((int)(ui.color*6.0f));
+          otter_rgb.g = 0.5 + (0.5*(colorOffset));
+          otter_rgb.r = 0.7 ;//+ -((0.5*(colorOffset)) * (0.5*(1.0-colorOffset)))*2;
+          otter_rgb.b = 0.5 + (0.5*(colorOffset-2.0));
+        }
+        else {
+          otter_rgb.r = 1;
+          otter_rgb.g = 0.7;
+          otter_rgb.b = 0.5;
+        }
+        set_pixel(((i+2)%6),otter_rgb,write_buffer);
+      }
     } else {
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,1);
+    }
+
+    if(t.button.state || !party || !moodlight){
+      standby = HAL_GetTick();
+    } else {
+      if(standby + STANDBY_TIME_CALC < HAL_GetTick()){
+        stat.state = -1;
+      }
     }
 
     stat.vBat = FILT(ADC2VBAT(HAL_ADC_GetValue(&hadc1)),stat.vBat,0.95);
@@ -312,9 +360,9 @@ void slider_task(void) {
 
   int16_t _isTouchedDelta = t.slider.isTouchedValAvg - t.slider.isTouchedVal; // caltulate delta from current intesity to averaged intesity
 
-  if      (_isTouchedDelta > 100)           t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
-  else if (_isTouchedDelta < -600)          t.slider.isTouched = 0; // if delta is lower then x, touch up was detected
-  else if (t.slider.isTouchedValAvg > -650) t.slider.isTouched = 0; // std value, if no touch is present
+  if      (_isTouchedDelta > IS_TOUCHED_DELTA)          t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
+  else if (_isTouchedDelta < IS_RELEASED_DELTA)         t.slider.isTouched = 0; // if delta is lower then x, touch up was detected
+  else if (t.slider.isTouchedValAvg > IS_RELEASED_ABS)  t.slider.isTouched = 0; // std value, if no touch is present
 
   if (t.slider.isTouched ) {
     int16_t x = ((t.slider.acquisitionValue[1] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[0];
@@ -335,7 +383,7 @@ void UI_task(void) {
 
   if (t.button.state) {         // if lamp is turned "soft" on
     if (t.slider.isTouched) {   // check if slider is touched
-      if (ui.debounce >= 5) {  // "debounce" slider
+      if (ui.debounce >= UI_DEBOUNCE_VAL) {  // "debounce" slider
 
         if (SLIDER_BEHAVIOR == REL) {
           if (ABS(t.slider.pos - ui.distanceOld) < 200) ui.distance += ui.distanceOld - t.slider.pos;        // calculate t.slider.pos delta
@@ -374,11 +422,11 @@ void LED_task(void) {
   if (t.button.state == 1) {
     HAL_GPIO_WritePin(GPIOB, LED_Brightness, !t.button.CBSwitch); // set LED "Brightness"
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 4096);           // set LED "Power"
-    //HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, t.button.CBSwitch);       // set LED "Color"
   } else {
     HAL_GPIO_WritePin(GPIOB, LED_Brightness, 0);                  // clear LED "Brightness"
     __HAL_TIM_SET_COMPARE(&htim1, TIM_CHANNEL_4, 512);            // clear LED "Power"
-  //  HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
   }
 }
 
