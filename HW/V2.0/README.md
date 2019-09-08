@@ -13,17 +13,19 @@ Assembled HW 2.0, seems to be much sturdier, everything looking good. GND-Plane 
 ### Todo list
 
 - [ ] SW 2.0
-	- [ ] fix i2c
-	- [ ] take measurements, configure EO
+	- [x] fix i2c
+	- [x] take measurements, configure EO
 		- looks good so far
-	- [ ] fix auto turnoff
+	- [x] fix auto turnoff
 	- [ ] No current > 499mA (EO will turn off)
 	- [ ] Test LEDS and ESP
-	- [ ] move 254TR closer together
+		- [x] LEDS
+		- [ ] ESP
 	- [x] fix touch direction and intensity
 
 
 - [x] HW 2.0
+	- [x] move 254TR closer together
 	- [x] move parts to the bottom side
 	- [x] add esd protection resistors
 		- touch
