@@ -41,7 +41,7 @@ and flash it via Ozone or st-utils
 
 `st-flash --reset write build/*.bin 0x8000000`
 
-## Images V2.1 & V2.1
+## Images V2.0 & V2.1
 
 ![V2.1 Front](Images/v21_front_1.jpg)
 ![V2.1 Front](Images/body_2.jpg)
