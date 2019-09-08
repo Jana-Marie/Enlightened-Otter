@@ -44,6 +44,7 @@ and flash it via Ozone or st-utils
 ## Images V2.1
 
 ![V2.1 Front](Images/v21_front_1.jpg)
+![V2.1 Back](Images/v21_back_1.jpg)
 
 ## Images V2.0
 
