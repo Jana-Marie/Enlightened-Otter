@@ -2,7 +2,7 @@
 
 Enlightened-Otter is an Open-Source and OSHW work-light for hacker/maker events like the chaos communication congress. It is based upon a STM32F334 with its 
 high resolution timer as dual boost 
-converter. The main goal is to provide cableless, high CRI, high brightness, flicker-free illumination with a variable color temperature. This is achieved by using LEDs with high CRI (>93, STW9Q14C) and 
+converter. The main goal is to provide cordless, high CRI, high brightness, flicker-free illumination with a variable color temperature. This is achieved by using LEDs with high a CRI (>93, STW9Q14C) and 
 the boost 
 converter operating at a frequency of up to 850khz. The PCB also features USB-C (power profile 1) to deliver enough power to charge the 18650 type batteries as well as keep up operation of the boost converter.
 
@@ -41,6 +41,9 @@ and flash it via Ozone or st-utils
 
 `st-flash --reset write build/*.bin 0x8000000`
 
+## Images V2.1
+
+WIP
 
 ## Images V1.1
 
@@ -92,7 +95,7 @@ Click to play
 
 ### Current state:
 
-PCB V2.1 is here.
+PCB V2.1 is here, V2.11 is ordered.
 
 Complete power redesign. HW is flashable, both boost converter work properly up to a current of ~500mA, current regulation works on both boost converters ( < +-0.5mA up to 500mA, regulation frequency is 2.5khz), RT9466 seems to do its job, does work properly on 
 batteries, not on USB. Measuring thought the RT does not work, Power down does. LED outputs and Touch inputs work, has correct fault handling.
@@ -107,14 +110,14 @@ HW regulates after boot while main loop is basically empty \o/
 - [ ] ADC1 wrong values -> investigate
 - [ ] test esp8266
 - [ ] implement esp8266
-- [ ] touch slider is not super responsive -> investigate
 - [ ] visualize battery voltage -> moodlight LEDs
-- [ ] Implement moodlight LEDs
 - [ ] Overtemp protection
 - [ ] Find more to do's
 
 ### Done:
 
+- [x] Implement moodlight LEDs
+- [x] touch slider is not super responsive -> investigate
 - [x] "Mobile handling"
 	- [x] Touch is not that responsive
 	- [x] Added filters to touch input
