@@ -105,17 +105,6 @@ $EndComp
 Text Label 2350 3150 0    60   ~ 0
 REGN
 $Comp
-L power:GND #GND0108
-U 1 1 5D2B582D
-P 7050 4650
-F 0 "#GND0108" H 7138 4643 20  0000 L CNN
-F 1 "GND" H 7138 4591 30  0000 L CNN
-F 2 "" H 7050 4650 70  0000 C CNN
-F 3 "" H 7050 4650 70  0000 C CNN
-	1    7050 4650
-	1    0    0    -1  
-$EndComp
-$Comp
 L power:GND #GND0109
 U 1 1 5D2B582C
 P 7350 4350
@@ -334,14 +323,6 @@ Wire Wire Line
 Wire Wire Line
 	5950 8400 5950 8800
 Wire Wire Line
-	6850 4650 7050 4650
-Wire Wire Line
-	6550 4650 6850 4650
-Wire Wire Line
-	6850 4750 6550 4750
-Wire Wire Line
-	6850 4650 6850 4750
-Wire Wire Line
 	5750 2900 5850 2900
 Wire Wire Line
 	6050 2950 6350 2950
@@ -370,7 +351,6 @@ Connection ~ 5850 2900
 Connection ~ 6050 3450
 Connection ~ 6050 3150
 Connection ~ 6050 2950
-Connection ~ 6850 4650
 Connection ~ 7250 2950
 Connection ~ 8050 2950
 $Comp
@@ -526,17 +506,6 @@ F 2 "Resistor_SMD:R_1206_3216Metric" H 5850 9440 60  0001 C CNN
 F 3 "" H 5850 9440 60  0000 C CNN
 	1    5650 9400
 	0    -1   -1   0   
-$EndComp
-$Comp
-L EO:TS-1136EVW T1
-U 1 1 5D2B5811
-P 6150 4650
-F 0 "T1" H 5940 4850 60  0000 L BNN
-F 1 "Panasonic_EVQPUL_EVQPUC" H 5940 4350 60  0000 L BNN
-F 2 "Button_Switch_SMD:Panasonic_EVQPUL_EVQPUC" H 5940 4350 60  0001 C CNN
-F 3 "" H 5940 4350 60  0000 C CNN
-	1    6150 4650
-	1    0    0    -1  
 $EndComp
 $Comp
 L EO:254 254_1
@@ -786,4 +755,6 @@ F 3 "" H 2760 2660 60  0000 C CNN
 	0    -1   -1   0   
 $EndComp
 Connection ~ 2950 2650
+Text GLabel 5750 4650 2    50   Input ~ 0
+TOUCH_POWER
 $EndSCHEMATC

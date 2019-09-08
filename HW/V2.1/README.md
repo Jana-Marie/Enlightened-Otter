@@ -1,2 +1,0 @@
-# EOHW
-# EOHWKiCAD

@@ -886,12 +886,12 @@ $EndComp
 $Comp
 L Device:R R13
 U 1 1 5D2B584B
-P 6250 2750
-F 0 "R13" V 6021 2750 60  0000 C CNN
-F 1 "10k" V 6127 2750 60  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" H 6250 2510 60  0001 C CNN
-F 3 "" H 6250 2510 60  0000 C CNN
-	1    6250 2750
+P 6850 2750
+F 0 "R13" V 6621 2750 60  0000 C CNN
+F 1 "10k" V 6727 2750 60  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 6850 2510 60  0001 C CNN
+F 3 "" H 6850 2510 60  0000 C CNN
+	1    6850 2750
 	0    1    1    0   
 $EndComp
 $Comp
@@ -1142,7 +1142,7 @@ Wire Wire Line
 Wire Wire Line
 	6100 4800 6100 4750
 Wire Wire Line
-	6400 2750 6800 2750
+	7000 2750 7400 2750
 Connection ~ 8400 1650
 Wire Wire Line
 	8400 1650 8400 1600
@@ -1206,8 +1206,6 @@ Wire Wire Line
 Wire Wire Line
 	5700 2950 6050 2950
 Wire Wire Line
-	5700 3150 6050 3150
-Wire Wire Line
 	5700 3250 6050 3250
 Wire Wire Line
 	5700 3450 6050 3450
@@ -1252,8 +1250,6 @@ Wire Wire Line
 Wire Wire Line
 	3200 3150 3700 3150
 Wire Wire Line
-	5700 2750 6100 2750
-Wire Wire Line
 	3250 1800 3400 1800
 Connection ~ 3400 1800
 Wire Wire Line
@@ -1285,7 +1281,7 @@ Text GLabel 2600 9550 2    50   Input ~ 0
 LED3
 Text GLabel 5800 5650 2    50   Input ~ 0
 NRST
-Text GLabel 6800 2750 2    50   Input ~ 0
+Text GLabel 7400 2750 2    50   Input ~ 0
 NTC
 Text GLabel 6050 2850 2    50   Input ~ 0
 TOUCH5
@@ -1293,8 +1289,6 @@ Text GLabel 6050 3250 2    50   Input ~ 0
 TOUCH6
 Text GLabel 6050 3050 2    50   Input ~ 0
 OTG
-Text GLabel 6050 3150 2    50   Input ~ 0
-TOUCH7
 Text GLabel 6050 2950 2    50   Input ~ 0
 TOUCH8
 Text GLabel 6050 3450 2    50   Input ~ 0
@@ -1345,8 +1339,6 @@ Text GLabel 1000 4050 0    50   Input ~ 0
 NRST
 Text Label 3200 4050 0    60   ~ 0
 SWCLK
-Text GLabel 1350 5800 3    50   Input ~ 0
-NTC
 Text GLabel 1500 7200 0    50   Input ~ 0
 TOUCH5
 Text GLabel 1500 6800 0    50   Input ~ 0
@@ -2005,4 +1997,120 @@ F 3 "~" H 3100 1800 50  0001 C CNN
 	1    3100 1800
 	0    1    1    0   
 $EndComp
+$Comp
+L otter:BS801B U6
+U 1 1 5D767019
+P 8250 5050
+F 0 "U6" H 8250 5375 50  0000 C CNN
+F 1 "BS801B" H 8250 5284 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-23-6" H 8250 5250 50  0001 C CNN
+F 3 "" H 8250 5250 50  0001 C CNN
+	1    8250 5050
+	1    0    0    -1  
+$EndComp
+Text GLabel 7800 5150 0    50   Input ~ 0
+TOUCH7
+$Comp
+L power:GND #GND0108
+U 1 1 5D774B01
+P 7800 5050
+F 0 "#GND0108" V 7775 4923 20  0000 R CNN
+F 1 "GND" V 7827 4923 30  0000 R CNN
+F 2 "" H 7800 5050 70  0000 C CNN
+F 3 "" H 7800 5050 70  0000 C CNN
+	1    7800 5050
+	0    1    1    0   
+$EndComp
+Text GLabel 7800 4950 0    50   Input ~ 0
+TOUCH_POWER
+NoConn ~ 8700 4950
+$Comp
+L EO:C-0603-100n-50V C58
+U 1 1 5D7A59D1
+P 9550 5250
+F 0 "C58" V 9547 5260 60  0000 L CNN
+F 1 "100n 50V" V 9653 5260 60  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 9460 5060 60  0001 C CNN
+F 3 "" H 9460 5060 60  0000 C CNN
+	1    9550 5250
+	0    1    1    0   
+$EndComp
+$Comp
+L power:GND #GND0143
+U 1 1 5D7A59D8
+P 9450 5450
+F 0 "#GND0143" H 9538 5443 20  0000 L CNN
+F 1 "GND" H 9538 5391 30  0000 L CNN
+F 2 "" H 9450 5450 70  0000 C CNN
+F 3 "" H 9450 5450 70  0000 C CNN
+	1    9450 5450
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9450 5050 8700 5050
+$Comp
+L EO:C-0402-18p-50V C46
+U 1 1 5D7BEE89
+P 8750 5350
+F 0 "C46" V 8853 5140 60  0000 R CNN
+F 1 "18p 50V" V 8747 5140 60  0000 R CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric" H 8860 5440 60  0001 C CNN
+F 3 "" H 8860 5440 60  0000 C CNN
+	1    8750 5350
+	0    -1   -1   0   
+$EndComp
+Wire Wire Line
+	8700 5150 8850 5150
+$Comp
+L power:GND #GND0144
+U 1 1 5D7E35AF
+P 8850 5450
+F 0 "#GND0144" H 8938 5443 20  0000 L CNN
+F 1 "GND" H 8938 5391 30  0000 L CNN
+F 2 "" H 8850 5450 70  0000 C CNN
+F 3 "" H 8850 5450 70  0000 C CNN
+	1    8850 5450
+	1    0    0    -1  
+$EndComp
+$Comp
+L EO:VBAT+ #VBAT+_?
+U 1 1 5D7F0297
+P 9450 5000
+AR Path="/5D7F0297" Ref="#VBAT+_?"  Part="1" 
+AR Path="/5D2BD306/5D7F0297" Ref="#VBAT+_0101"  Part="1" 
+F 0 "#VBAT+_0101" H 9538 5067 20  0000 L CNN
+F 1 "VBAT+" H 9538 5015 30  0000 L CNN
+F 2 "" H 9450 5000 70  0000 C CNN
+F 3 "" H 9450 5000 70  0000 C CNN
+	1    9450 5000
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	9450 5000 9450 5050
+Wire Wire Line
+	9450 5150 9450 5050
+Connection ~ 9450 5050
+$Comp
+L Device:D D?
+U 1 1 5D84EDDD
+P 6850 3150
+AR Path="/5D2BCF2C/5D84EDDD" Ref="D?"  Part="1" 
+AR Path="/5D2BD306/5D84EDDD" Ref="D10"  Part="1" 
+F 0 "D10" H 6850 2934 50  0000 C CNN
+F 1 "D" H 6850 3025 50  0000 C CNN
+F 2 "Diode_SMD:D_SOD-123F" H 6850 3150 50  0001 C CNN
+F 3 "~" H 6850 3150 50  0001 C CNN
+	1    6850 3150
+	-1   0    0    1   
+$EndComp
+Text GLabel 7050 3150 2    50   Input ~ 0
+TOUCH_POWER
+Wire Wire Line
+	7050 3150 7000 3150
+Wire Wire Line
+	5700 2750 6700 2750
+Text GLabel 1350 5800 3    50   Input ~ 0
+NTC
+Wire Wire Line
+	5700 3150 6700 3150
 $EndSCHEMATC
