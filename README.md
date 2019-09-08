@@ -41,18 +41,19 @@ and flash it via Ozone or st-utils
 
 `st-flash --reset write build/*.bin 0x8000000`
 
-## Images V2.1
+## Images V2.1 & V2.1
 
-WIP
+![V2.1 Front](Images/v21_front_1.jpg)
+![V2.1 Front](Images/body_2.jpg)
 
 ## Images V1.1
 
-![Battery 1](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_tisch.jpeg)
-![Battery 2](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_werkstatt.jpeg)
+![Battery 1](Images/final_tisch.jpeg)
+![Battery 2](Images/final_werkstatt.jpeg)
 
-![Top View](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/Enlighted_Otter_1.jpeg)
-![Side View](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/Enlighted_Otter_2.jpeg)
-![Bottom View](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/Enlighted_Otter_3.jpeg)
+![Top View](Images/Enlighted_Otter_1.jpeg)
+![Side View](Images/Enlighted_Otter_2.jpeg)
+![Bottom View](Images/Enlighted_Otter_3.jpeg)
 
 ## Videos
 
@@ -60,7 +61,7 @@ Click to play
 
 #### On a Bottle
 
-[![Finished Prototype](https://raw.githubusercontent.com/Jan--Henrik/Enlightened-Otter/master/Images/final_werkstatt.jpeg)](https://twitter.com/JanHenrikH/status/1033489392109797377)
+[![Finished Prototype](Images/final_werkstatt.jpeg)](https://twitter.com/JanHenrikH/status/1033489392109797377)
 
 #### Boost converter operation
 
