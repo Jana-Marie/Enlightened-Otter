@@ -24,7 +24,7 @@
 #include "defines.h"
 #include "utils.h"
 #include "variables.h"
-
+#include "sk6812.h"
 
 extern ADC_HandleTypeDef hadc2;
 extern ADC_HandleTypeDef hadc1;
@@ -63,47 +63,12 @@ struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {5100, 5200, 4615}, .but
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
 struct status_t stat = {.vBat = 4.2};
+extern uint16_t write_buffer[LED_BUFFER_SIZE];
 
 uint16_t otterStat = 0;
-
-#define BUFFER_SIZE ((20*24) + 42)
-uint16_t write_buffer[BUFFER_SIZE];
-
-#define CMPH 50
-#define CMPL 25
-
-void set_pixel(uint32_t led, uint8_t r,uint8_t g,uint8_t b,uint16_t *_write_buffer) {
-	uint32_t x = 0;
-	for(uint8_t i = 0; i <= 7; i++) {
-		//r
-		_write_buffer[((i+led)*8)+0] = (r & 0x80) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+1] = (r & 0x40) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+2] = (r & 0x20) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+3] = (r & 0x10) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+4] = (r & 0x08) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+5] = (r & 0x04) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+6] = (r & 0x02) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+7] = (r & 0x01) ? CMPH:CMPL;
-		//g
-		_write_buffer[((i+led)*8)+8]  = (g& 0x80) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+9]  = (g& 0x40) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+10] = (g & 0x20) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+11] = (g & 0x10) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+12] = (g & 0x08) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+13] = (g & 0x04) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+14] = (g & 0x02) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+15] = (g & 0x01) ? CMPH:CMPL;
-		//b
-		_write_buffer[((i+led)*8)+16] = (b & 0x80) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+17] = (b & 0x40) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+18] = (b & 0x20) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+19] = (b & 0x10) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+20] = (b & 0x08) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+21] = (b & 0x04) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+22] = (b & 0x02) ? CMPH:CMPL;
-		_write_buffer[((i+led)*8)+23] = (b & 0x01) ? CMPH:CMPL;
-	}
-}
+hsv otter;
+uint8_t moodlight = 0;
+uint8_t party = 0;
 
 int main(void)
 {
@@ -157,30 +122,40 @@ int main(void)
   r.CW.ioff = r.CW.iavg;  // IOffsetCW - mA
   r.WW.ioff = r.WW.iavg;  // IOffsetWW - mA
 
-  HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
-  //HAL_TIM_Base_Start_IT(&htim15);
-  //HAL_Delay(1);
+  HAL_TIM_PWM_Start_DMA(&htim16, TIM_CHANNEL_1, write_buffer, LED_BUFFER_SIZE);
 
-  //HAL_TIM_Base_Start(&htim16);
-  //HAL_TIM_PWM_Start(&htim16, TIM_CHANNEL_1);
-  //HAL_TIM_OnePulse_Start(&htim16, TIM_CHANNEL_1);
-  //HAL_GPIO_WritePin(GPIOA,GPIO_PIN_6,1);
-
-  HAL_TIM_PWM_Start_DMA(&htim16, TIM_CHANNEL_1, write_buffer, BUFFER_SIZE);
-
-	for(int i; i <= 18; i++){
-		set_pixel(i,0xff,0x00,0xff,write_buffer);
-	}
+  otter.h = 0;
+  otter.s = 1.0;
+  otter.v = 1.0;
 
   while (1)
   {
-    HAL_Delay(250);
+    HAL_Delay(10);
     //otterStat = read_RT_register(0x11);
     //RT_adc_task();
+    if(moodlight){
+      HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
+      for(int i = 0; i <= 5; i++){
+        otter.h = (int)((i) + (HAL_GetTick()/600))%360;
+        otter.s = 1.0;
+        otter.v = 1.0;
+        set_pixel(i,hsv2rgb(otter),write_buffer);
+      }
+    } else if (party){
+      HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
+      for(int i = 0; i <= 5; i++){
+        otter.h = (int)((i*60) + (HAL_GetTick()/30))%360;
+        otter.s = 1.0;
+        otter.v = 1.0;
+        set_pixel(i,hsv2rgb(otter),write_buffer);
+      }
+    } else {
+      HAL_GPIO_WritePin(GPIOA,SK6812_EN,1);
+    }
 
     stat.vBat = FILT(ADC2VBAT(HAL_ADC_GetValue(&hadc1)),stat.vBat,0.95);
     HAL_ADC_Start(&hadc1);
-    if ((stat.vBat > 1.0f && stat.vBat < 3.0f) || stat.state == -1) ;//powerdown();
+    if ((stat.vBat > 1.0f && stat.vBat < 2.9f) || stat.state == -1) powerdown();
   }
 }
 
@@ -288,17 +263,33 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
 
-  if      (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) t.button.CBSwitch = 0; // switch color or brightness selector
-  else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) t.button.CBSwitch = 1;
-  else;
-  if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD && t.button.acquisitionValue[1] > BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) _powButton = 1;        // if the power button is pressed set to 1
-  else _powButton = 0;
+  if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) {
+    t.button.CBSwitch = 0; // switch color or brightness selector
+    t.button.isTouchedTime++;
+  } else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) {
+    t.button.CBSwitch = 1;
+    t.button.isTouchedTime++;
+  } else if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD && t.button.acquisitionValue[1] > BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) {
+    _powButton = 1;        // if the power button is pressed set to 1
+    t.button.isTouchedTime++;
+  } else {
+    _powButton = 0;
+  }
 
   // "hard" Off state maschine
-  if (_powButton) {           // check if power button is pressed
-    t.button.isTouchedTime++; // increase counter if so
-    if (t.button.isTouchedTime > TURNOFF_TIME) stat.state = -1;// when the counter target is reached, turn off via richtek "shipping" mode
-  } else t.button.isTouchedTime = 0;  // if power button is released, reset counter
+
+  if (t.button.isTouchedTime > TURNOFF_TIME && _powButton) {
+    stat.state = -1;// when the counter target is reached, turn off via richtek "shipping" mode
+    t.button.isTouchedTime = 0;
+  } else if (t.button.isTouchedTime > TURNOFF_TIME && t.button.CBSwitch) {
+    moodlight ^= 1;
+    party = 0;
+    t.button.isTouchedTime = 0;
+  } else if (t.button.isTouchedTime > TURNOFF_TIME && !t.button.CBSwitch) {
+    party ^= 1;
+    moodlight = 0;
+    t.button.isTouchedTime = 0;
+  }
 
   // power button state maschine
   if (t.button.isReleased) {                       // power button state maschine start if button was released, waiting for the next press

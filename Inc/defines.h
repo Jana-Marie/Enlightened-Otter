@@ -36,13 +36,6 @@
 #define BRIGHTNESS_FADING_FILTER 	0.8f	// koeffizient of brightness fading filter
 #define TOUCH_THRESHOLD_FILTER		0.65f
 
-/*
-#define CURRENT_AVERAGING_FILTER 	0.95f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
-#define COLOR_FADING_FILTER 		0.95f	// koeffizient of color cross fading filter
-#define BRIGHTNESS_FADING_FILTER 	0.96f	// koeffizient of brightness fading filter
-#define TOUCH_THRESHOLD_FILTER		0.65f
-*/
-
 #define TURNOFF_TIME 		60		// sets the time to count to before turning off
 #define BUTTON_THRESHOLD 	-900	// sets the threshold at which a button press has to be triggered
 
@@ -55,17 +48,17 @@
 #define SHUNT_PULLUP 220000
 #define AREF 2.9f
 #define ARES 4096.0f
-#define SHUNT_GAIN 23.0f
+#define SHUNT_GAIN  19.3333f
 #define BATT_PULLUP 220000.0f
 #define BATT_PULLDOWN 220000.0f
 
-#define FAULT_CURRENT		(int)(4095) 	// Overcurrent set to ~510mA
-#define FAULT_VOLTAGE		(int)(4095) 	// Overvoltaeg set to 17V
+#define FAULT_CURRENT		(int)(3900) 	// Overcurrent set to ~590mA
+#define FAULT_VOLTAGE		(int)(2250) 	// Overvoltaeg set to 17V
 /*
 #if (EXPAND(SLIDER_BEHAVIOR) == 1)
 #define TOUCH_SCALE 200.0f   	// sets the touch slider scale - I have No idea anymore how this works
 #else
-#define TOUCH_SCALE 10.0f   	// sets the touch slider scale - I have No idea anymore how this works
+#define TOUCH_SCALE 62.5f   	// sets the touch slider scale - I have No idea anymore how this works
 #endif
 */
 #define TOUCH_SCALE 62.5f
@@ -73,6 +66,8 @@
 // Automatic calculated Values, please use the variables above
 
 #define HRTIM_PERIOD 		(int)(1.0/(HRTIM_FREQUENCY_KHZ*1000.0f)/0.000000000217f) // calculates the timer period value, therefore sets the frequency
+
+#define LED_BUFFER_SIZE ((6*24) + 42)
 
 // ############################################################# //
 // I2C registers
@@ -140,6 +135,9 @@
 
 #define AB 0
 #define REL 1
+
+#define LED_CMPH 50
+#define LED_CMPL 25
 
 // ############################################################# //
 // usefull functions

@@ -298,7 +298,7 @@ void HRTIM1_Init(void)
   pFaultCfg.Filter    = HRTIM_FAULTFILTER_NONE;
   pFaultCfg.Lock      = HRTIM_FAULTLOCK_READWRITE;
 
-  /*
+  
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_1, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_1, HRTIM_FAULTMODECTL_ENABLED);
@@ -310,7 +310,7 @@ void HRTIM1_Init(void)
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_3, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
-  */
+
 
   // Set the frequency and period
   pTimeBaseCfg.Period             = HRTIM_PERIOD;
