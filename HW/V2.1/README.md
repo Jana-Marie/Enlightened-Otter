@@ -4,7 +4,7 @@
 - made pads for studs larger in diameter
 - switched to kicad
 
-![V2.1](Images/v21_back_1.jpg)
+![V2.1](/Images/v21_back_1.jpg)
 
 ### Todo list
 
