@@ -43,9 +43,12 @@ and flash it via Ozone or st-utils
 
 ## Images V2.1
 
-![V2.1 Front](Images/v21_front_1.jpg)
+![V2.1 Front](Images/v21_2.jpg)
+![V2.1 Back](Images/v21_mate_2.jpg)
+![V2.1 Front](Images/v21_moodlight_1.jpg)
+![V2.1 Back](Images/v21_moodlight_4.jpg)
+![V2.1 Front](Images/v21_on_2.jpg)
 ![V2.1 Back](Images/v21_back_1.jpg)
-
 ## Images V2.0
 
 ![V2.0 Body](Images/body_2.jpg)
