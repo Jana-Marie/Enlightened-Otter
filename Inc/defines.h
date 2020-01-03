@@ -54,7 +54,7 @@
 #define ARES 4096.0f
 #define SHUNT_GAIN  19.3333f
 #define BATT_PULLUP 220000.0f
-#define BATT_PULLDOWN 220000.0f
+#define BATT_PULLDOWN 47000.0f
 
 #define FAULT_CURRENT		(int)(3900) 	// Overcurrent set to ~590mA
 #define FAULT_VOLTAGE		(int)(2250) 	// Overvoltaeg set to 17V

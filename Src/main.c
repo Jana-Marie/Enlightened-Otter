@@ -102,8 +102,8 @@ int main(void)
   HAL_DAC_Start(&hdac1, DAC_CHANNEL_2);
   HAL_DAC_Start(&hdac2, DAC_CHANNEL_1);
 
-  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, FAULT_CURRENT);  // set the current for the COMP2,4 to trigger FLT_1
-  HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, FAULT_VOLTAGE);  // set the voltage for the COMP6 to trigger FLT_1
+  HAL_DAC_SetValue(&hdac1, DAC_CHANNEL_2, DAC_ALIGN_12B_R, 4095);  // set the current for the COMP2,4 to trigger FLT_1
+  HAL_DAC_SetValue(&hdac2, DAC_CHANNEL_1, DAC_ALIGN_12B_R, 4095);  // set the voltage for the COMP6 to trigger FLT_1
 
   RT_Init();      // initialize the RT9466, mainly sets ILIM
   configure_RT(CHG_CTRL1,0x10);
@@ -203,7 +203,7 @@ int main(void)
 
     stat.vBat = FILT(ADC2VBAT(HAL_ADC_GetValue(&hadc1)),stat.vBat,0.95);
     HAL_ADC_Start(&hadc1);
-    if ((stat.vBat > 1.0f && stat.vBat < 2.9f) || stat.state == -1) powerdown();
+    if ((stat.vBat > 1.5f && stat.vBat < 2.9f) || stat.state == -1) powerdown();
   }
 }
 
@@ -293,7 +293,7 @@ void TSC_task(void) {
     t.IdxBank = 1;
     break;
   case 1:
-    IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
+    //IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
     IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
     t.IdxBank = 2;
     break;
@@ -310,14 +310,14 @@ void TSC_task(void) {
 
 void button_task(void) {
   uint8_t _powButton;
-
+  t.button.acquisitionValue[0] = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_6);
   if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) {
     t.button.CBSwitch = 0; // switch color or brightness selector
     t.button.isTouchedTime++;
   } else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) {
     t.button.CBSwitch = 1;
     t.button.isTouchedTime++;
-  } else if (t.button.acquisitionValue[0] < BUTTON_THRESHOLD && t.button.acquisitionValue[1] > BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) {
+  } else if (t.button.acquisitionValue[0] == 0 && t.button.acquisitionValue[1] > BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) {
     _powButton = 1;        // if the power button is pressed set to 1
     t.button.isTouchedTime++;
   } else {
