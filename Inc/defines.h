@@ -32,16 +32,16 @@
 #define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define CURRENT_AVERAGING_FILTER 	0.95f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
-#define COLOR_FADING_FILTER 		0.8f	// koeffizient of color cross fading filter
-#define BRIGHTNESS_FADING_FILTER 	0.8f	// koeffizient of brightness fading filter
-#define TOUCH_THRESHOLD_FILTER		0.65f
+#define COLOR_FADING_FILTER 		0.6f	// koeffizient of color cross fading filter
+#define BRIGHTNESS_FADING_FILTER 	0.6f	// koeffizient of brightness fading filter
+#define TOUCH_THRESHOLD_FILTER		0.55f
 
 #define STANDBY_TIME      3     // turn off EO after 3 min idle
 #define TURNOFF_TIME 		  60		// sets the time to count to before turning off
 #define BUTTON_THRESHOLD  -2000	// sets the threshold at which a button press has to be triggered
-#define IS_TOUCHED_DELTA  600  // sets the threshold for a slider detection event
-#define IS_RELEASED_DELTA -300 // sets the threshold for a slider release event
-#define IS_RELEASED_ABS   -1000 // sets the threshold for slider release
+#define IS_TOUCHED_DELTA  800  // sets the threshold for a slider detection event
+#define IS_RELEASED_DELTA -200 // sets the threshold for a slider release event
+#define IS_RELEASED_ABS   -1200 // sets the threshold for slider release
 
 #define CURRENT_CUTOFF		1.0f 	// sets the threshold at which the boost will be turned off
 
