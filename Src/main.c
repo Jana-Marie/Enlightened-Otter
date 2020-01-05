@@ -59,8 +59,8 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {5100, 5200, 4615}, .button.offsetValue = {5500, 5350, 6650}, .button.CBSwitch = 0};
-struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {3000, 3000, 4000}, .button.offsetValue = {1, 5000, 6000}, .button.CBSwitch = 0};
+struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 150.0f, .CW.target = 150.0f};
 struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
 struct status_t stat = {.vBat = 4.2};
 extern uint16_t write_buffer[LED_BUFFER_SIZE];
@@ -263,6 +263,8 @@ void TSC_task(void) {
   {
     t.slider.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
     if (t.IdxBank == 1) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;    // outer channel has only half the strenght
+    if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;    // left channel has double the strenght
+    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;                        // limit the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
 
     slider_task();
@@ -311,12 +313,10 @@ void TSC_task(void) {
 void button_task(void) {
   uint8_t _powButton;
   t.button.acquisitionValue[0] = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_6);
-  if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) {
+  if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) {
     t.button.CBSwitch = 0; // switch color or brightness selector
-    t.button.isTouchedTime++;
-  } else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD && t.button.acquisitionValue[0] > BUTTON_THRESHOLD) {
+  } else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) {
     t.button.CBSwitch = 1;
-    t.button.isTouchedTime++;
   } else if (t.button.acquisitionValue[0] == 0 && t.button.acquisitionValue[1] > BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) {
     _powButton = 1;        // if the power button is pressed set to 1
     t.button.isTouchedTime++;
@@ -353,7 +353,7 @@ void button_task(void) {
 }
 
 void slider_task(void) {
-  t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);           // clamp values for position calculation
+  //t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);           // clamp values for position calculation
 
   t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]); // Check intensity of touch
   t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg, t.slider.isTouchedVal, TOUCH_THRESHOLD_FILTER); // average/Lowpass filter the touch intesity

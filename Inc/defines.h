@@ -38,9 +38,9 @@
 
 #define STANDBY_TIME      3     // turn off EO after 3 min idle
 #define TURNOFF_TIME 		  60		// sets the time to count to before turning off
-#define BUTTON_THRESHOLD  -1000	// sets the threshold at which a button press has to be triggered
-#define IS_TOUCHED_DELTA  300  // sets the threshold for a slider detection event
-#define IS_RELEASED_DELTA -600 // sets the threshold for a slider release event
+#define BUTTON_THRESHOLD  -2000	// sets the threshold at which a button press has to be triggered
+#define IS_TOUCHED_DELTA  600  // sets the threshold for a slider detection event
+#define IS_RELEASED_DELTA -300 // sets the threshold for a slider release event
 #define IS_RELEASED_ABS   -1000 // sets the threshold for slider release
 
 #define CURRENT_CUTOFF		1.0f 	// sets the threshold at which the boost will be turned off
@@ -66,7 +66,7 @@
 #endif
 */
 #define TOUCH_SCALE 62.5f
-#define UI_DEBOUNCE_VAL 10
+#define UI_DEBOUNCE_VAL 14
 
 // ############################################################# //
 // Automatic calculated Values, please use the variables above
