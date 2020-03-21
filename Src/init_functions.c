@@ -289,7 +289,10 @@ void HRTIM1_Init(void)
   hhrtim1.Init.HRTIMInterruptResquests  = HRTIM_IT_NONE;
   hhrtim1.Init.SyncOptions              = HRTIM_SYNCOPTION_NONE;
   HAL_HRTIM_Init(&hhrtim1);
+  HAL_HRTIM_DLLCalibrationStart(&hhrtim1, HRTIM_CALIBRATIONRATE_7300);
+  HAL_HRTIM_PollForDLLCalibration(&hhrtim1, 100);
 
+  /*
   HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1);
 
   // Select internal fault source (FLT_1)
@@ -310,10 +313,11 @@ void HRTIM1_Init(void)
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_3, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
+  */
 
 
   // Set the frequency and period
-  pTimeBaseCfg.Period             = HRTIM_PERIOD;
+  pTimeBaseCfg.Period             = HRTIM_PERIOD+31;
   pTimeBaseCfg.RepetitionCounter  = REG_CNT;
   pTimeBaseCfg.PrescalerRatio     = HRTIM_PRESCALERRATIO_MUL32;
   pTimeBaseCfg.Mode               = HRTIM_MODE_CONTINUOUS;
@@ -335,7 +339,7 @@ void HRTIM1_Init(void)
   pTimerCfg.ResetUpdate           = HRTIM_TIMUPDATEONRESET_DISABLED;
   pTimerCfg.InterruptRequests     = HRTIM_TIM_IT_REP;
   pTimerCfg.PushPull              = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT2 |  HRTIM_TIMFAULTENABLE_FAULT3;
+  //pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT2 |  HRTIM_TIMFAULTENABLE_FAULT3;
   pTimerCfg.FaultLock             = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion     = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
@@ -357,9 +361,14 @@ void HRTIM1_Init(void)
   pOutputCfg.ChopperModeEnable      = HRTIM_OUTPUTCHOPPERMODE_DISABLED;
   pOutputCfg.BurstModeEntryDelayed  = HRTIM_OUTPUTBURSTMODEENTRY_REGULAR;
 
+  // settings for the injected ADC
+  compare_config.CompareValue       = 32;
+
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_OUTPUT_TC1, &pOutputCfg);
+  HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_COMPAREUNIT_1, &compare_config);
 
   HAL_HRTIM_WaveformOutputConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_OUTPUT_TD1, &pOutputCfg);
+  HAL_HRTIM_WaveformCompareConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_COMPAREUNIT_1, &compare_config);
 
   // settings for the injected ADC
   compare_config.AutoDelayedMode    = HRTIM_AUTODELAYEDMODE_REGULAR;
@@ -375,6 +384,14 @@ void HRTIM1_Init(void)
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, &pTimeBaseCfg);
 
   HAL_HRTIM_TimeBaseConfig(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, &pTimeBaseCfg);
+
+  HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_MASTER);
+
+  HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TD1);
+  HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_D);
+
+  HAL_HRTIM_WaveformOutputStart(&hhrtim1, HRTIM_OUTPUT_TC1);
+  HAL_HRTIM_WaveformCounterStart(&hhrtim1, HRTIM_TIMERID_TIMER_C);
 
   HAL_HRTIM_MspPostInit(&hhrtim1);
 
@@ -657,6 +674,10 @@ void start_HRTIM1(void) {
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT2);
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT2);
 
+  __HAL_HRTIM_CLEAR_IT(&hhrtim1, HRTIM_IT_FLT3);
+  __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_C, HRTIM_IT_FLT3);
+  __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT3);
+
   __HAL_HRTIM_MASTER_ENABLE_IT(&hhrtim1, HRTIM_MASTER_IT_MREP);
 
   r.CW.target = 150.0f;
@@ -666,12 +687,4 @@ void start_HRTIM1(void) {
 
   // Enable HRTIM timers
   __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_MASTER);
-  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_C);
-  __HAL_HRTIM_ENABLE(&hhrtim1, HRTIM_TIMERID_TIMER_D);
-
-  // Enable outputs
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
-  //HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
-  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
-  //HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC2OEN;
 }

@@ -72,6 +72,7 @@ uint8_t moodlight = 0;
 uint8_t party = 0;
 double colorOffset;
 uint32_t standby = 0;
+uint16_t _i = 0;
 
 int main(void)
 {
@@ -130,7 +131,6 @@ int main(void)
   otter.h = 0;
   otter.s = 1.0;
   otter.v = 1.0;
-
   while (1)
   {
     HAL_Delay(10);

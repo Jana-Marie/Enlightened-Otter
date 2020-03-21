@@ -28,7 +28,7 @@
 #define REG_CNT 			50	 	// sets the number of HRTIM passes to the next controller pass
 #define KI 					0.2f // sets the KI constant for the current regulator - do not change unless you know what you're doing
 
-#define MIN_DUTY 	0.002f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
+#define MIN_DUTY 	0.007f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define CURRENT_AVERAGING_FILTER 	0.95f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
