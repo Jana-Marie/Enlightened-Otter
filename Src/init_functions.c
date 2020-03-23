@@ -541,8 +541,8 @@ void TSC_Init(void)
   htscs.Init.CTPulseHighLength        = TSC_CTPH_1CYCLE;
   htscs.Init.CTPulseLowLength         = TSC_CTPL_1CYCLE;
   htscs.Init.SpreadSpectrum           = ENABLE;
-  htscs.Init.SpreadSpectrumDeviation  = 127;
-  htscs.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV2;
+  htscs.Init.SpreadSpectrumDeviation  = 32;
+  htscs.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV1;
   htscs.Init.PulseGeneratorPrescaler  = TSC_PG_PRESC_DIV64;
   htscs.Init.MaxCountValue            = TSC_MCV_16383;
   htscs.Init.IODefaultMode            = TSC_IODEF_OUT_PP_LOW;
@@ -559,8 +559,8 @@ void TSC_Init(void)
   htscb.Init.CTPulseHighLength        = TSC_CTPH_1CYCLE;
   htscb.Init.CTPulseLowLength         = TSC_CTPL_1CYCLE;
   htscb.Init.SpreadSpectrum           = ENABLE;
-  htscb.Init.SpreadSpectrumDeviation  = 127;
-  htscb.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV2;
+  htscb.Init.SpreadSpectrumDeviation  = 32;
+  htscb.Init.SpreadSpectrumPrescaler  = TSC_SS_PRESC_DIV1;
   htscb.Init.PulseGeneratorPrescaler  = TSC_PG_PRESC_DIV64;
   htscb.Init.MaxCountValue            = TSC_MCV_16383;
   htscb.Init.IODefaultMode            = TSC_IODEF_OUT_PP_LOW;

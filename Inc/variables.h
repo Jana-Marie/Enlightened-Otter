@@ -79,8 +79,10 @@ struct UI_t {           // storage for ui task
   int16_t distance;     // contains current slider position
   int16_t distanceOld;  // contains the old slider position (after 1 cycle)
   float brightness;     // calculated target brightness
-  float brightnessAvg;  // calculated target brightness averaged
+  float brightnessLast[4];  // calculated target brightness averaged
+  float brightnessAvg;
   float color;          // a value from 0.0f to 1.0f defining the current color porportions
-  float colorAvg;       // a value from 0.0f to 1.0f defining the current color porportions averaged
+  float colorLast[4];       // a value from 0.0f to 1.0f defining the current color porportions averaged
+  float colorAvg;
   uint8_t debounce;     // debounce counter
 };

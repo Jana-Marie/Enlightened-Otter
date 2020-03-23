@@ -59,9 +59,9 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {3000, 3000, 4000}, .button.offsetValue = {1, 5000, 6000}, .button.CBSwitch = 0};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {3000, 3000, 4000}, .button.offsetValue = {1, 5000, 6000}, .button.CBSwitch = 0, .button.state = 1};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 150.0f, .CW.target = 150.0f};
-struct UI_t ui = {.colorAvg = 0.7, .color = 0.7, .brightnessAvg = 10, .brightness = 10};
+struct UI_t ui = {.color = 0.7, .brightness = 10};
 struct status_t stat = {.vBat = 4.2};
 extern uint16_t write_buffer[LED_BUFFER_SIZE];
 
@@ -73,6 +73,7 @@ uint8_t party = 0;
 double colorOffset;
 uint32_t standby = 0;
 uint16_t _i = 0;
+uint16_t tsc_wdg = 0;
 
 int main(void)
 {
@@ -205,6 +206,7 @@ int main(void)
     HAL_ADC_Start(&hadc1);
     if ((stat.vBat > 1.5f && stat.vBat < 2.9f) || stat.state == -1) powerdown();
   }
+
 }
 
 HAL_HRTIM_RepetitionEventCallback(HRTIM_HandleTypeDef * hhrtim, uint32_t TimerIdx){
@@ -246,14 +248,10 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
   if (chan) {
-    //r.WW.target = gammaTable[(int)(target_tmp)];  // New gamma calculation
     r.WW.target = gamma_calc(target_tmp);       // possibly replaces this one
-    //r.WW.targetNoGamma = target_tmp;              // if needed
   }
   else if (!chan) {
-    //r.CW.target = gammaTable[(int)(target_tmp)];  //
     r.CW.target = gamma_calc(target_tmp);  //
-    //r.CW.targetNoGamma = target_tmp;  //
   }
 }
 
@@ -266,19 +264,19 @@ void TSC_task(void) {
     if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;    // left channel has double the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;                        // limit the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
-
+    if(t.slider.acquisitionValue[t.IdxBank] > 500) t.slider.acquisitionValue[t.IdxBank] = 500;
     slider_task();
 
     HAL_TSC_IOConfig(&htscb, &IoConfigb);
     HAL_TSC_IODischarge(&htscb, ENABLE);
     __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE));
     HAL_TSC_Start_IT(&htscb);
-  } else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED)
-  {
+
+  } else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED) {
     t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
     t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
     t.button.acquisitionValue[t.IdxBank] = FILT(t.button.acquisitionValue[t.IdxBank], t.button.acquisitionValue[t.IdxBank], 0.98); // average/Lowpass filter the touch intesity
-
+    if(t.button.acquisitionValue[t.IdxBank] > 500) t.button.acquisitionValue[t.IdxBank] = 500;
     button_task();
 
     HAL_TSC_IOConfig(&htscs, &IoConfigs);
@@ -307,6 +305,9 @@ void TSC_task(void) {
   default:
     break;
   }
+
+  tsc_wdg = 0;
+
   UI_task();
 }
 
@@ -322,9 +323,10 @@ void button_task(void) {
     t.button.isTouchedTime++;
   } else {
     _powButton = 0;
+    t.button.isTouchedTime = 0;
   }
 
-  // "hard" Off state maschine
+  // "hard" Off state maschine //WIP tofix isTouchedTime does not trigger moodlight
 
   if (t.button.isTouchedTime > TURNOFF_TIME && _powButton) {
     stat.state = -1;// when the counter target is reached, turn off via richtek "shipping" mode
@@ -358,11 +360,10 @@ void slider_task(void) {
   t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]); // Check intensity of touch
   t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg, t.slider.isTouchedVal, TOUCH_THRESHOLD_FILTER); // average/Lowpass filter the touch intesity
 
-  int16_t _isTouchedDelta = t.slider.isTouchedValAvg - t.slider.isTouchedVal; // caltulate delta from current intesity to averaged intesity
+  //int16_t _isTouchedDelta = t.slider.isTouchedValAvg - t.slider.isTouchedVal; // caltulate delta from current intesity to averaged intesity
 
-  if      (_isTouchedDelta > IS_TOUCHED_DELTA)          t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
-  else if (_isTouchedDelta < IS_RELEASED_DELTA)         t.slider.isTouched = 0; // if delta is lower then x, touch up was detected
-  else if (t.slider.isTouchedValAvg > IS_RELEASED_ABS)  t.slider.isTouched = 0; // std value, if no touch is present
+  if      (t.slider.isTouchedValAvg < IS_TOUCHED_ABS)   t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
+  else if (t.slider.isTouchedValAvg > IS_RELEASED_ABS)    t.slider.isTouched = 0; // std value, if no touch is present
 
   if (t.slider.isTouched ) {
     int16_t x = ((t.slider.acquisitionValue[1] + t.slider.acquisitionValue[2]) / 2) - t.slider.acquisitionValue[0];
@@ -387,6 +388,7 @@ void UI_task(void) {
 
         if (SLIDER_BEHAVIOR == REL) {
           if (ABS(t.slider.pos - ui.distanceOld) < 200) ui.distance += ui.distanceOld - t.slider.pos;        // calculate t.slider.pos delta
+          ui.distanceOld = t.slider.pos;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
         } else if (SLIDER_BEHAVIOR == AB){
           ui.distance = (MAX_CURRENT - (t.slider.pos - 30)) ;
         }
@@ -401,20 +403,35 @@ void UI_task(void) {
       if (t.button.CBSwitch == 0) ui.distance = ui.brightness;          // prevents jumps when switching between modes
       if (t.button.CBSwitch == 1) ui.distance = ui.color * MAX_CURRENT; // prevents jumps when switching between modes
 
-      ui.distanceOld = t.slider.pos;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
+      if(ui.brightnessLast[0] != ui.brightness){
+        for (int k = 4; k > 0; k--){
+            ui.brightnessLast[k] = ui.brightnessLast[k-1];
+        }
+      }
+      ui.brightnessLast[0] = ui.brightness;
+
+      if(ui.colorLast[0] != ui.color){
+        for (int k = 4; k > 0; k--){
+            ui.colorLast[k] = ui.colorLast[k-1];
+        }
+      }
+      ui.colorLast[0] = ui.color;
+
     } else ui.debounce = 0;                 // clear douncer if slider is not touched
-  } else if (!t.button.state) _enable = 0;  // if button state is 0 disable output
+  } else if (!t.button.state) {
+    _enable = 0;
+  }  // if button state is 0 disable output
 
-  if ((ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness) && _enable) {      // smooth out color value until target is reached and output is enabled
-    ui.colorAvg = FILT(ui.colorAvg, ui.color, COLOR_FADING_FILTER);                     // moving average filter with fixed constants for the color mixing
-    ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightness, BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants for the brightness
-
+  if (_enable && (ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness)) {      // smooth out color value until target is reached and output is enabled
+    ui.colorAvg = FILT(ui.colorAvg, ui.colorLast[3], COLOR_FADING_FILTER);                     // moving average filter with fixed constants for the color mixing
+    ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightnessLast[3], BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants for the brightness
     set_brightness(CHAN_CW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set CW brightness accordingly to output
     set_brightness(CHAN_WW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set WW brightness accordingly to output
   } else {                                                    // if output is not enabled - brightness and color are ignored here
     set_brightness(CHAN_CW, 0.0f, ui.colorAvg, MAX_CURRENT);  // set CW output to 0
     set_brightness(CHAN_WW, 0.0f, ui.colorAvg, MAX_CURRENT);  // set WW output to 0
   }
+
   LED_task();
 }
 
