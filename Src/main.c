@@ -59,7 +59,7 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {3000, 3000, 4000}, .button.offsetValue = {1, 5000, 6000}, .button.CBSwitch = 0, .button.state = 1};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {2200, 1900, 2350}, .button.offsetValue = {1, 3000, 3600}, .button.CBSwitch = 0, .button.state = 1};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 150.0f, .CW.target = 150.0f};
 struct UI_t ui = {.color = 0.7, .brightness = 10};
 struct status_t stat = {.vBat = 4.2};
@@ -119,7 +119,7 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
   HAL_TSC_Start_IT(&htscb);   // start the touch button controller
-  HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
+  //HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
 
   HAL_ADC_Start(&hadc1);
 
@@ -283,6 +283,12 @@ void TSC_task(void) {
     HAL_TSC_IODischarge(&htscs, ENABLE);
     __HAL_TSC_CLEAR_FLAG(&htscs, (TSC_FLAG_EOA | TSC_FLAG_MCE));
     HAL_TSC_Start_IT(&htscs);
+  } else {
+
+    HAL_TSC_IOConfig(&htscb, &IoConfigb);
+    HAL_TSC_IODischarge(&htscb, ENABLE);
+    __HAL_TSC_CLEAR_FLAG(&htscb, (TSC_FLAG_EOA | TSC_FLAG_MCE));
+    HAL_TSC_Start_IT(&htscb);
   }
 
   switch (t.IdxBank)
@@ -305,8 +311,6 @@ void TSC_task(void) {
   default:
     break;
   }
-
-  tsc_wdg = 0;
 
   UI_task();
 }
@@ -355,12 +359,8 @@ void button_task(void) {
 }
 
 void slider_task(void) {
-  //t.slider.acquisitionValue[t.IdxBank] = CLAMP(t.slider.acquisitionValue[t.IdxBank], -2000, 0);           // clamp values for position calculation
-
   t.slider.isTouchedVal = MIN(MIN(t.slider.acquisitionValue[0], t.slider.acquisitionValue[1]), t.slider.acquisitionValue[2]); // Check intensity of touch
   t.slider.isTouchedValAvg = FILT(t.slider.isTouchedValAvg, t.slider.isTouchedVal, TOUCH_THRESHOLD_FILTER); // average/Lowpass filter the touch intesity
-
-  //int16_t _isTouchedDelta = t.slider.isTouchedValAvg - t.slider.isTouchedVal; // caltulate delta from current intesity to averaged intesity
 
   if      (t.slider.isTouchedValAvg < IS_TOUCHED_ABS)   t.slider.isTouched = 1; // if delta is larger then x, touch down was detected
   else if (t.slider.isTouchedValAvg > IS_RELEASED_ABS)    t.slider.isTouched = 0; // std value, if no touch is present
@@ -390,7 +390,7 @@ void UI_task(void) {
           if (ABS(t.slider.pos - ui.distanceOld) < 200) ui.distance += ui.distanceOld - t.slider.pos;        // calculate t.slider.pos delta
           ui.distanceOld = t.slider.pos;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
         } else if (SLIDER_BEHAVIOR == AB){
-          ui.distance = (MAX_CURRENT - (t.slider.pos - 30)) ;
+          ui.distance = ((MAX_CURRENT - t.slider.pos) - 30 )*1.3;
         }
 
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
@@ -398,24 +398,36 @@ void UI_task(void) {
         if (t.button.CBSwitch == 0) ui.brightness = ui.distance;          // if color/brightness switch is 0 then change brightness
         if (t.button.CBSwitch == 1) ui.color = ui.distance / MAX_CURRENT; // if color/brightness switch is 1 then change the color - scale from 0 to 1
 
-      } else ui.debounce++;   // increase debounce counter until counter-target is reached
+        if(ui.brightnessLast[0] != ui.brightness){
+          for (int k = 4; k > 0; k--){
+              ui.brightnessLast[k] = ui.brightnessLast[k-1];
+          }
+        }
+        ui.brightnessLast[0] = ui.brightness;
+
+        if(ui.colorLast[0] != ui.color){
+          for (int k = 4; k > 0; k--){
+              ui.colorLast[k] = ui.colorLast[k-1];
+          }
+        }
+        ui.colorLast[0] = ui.color;
+
+      } else{
+         ui.debounce++;   // increase debounce counter until counter-target is reached
+
+         for (int k = 4; k > 0; k--){
+             ui.brightnessLast[k] = ui.brightnessLast[3];
+         }
+
+         for (int k = 4; k > 0; k--){
+             ui.colorLast[k] =  ui.colorLast[3];
+         }
+
+      }
 
       if (t.button.CBSwitch == 0) ui.distance = ui.brightness;          // prevents jumps when switching between modes
       if (t.button.CBSwitch == 1) ui.distance = ui.color * MAX_CURRENT; // prevents jumps when switching between modes
 
-      if(ui.brightnessLast[0] != ui.brightness){
-        for (int k = 4; k > 0; k--){
-            ui.brightnessLast[k] = ui.brightnessLast[k-1];
-        }
-      }
-      ui.brightnessLast[0] = ui.brightness;
-
-      if(ui.colorLast[0] != ui.color){
-        for (int k = 4; k > 0; k--){
-            ui.colorLast[k] = ui.colorLast[k-1];
-        }
-      }
-      ui.colorLast[0] = ui.color;
 
     } else ui.debounce = 0;                 // clear douncer if slider is not touched
   } else if (!t.button.state) {
