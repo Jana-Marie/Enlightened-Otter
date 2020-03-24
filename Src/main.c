@@ -59,21 +59,18 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {2200, 1900, 2350}, .button.offsetValue = {1, 3000, 3600}, .button.CBSwitch = 0, .button.state = 1};
-struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 150.0f, .CW.target = 150.0f};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1500, 1500, 1800}, .button.offsetValue = {1, 2700, 3300}, .button.CBSwitch = 0, .button.state = 1};
+struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
 struct UI_t ui = {.color = 0.7, .brightness = 10};
 struct status_t stat = {.vBat = 4.2};
 extern uint16_t write_buffer[LED_BUFFER_SIZE];
 
-uint16_t otterStat = 0;
 hsv otter;
 rgb otter_rgb;
 uint8_t moodlight = 0;
 uint8_t party = 0;
 double colorOffset;
 uint32_t standby = 0;
-uint16_t _i = 0;
-uint16_t tsc_wdg = 0;
 
 int main(void)
 {
@@ -94,7 +91,6 @@ int main(void)
   DAC1_Init();
   DAC2_Init();
   TIM1_Init();
-  //TIM15_Init();
   TIM16_Init();
 
   HAL_COMP_Start(&hcomp2);
@@ -119,7 +115,6 @@ int main(void)
   HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_4);
 
   HAL_TSC_Start_IT(&htscb);   // start the touch button controller
-  //HAL_TSC_Start_IT(&htscs);   // start the touch slider controller
 
   HAL_ADC_Start(&hadc1);
 
@@ -138,6 +133,7 @@ int main(void)
     //otterStat = read_RT_register(0x11);
     //RT_adc_task();
     // WIP move to sk6812.c file, optimize
+    /*
     if(moodlight && !t.slider.isTouched){
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
       for(int i = 0; i <= 5; i++){
@@ -193,20 +189,19 @@ int main(void)
     } else {
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,1);
     }
+    */
 
     if(t.button.state || party || moodlight){
       standby = HAL_GetTick();
     } else {
-      if(standby + STANDBY_TIME_CALC < HAL_GetTick()){
-        stat.state = -1;
-      }
+      if(standby + STANDBY_TIME_CALC < HAL_GetTick()) stat.state = -1;
     }
 
     stat.vBat = FILT(ADC2VBAT(HAL_ADC_GetValue(&hadc1)),stat.vBat,0.95);
     HAL_ADC_Start(&hadc1);
+
     if ((stat.vBat > 1.5f && stat.vBat < 2.9f) || stat.state == -1) powerdown();
   }
-
 }
 
 HAL_HRTIM_RepetitionEventCallback(HRTIM_HandleTypeDef * hhrtim, uint32_t TimerIdx){
@@ -247,12 +242,8 @@ void set_brightness(uint8_t chan, float brightness, float color, float max_value
 
   target_tmp = CLAMP((brightness * color_tmp), 0.0f, max_value);  // calculate brightness accordingly and clamp it
 
-  if (chan) {
-    r.WW.target = gamma_calc(target_tmp);       // possibly replaces this one
-  }
-  else if (!chan) {
-    r.CW.target = gamma_calc(target_tmp);  //
-  }
+  if (chan)       r.WW.target = gamma_calc(target_tmp);
+  else if (!chan) r.CW.target = gamma_calc(target_tmp);
 }
 
 void TSC_task(void) {
@@ -264,6 +255,10 @@ void TSC_task(void) {
     if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;    // left channel has double the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;                        // limit the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
+    if(r.CW.target > 100.0f || r.WW.target > 100.0f){
+      if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] = (t.slider.acquisitionValue[t.IdxBank] + 900 ) *2;
+      if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = (t.slider.acquisitionValue[t.IdxBank] + 900 ) *2;
+    }
     if(t.slider.acquisitionValue[t.IdxBank] > 500) t.slider.acquisitionValue[t.IdxBank] = 500;
     slider_task();
 
@@ -299,7 +294,6 @@ void TSC_task(void) {
     t.IdxBank = 1;
     break;
   case 1:
-    //IoConfigb.ChannelIOs = TSC_GROUP5_IO3;
     IoConfigs.ChannelIOs = TSC_GROUP1_IO2;
     t.IdxBank = 2;
     break;

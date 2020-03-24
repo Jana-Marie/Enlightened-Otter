@@ -57,7 +57,6 @@ extern TSC_HandleTypeDef htscb;
 
 extern HRTIM_HandleTypeDef hhrtim1;
 
-extern void boost_reg(void);
 extern void TSC_task(void);
 
 /******************************************************************************/

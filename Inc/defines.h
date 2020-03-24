@@ -25,34 +25,34 @@
 
 #define HRTIM_FREQUENCY_KHZ 500.0f 	// sets the frequency of the PWM output channels maximum frequency (8 bit PWM): 18Mhz (18000.0) SHOULD BE DIVIDABLE BY 2
  									// 250.2f,300.0f,350.0f,400.0f,450.0f,500.0f,550.0f,600.0f,650.1f,700.1f,750.0f,800.0f
-#define REG_CNT 			10	 	// sets the number of HRTIM passes to the next controller pass
+#define REG_CNT 		10	 // sets the number of HRTIM passes to the next controller pass
 #define KI 					0.4f // sets the KI constant for the current regulator - do not change unless you know what you're doing
 
 #define MIN_DUTY 	0.007f 	// sets the minimum duty cycle that the regulation can reach, can be left at 0.002
 #define MAX_DUTY 	0.83f 	// sets the maximum duty cycle that the regulation can reach, should not exceed a certain but by now uncertain value
 
 #define CURRENT_AVERAGING_FILTER 	0.90f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
-#define COLOR_FADING_FILTER 		0.9f	// koeffizient of color cross fading filter
+#define COLOR_FADING_FILTER 		  0.90f	// koeffizient of color cross fading filter
 #define BRIGHTNESS_FADING_FILTER 	0.99f	// koeffizient of brightness fading filter
 #define TOUCH_THRESHOLD_FILTER		0.55f
 
-#define STANDBY_TIME      4     // turn off EO after 3 min idle
+#define STANDBY_TIME      4     // turn off EO after 4 min idle
 #define TURNOFF_TIME 		  60		// sets the time to count to before turning off
 #define BUTTON_THRESHOLD  -1300	// sets the threshold at which a button press has to be triggered
-#define IS_TOUCHED_ABS  -1100  // sets the threshold for a slider detection event
-#define IS_RELEASED_ABS -900 // sets the threshold for slider release
+#define IS_TOUCHED_ABS    -700  // sets the threshold for a slider detection event
+#define IS_RELEASED_ABS   -500 // sets the threshold for slider release
 
 #define CURRENT_CUTOFF		0.6f 	// sets the threshold at which the boost will be turned off
 
 #define SLIDER_BEHAVIOR		AB 	// 0 = AB = Absolute, 1 = REL = relative
 
-#define SHUNT 0.22f
-#define SHUNT_SERIE 1000
-#define SHUNT_PULLUP 220000
-#define AREF 2.9f
-#define ARES 4096.0f
-#define SHUNT_GAIN  19.3333f
-#define BATT_PULLUP 220000.0f
+#define SHUNT         0.22f
+#define SHUNT_SERIE   1000
+#define SHUNT_PULLUP  220000
+#define AREF          2.9f
+#define ARES          4096.0f
+#define SHUNT_GAIN    19.3333f
+#define BATT_PULLUP   220000.0f
 #define BATT_PULLDOWN 47000.0f
 
 #define FAULT_CURRENT		(int)(3900) 	// Overcurrent set to ~590mA
@@ -64,7 +64,7 @@
 #define TOUCH_SCALE 62.5f   	// sets the touch slider scale - I have No idea anymore how this works
 #endif
 */
-#define TOUCH_SCALE 62.5f
+#define TOUCH_SCALE     62.5f
 #define UI_DEBOUNCE_VAL 4
 
 // ############################################################# //
