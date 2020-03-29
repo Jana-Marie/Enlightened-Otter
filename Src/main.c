@@ -59,9 +59,9 @@ void TSC_task(void);
 void LED_task(void);
 void boost_reg();
 
-struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1500, 1500, 1800}, .button.offsetValue = {1, 2700, 3300}, .button.CBSwitch = 0, .button.state = 1};
+struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1000, 1200, 1400}, .button.offsetValue = {1, 2700, 3300}, .button.CBSwitch = 0, .button.state = 1};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
-struct UI_t ui = {.color = 0.7, .brightness = 10};
+struct UI_t ui = {.color = 0.7, .colorLast = {0.7,0.7,0.7,0.7}, .brightness = 10, .brightnessLast = {10,10,10,10}};
 struct status_t stat = {.vBat = 4.2};
 extern uint16_t write_buffer[LED_BUFFER_SIZE];
 
@@ -250,16 +250,24 @@ void TSC_task(void) {
 
   if (HAL_TSC_GroupGetStatus(&htscs, TSC_GROUP1_IDX) == TSC_GROUP_COMPLETED)
   {
+    int16_t _tmp = t.slider.acquisitionValue[t.IdxBank];
     t.slider.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscs, TSC_GROUP1_IDX);
     if (t.IdxBank == 1) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;    // outer channel has only half the strenght
     if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;    // left channel has double the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;                        // limit the strenght
-    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
-    if(r.CW.target > 100.0f || r.WW.target > 100.0f){
-      if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] = (t.slider.acquisitionValue[t.IdxBank] + 900 ) *2;
-      if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] = (t.slider.acquisitionValue[t.IdxBank] + 900 ) *2;
+    //t.slider.acquisitionValue[t.IdxBank] += t.slider.acquisitionValue[t.IdxBank] *ui.colorAvg;
+
+    if(r.CW.target > 100.0f || r.WW.target > 100.0f && ui.colorAvg < 0.73){
+      if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] += 500;
+      if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] += 600;
     }
-    if(t.slider.acquisitionValue[t.IdxBank] > 500) t.slider.acquisitionValue[t.IdxBank] = 500;
+
+    //if(!t.slider.isTouched) t.slider.offsetValue[t.IdxBank] = FILT(t.slider.offsetValue[t.IdxBank], t.slider.acquisitionValue[t.IdxBank], 0.9);
+    t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
+    //t.slider.offsetValue[t.IdxBank] = FILT(t.slider.offsetValue[t.IdxBank], t.slider.acquisitionValue[t.IdxBank], 0.99);
+    //if(t.slider.acquisitionValue[t.IdxBank] > 200) t.slider.acquisitionValue[t.IdxBank] = 200;
+    //
+    t.slider.acquisitionValue[t.IdxBank] = FILT(t.slider.acquisitionValue[t.IdxBank], _tmp, 0.8f);
     slider_task();
 
     HAL_TSC_IOConfig(&htscb, &IoConfigb);
@@ -269,8 +277,9 @@ void TSC_task(void) {
 
   } else if (HAL_TSC_GroupGetStatus(&htscb, TSC_GROUP5_IDX) == TSC_GROUP_COMPLETED) {
     t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
+    t.button.offsetValue[t.IdxBank] = FILT(t.button.offsetValue[t.IdxBank], t.button.acquisitionValue[t.IdxBank], 0.999);
     t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
-    t.button.acquisitionValue[t.IdxBank] = FILT(t.button.acquisitionValue[t.IdxBank], t.button.acquisitionValue[t.IdxBank], 0.98); // average/Lowpass filter the touch intesity
+    //t.button.acquisitionValue[t.IdxBank] = FILT(t.button.acquisitionValue[t.IdxBank], t.button.acquisitionValue[t.IdxBank], 0.98); // average/Lowpass filter the touch intesity
     if(t.button.acquisitionValue[t.IdxBank] > 500) t.button.acquisitionValue[t.IdxBank] = 500;
     button_task();
 
@@ -370,6 +379,16 @@ void slider_task(void) {
     else if (z < y && z < x && x > y) t.slider.pos = ((x * TOUCH_SCALE) / (y + x)) + 4 * TOUCH_SCALE;
     else if (y < x && y < z && z < x) t.slider.pos = 8 * TOUCH_SCALE - ((x * TOUCH_SCALE) / (x + z));
     else if (y < x && y < z && z > x) t.slider.pos = ((z * TOUCH_SCALE) / (x + z)) + 7 * TOUCH_SCALE;
+
+    if (t.slider.pos >= t.slider.posLast + 50 || t.slider.pos <= t.slider.posLast - 50){
+      uint16_t _tmp = t.slider.pos;
+      t.slider.pos = t.slider.posLast;
+      t.slider.posLast = _tmp;
+    } else {
+      t.slider.posLast = t.slider.pos;
+    }
+
+    t.slider.posAvg = FILT(t.slider.posAvg, t.slider.pos, SLIDER_FADING_FILTER);
   }
 }
 
@@ -381,10 +400,10 @@ void UI_task(void) {
       if (ui.debounce >= UI_DEBOUNCE_VAL) {  // "debounce" slider
 
         if (SLIDER_BEHAVIOR == REL) {
-          if (ABS(t.slider.pos - ui.distanceOld) < 200) ui.distance += ui.distanceOld - t.slider.pos;        // calculate t.slider.pos delta
-          ui.distanceOld = t.slider.pos;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
+          if (ABS(t.slider.posAvg - ui.distanceOld) < 200) ui.distance += ui.distanceOld - t.slider.posAvg;        // calculate t.slider.pos delta
+          ui.distanceOld = t.slider.posAvg;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
         } else if (SLIDER_BEHAVIOR == AB){
-          ui.distance = ((MAX_CURRENT - t.slider.pos) - 30 )*1.3;
+          ui.distance = ((MAX_CURRENT - t.slider.posAvg) - 30 )*1.3;
         }
 
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current

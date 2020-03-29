@@ -33,14 +33,15 @@
 
 #define CURRENT_AVERAGING_FILTER 	0.90f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		  0.90f	// koeffizient of color cross fading filter
-#define BRIGHTNESS_FADING_FILTER 	0.99f	// koeffizient of brightness fading filter
-#define TOUCH_THRESHOLD_FILTER		0.55f
+#define BRIGHTNESS_FADING_FILTER 	0.995f	// koeffizient of brightness fading filter
+#define TOUCH_THRESHOLD_FILTER    0.9f
+#define SLIDER_FADING_FILTER		  0.98f
 
 #define STANDBY_TIME      4     // turn off EO after 4 min idle
 #define TURNOFF_TIME 		  60		// sets the time to count to before turning off
-#define BUTTON_THRESHOLD  -1300	// sets the threshold at which a button press has to be triggered
-#define IS_TOUCHED_ABS    -700  // sets the threshold for a slider detection event
-#define IS_RELEASED_ABS   -500 // sets the threshold for slider release
+#define BUTTON_THRESHOLD  -800	// sets the threshold at which a button press has to be triggered
+#define IS_TOUCHED_ABS    -200  // sets the threshold for a slider detection event
+#define IS_RELEASED_ABS   -150 // sets the threshold for slider release
 
 #define CURRENT_CUTOFF		0.6f 	// sets the threshold at which the boost will be turned off
 
