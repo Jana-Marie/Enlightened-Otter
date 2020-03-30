@@ -133,7 +133,7 @@ int main(void)
     //otterStat = read_RT_register(0x11);
     //RT_adc_task();
     // WIP move to sk6812.c file, optimize
-    /*
+
     if(moodlight && !t.slider.isTouched){
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
       for(int i = 0; i <= 5; i++){
@@ -150,7 +150,9 @@ int main(void)
         otter.v = 1.0;
         set_pixel(i,hsv2rgb(otter),write_buffer);
       }
-    } else if (!t.button.CBSwitch && t.slider.isTouched && t.button.state && ui.debounce >= UI_DEBOUNCE_VAL){
+    }
+    /*else if (!t.button.CBSwitch && t.slider.isTouched && t.button.state && ui.debounce >= UI_DEBOUNCE_VAL){
+
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,0);
       for(int i = 0; i <= 5; i++){
         otter.h = 180.0;
@@ -186,10 +188,11 @@ int main(void)
         }
         set_pixel(((i+2)%6),otter_rgb,write_buffer);
       }
-    } else {
+    }
+    */else {
       HAL_GPIO_WritePin(GPIOA,SK6812_EN,1);
     }
-    */
+
 
     if(t.button.state || party || moodlight){
       standby = HAL_GetTick();

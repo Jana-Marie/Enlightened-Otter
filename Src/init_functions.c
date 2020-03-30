@@ -207,7 +207,7 @@ void COMP2_Init(void)
   hcomp2.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp2.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp2.Init.Output            = HRTIM_FAULT_1;
-  hcomp2.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
+  hcomp2.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
   hcomp2.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp2.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp2);
@@ -222,7 +222,7 @@ void COMP4_Init(void)
   hcomp4.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC1_CH2;
   hcomp4.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp4.Init.Output            = HRTIM_FAULT_2;
-  hcomp4.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
+  hcomp4.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
   hcomp4.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp4.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp4);
@@ -237,7 +237,7 @@ void COMP6_Init(void)
   hcomp6.Init.InvertingInput    = COMP_INVERTINGINPUT_DAC2_CH1;
   hcomp6.Init.NonInvertingInput = COMP_NONINVERTINGINPUT_IO1;
   hcomp6.Init.Output            = HRTIM_FAULT_3;
-  hcomp6.Init.OutputPol         = COMP_OUTPUTPOL_NONINVERTED;
+  hcomp6.Init.OutputPol         = COMP_OUTPUTPOL_INVERTED;
   hcomp6.Init.BlankingSrce      = COMP_BLANKINGSRCE_NONE;
   hcomp6.Init.TriggerMode       = COMP_TRIGGERMODE_NONE;
   HAL_COMP_Init(&hcomp6);
@@ -292,7 +292,7 @@ void HRTIM1_Init(void)
   HAL_HRTIM_DLLCalibrationStart(&hhrtim1, HRTIM_CALIBRATIONRATE_7300);
   HAL_HRTIM_PollForDLLCalibration(&hhrtim1, 100);
 
-  /*
+
   HAL_HRTIM_FaultPrescalerConfig(&hhrtim1, HRTIM_FAULTPRESCALER_DIV1);
 
   // Select internal fault source (FLT_1)
@@ -313,7 +313,7 @@ void HRTIM1_Init(void)
   HAL_HRTIM_FaultConfig(&hhrtim1, HRTIM_FAULT_3, &pFaultCfg);
 
   HAL_HRTIM_FaultModeCtl(&hhrtim1, HRTIM_FAULT_3, HRTIM_FAULTMODECTL_ENABLED);
-  */
+
 
 
   // Set the frequency and period
@@ -339,7 +339,7 @@ void HRTIM1_Init(void)
   pTimerCfg.ResetUpdate           = HRTIM_TIMUPDATEONRESET_DISABLED;
   pTimerCfg.InterruptRequests     = HRTIM_TIM_IT_REP;
   pTimerCfg.PushPull              = HRTIM_TIMPUSHPULLMODE_DISABLED;
-  //pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT2 |  HRTIM_TIMFAULTENABLE_FAULT3;
+  pTimerCfg.FaultEnable           = HRTIM_TIMFAULTENABLE_FAULT1 | HRTIM_TIMFAULTENABLE_FAULT2 |  HRTIM_TIMFAULTENABLE_FAULT3;
   pTimerCfg.FaultLock             = HRTIM_TIMFAULTLOCK_READWRITE;
   pTimerCfg.DeadTimeInsertion     = HRTIM_TIMDEADTIMEINSERTION_ENABLED;
   pTimerCfg.DelayedProtectionMode = HRTIM_TIMER_A_B_C_DELAYEDPROTECTION_DISABLED;
@@ -679,6 +679,11 @@ void start_HRTIM1(void) {
   __HAL_HRTIM_TIMER_CLEAR_IT(&hhrtim1, HRTIM_TIMERINDEX_TIMER_D, HRTIM_IT_FLT3);
 
   __HAL_HRTIM_MASTER_ENABLE_IT(&hhrtim1, HRTIM_MASTER_IT_MREP);
+
+  // Enable outputs
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD1OEN;
+  //HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TD2OEN;
+  HRTIM1->sCommonRegs.OENR = HRTIM_OENR_TC1OEN;
 
   //r.CW.target = 150.0f;
   //r.CW.targetNoGamma = 0.0f;
