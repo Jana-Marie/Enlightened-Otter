@@ -680,9 +680,9 @@ void start_HRTIM1(void) {
 
   __HAL_HRTIM_MASTER_ENABLE_IT(&hhrtim1, HRTIM_MASTER_IT_MREP);
 
-  r.CW.target = 150.0f;
+  //r.CW.target = 150.0f;
   //r.CW.targetNoGamma = 0.0f;
-  r.WW.target = 150.0f;
+  //r.WW.target = 150.0f;
   //r.WW.targetNoGamma = 0.0f;
 
   // Enable HRTIM timers

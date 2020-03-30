@@ -33,7 +33,6 @@
 
 #define CURRENT_AVERAGING_FILTER 	0.90f	// koeffizient of current averaging filter 0 = no averaging 1 = infinite averaging
 #define COLOR_FADING_FILTER 		  0.90f	// koeffizient of color cross fading filter
-#define BRIGHTNESS_FADING_FILTER 	0.995f	// koeffizient of brightness fading filter
 #define TOUCH_THRESHOLD_FILTER    0.9f
 #define SLIDER_FADING_FILTER		  0.98f
 

@@ -22,7 +22,10 @@ struct touch_button_t {
   int16_t offsetValue[3];         // register that stores the correction values for all buttons
   uint8_t CBSwitch;               // Stores if color or brightness button was pressed
   uint8_t state;                  // stores the power state
-  uint16_t isTouchedTime;         // stores the time for how long the power button was pressed
+  uint32_t isTouchedTime;         // stores the time for how long the power button was pressed
+  uint32_t isTouchedTime2;         // stores the time for how long the other buttons were pressed
+  uint32_t isTouchedTime3;         // stores the time for how long the other buttons were pressed
+  uint8_t doubleTap[2];
   uint8_t isReleased;             // stores if power button was released
 };
 

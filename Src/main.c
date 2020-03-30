@@ -61,7 +61,7 @@ void boost_reg();
 
 struct touch_t t = {.IdxBank = 0, .slider.offsetValue = {1000, 1200, 1400}, .button.offsetValue = {1, 2700, 3300}, .button.CBSwitch = 0, .button.state = 1};
 struct reg_t r = {.Magiekonstante = (KI * (1.0f / (HRTIM_FREQUENCY_KHZ * 1000.0f) * REG_CNT)), .WW.target = 0.0f, .CW.target = 0.0f};
-struct UI_t ui = {.color = 0.7, .colorLast = {0.7,0.7,0.7,0.7}, .brightness = 10, .brightnessLast = {10,10,10,10}};
+struct UI_t ui = {.color = 0.7, .colorLast = {0.7,0.7,0.7,0.7}, .brightness = 40, .brightnessLast = {40,40,40,40}};
 struct status_t stat = {.vBat = 4.2};
 extern uint16_t write_buffer[LED_BUFFER_SIZE];
 
@@ -255,19 +255,13 @@ void TSC_task(void) {
     if (t.IdxBank == 1) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] * 2;    // outer channel has only half the strenght
     if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;    // left channel has double the strenght
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] / 2;                        // limit the strenght
-    //t.slider.acquisitionValue[t.IdxBank] += t.slider.acquisitionValue[t.IdxBank] *ui.colorAvg;
-
-    if(r.CW.target > 100.0f || r.WW.target > 100.0f && ui.colorAvg < 0.73){
-      if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] += 500;
-      if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] += 600;
+    if(ui.brightnessAvg >= 200 && ui.colorAvg >= 0.65){
+      if (t.IdxBank == 0) t.slider.acquisitionValue[t.IdxBank] += 550;
+      if (t.IdxBank == 2) t.slider.acquisitionValue[t.IdxBank] += 500;
     }
-
-    //if(!t.slider.isTouched) t.slider.offsetValue[t.IdxBank] = FILT(t.slider.offsetValue[t.IdxBank], t.slider.acquisitionValue[t.IdxBank], 0.9);
     t.slider.acquisitionValue[t.IdxBank] = t.slider.acquisitionValue[t.IdxBank] - t.slider.offsetValue[t.IdxBank];
-    //t.slider.offsetValue[t.IdxBank] = FILT(t.slider.offsetValue[t.IdxBank], t.slider.acquisitionValue[t.IdxBank], 0.99);
-    //if(t.slider.acquisitionValue[t.IdxBank] > 200) t.slider.acquisitionValue[t.IdxBank] = 200;
-    //
     t.slider.acquisitionValue[t.IdxBank] = FILT(t.slider.acquisitionValue[t.IdxBank], _tmp, 0.8f);
+
     slider_task();
 
     HAL_TSC_IOConfig(&htscb, &IoConfigb);
@@ -279,8 +273,8 @@ void TSC_task(void) {
     t.button.acquisitionValue[t.IdxBank] = HAL_TSC_GroupGetValue(&htscb, TSC_GROUP5_IDX);
     t.button.offsetValue[t.IdxBank] = FILT(t.button.offsetValue[t.IdxBank], t.button.acquisitionValue[t.IdxBank], 0.999);
     t.button.acquisitionValue[t.IdxBank] = t.button.acquisitionValue[t.IdxBank] - t.button.offsetValue[t.IdxBank];
-    //t.button.acquisitionValue[t.IdxBank] = FILT(t.button.acquisitionValue[t.IdxBank], t.button.acquisitionValue[t.IdxBank], 0.98); // average/Lowpass filter the touch intesity
     if(t.button.acquisitionValue[t.IdxBank] > 500) t.button.acquisitionValue[t.IdxBank] = 500;
+
     button_task();
 
     HAL_TSC_IOConfig(&htscs, &IoConfigs);
@@ -322,9 +316,15 @@ void button_task(void) {
   uint8_t _powButton;
   t.button.acquisitionValue[0] = HAL_GPIO_ReadPin(GPIOB,GPIO_PIN_6);
   if (t.button.acquisitionValue[2] < BUTTON_THRESHOLD) {
+    if(t.button.CBSwitch == 0 && t.button.isTouchedTime3 + 500 <= HAL_GetTick()){ //wip
+      ui.brightnessLast[3] = 499;
+    }
     t.button.CBSwitch = 0; // switch color or brightness selector
+    t.button.isTouchedTime3 = HAL_GetTick();
+    t.button.isTouchedTime2++;
   } else if (t.button.acquisitionValue[1] < BUTTON_THRESHOLD) {
     t.button.CBSwitch = 1;
+    t.button.isTouchedTime2++;
   } else if (t.button.acquisitionValue[0] == 0 && t.button.acquisitionValue[1] > BUTTON_THRESHOLD && t.button.acquisitionValue[2] > BUTTON_THRESHOLD) {
     _powButton = 1;        // if the power button is pressed set to 1
     t.button.isTouchedTime++;
@@ -334,19 +334,23 @@ void button_task(void) {
   }
 
   // "hard" Off state maschine //WIP tofix isTouchedTime does not trigger moodlight
-
   if (t.button.isTouchedTime > TURNOFF_TIME && _powButton) {
     stat.state = -1;// when the counter target is reached, turn off via richtek "shipping" mode
     t.button.isTouchedTime = 0;
-  } else if (t.button.isTouchedTime > TURNOFF_TIME && t.button.CBSwitch) {
+  }
+
+  // Enable moodlight
+
+  if (t.button.isTouchedTime2 > TURNOFF_TIME && t.button.CBSwitch) {
     moodlight ^= 1;
     party = 0;
-    t.button.isTouchedTime = 0;
-  } else if (t.button.isTouchedTime > TURNOFF_TIME && !t.button.CBSwitch) {
+    t.button.isTouchedTime2 = 0;
+  } else if (t.button.isTouchedTime2 > TURNOFF_TIME && !t.button.CBSwitch) {
     party ^= 1;
     moodlight = 0;
-    t.button.isTouchedTime = 0;
+    t.button.isTouchedTime2 = 0;
   }
+
 
   // power button state maschine
   if (t.button.isReleased) {                       // power button state maschine start if button was released, waiting for the next press
@@ -403,7 +407,7 @@ void UI_task(void) {
           if (ABS(t.slider.posAvg - ui.distanceOld) < 200) ui.distance += ui.distanceOld - t.slider.posAvg;        // calculate t.slider.pos delta
           ui.distanceOld = t.slider.posAvg;        // set ui.distanceOld to current t.slider.pos so the delta will be 0
         } else if (SLIDER_BEHAVIOR == AB){
-          ui.distance = ((MAX_CURRENT - t.slider.posAvg) - 30 )*1.3;
+          ui.distance = ((MAX_CURRENT - t.slider.posAvg) - 50 )*1.3;
         }
 
         ui.distance = CLAMP(ui.distance, 0.0f, MAX_CURRENT);  // clamp it to the maximum current
@@ -449,7 +453,7 @@ void UI_task(void) {
 
   if (_enable && (ui.colorAvg != ui.color || ui.brightnessAvg != ui.brightness)) {      // smooth out color value until target is reached and output is enabled
     ui.colorAvg = FILT(ui.colorAvg, ui.colorLast[3], COLOR_FADING_FILTER);                     // moving average filter with fixed constants for the color mixing
-    ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightnessLast[3], BRIGHTNESS_FADING_FILTER); // moving average filter with fixed constants for the brightness
+    ui.brightnessAvg = FILT(ui.brightnessAvg, ui.brightnessLast[3], 0.95f); // moving average filter with fixed constants for the brightness
     set_brightness(CHAN_CW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set CW brightness accordingly to output
     set_brightness(CHAN_WW, ui.brightnessAvg, ui.colorAvg, MAX_CURRENT);  // set WW brightness accordingly to output
   } else {                                                    // if output is not enabled - brightness and color are ignored here
@@ -476,6 +480,12 @@ void _Error_Handler(char * file, int line)
 {
   while (1)
   {
+    HAL_GPIO_WritePin(GPIOB, LED_Brightness, 0);                  // clear LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, 0);                       // clear LED "Color"
+    HAL_Delay(600);
+    HAL_GPIO_WritePin(GPIOB, LED_Brightness, 1);                  // clear LED "Brightness"
+    HAL_GPIO_WritePin(GPIOA, LED_Color, 1);                       // clear LED "Color"
+    HAL_Delay(600);
   }
 }
 
